@@ -12,5 +12,5 @@ def multipliziere(a, b):
 
 def dividiere(a, b):
     if b == 0:
-        raise ValuError("Division durch Null ist nicht erlaubt")
+        raise ValueError("Division durch Null ist nicht erlaubt")
     return a / b
