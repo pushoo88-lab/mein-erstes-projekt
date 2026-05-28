@@ -13,7 +13,7 @@ print(multipliziere(3, 4))  # 12
 print(dividiere(10, 2))     # 5.0
 ```
 
-## Instalation
+## Installation
 
 Keine Abhängigkeiten notwendig — reines Python 3.
 
