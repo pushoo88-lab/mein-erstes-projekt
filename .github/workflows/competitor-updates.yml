@@ -1,0 +1,50 @@
+name: Wöchentliche Konkurrenz-Updates
+
+on:
+  schedule:
+    # Jeden Samstag 07:00 UTC = 09:00 CEST (Sommerzeit)
+    - cron: '0 7 * * 6'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Nur testen, kein Issue erstellen'
+        required: false
+        default: 'false'
+
+jobs:
+  competitor-research:
+    name: Konkurrenz-Analyse
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Abhängigkeiten installieren
+        run: pip install requests
+
+      - name: Neuigkeiten abrufen & Issue erstellen
+        if: github.event.inputs.dry_run != 'true'
+        run: python .github/scripts/competitor_news.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: Trockentest (kein Issue)
+        if: github.event.inputs.dry_run == 'true'
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, '.github/scripts')
+          from competitor_news import fetch_google_news, COMPETITORS
+          for c in COMPETITORS:
+              items = fetch_google_news(c)
+              print(f'{c}: {len(items)} Artikel gefunden')
+          "
