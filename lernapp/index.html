@@ -118,6 +118,15 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .grade:active { transform: scale(.96); }
 .grade-note { margin: 12px 0 0; color: var(--ink-soft); font-size: 16px; }
 
+.ranges { display: grid; grid-template-columns: repeat(var(--n, 3), 1fr); gap: 10px; }
+.range {
+  min-width: 0; border: 3px solid var(--line); background: var(--key); border-radius: 16px;
+  padding: 10px 8px 8px; display: flex; flex-direction: column; align-items: center; line-height: 1.1;
+}
+.range small { font-size: 13px; color: var(--ink-soft); }
+.range b { font-family: var(--display); font-size: 26px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.range[aria-pressed="true"] { border-color: var(--blue); background: var(--paper); box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 30%, transparent); }
+
 .topics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .topic {
   border: 3px solid var(--line); background: var(--key); border-radius: 16px;
@@ -232,6 +241,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .foot { margin-top: auto; text-align: center; font-size: 14px; color: var(--ink-soft); }
 
 @media (max-width: 420px) {
+  .ranges.four { --n: 2 !important; }
   .grade b { font-size: 34px; }
   .grade small { font-size: 11px; }
   .topic { grid-template-columns: 38px 1fr; padding: 8px 10px; }
@@ -262,10 +272,14 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     <section class="sheet">
       <p class="label">1. In welche Klasse gehst du?</p>
       <div class="grades" id="grades" role="group" aria-label="Klasse"></div>
-      <p class="grade-note" id="gradeNote"></p>
     </section>
     <section class="sheet">
-      <p class="label">2. Was möchtest du üben?</p>
+      <p class="label">2. Bis zu welcher Zahl rechnest du?</p>
+      <div class="ranges" id="ranges" role="group" aria-label="Zahlenraum"></div>
+      <p class="grade-note" id="rangeNote"></p>
+    </section>
+    <section class="sheet">
+      <p class="label">3. Was möchtest du üben?</p>
       <div class="topics" id="topics" role="group" aria-label="Thema"></div>
     </section>
     <button class="go" id="startBtn" type="button">Los geht's!</button>
@@ -321,7 +335,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   const fmt = (n) => n.toLocaleString("de-DE");
-  const round10 = (n) => Math.round(n / 10) * 10;
+  const rangeLabel = (n) => (n === 1000000 ? "1 Mio." : fmt(n));
 
   const store = {
     get(key, fallback) {
@@ -364,72 +378,96 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     mix:     { name: "Bunt gemischt",   sym: "?" },
   };
 
+  // Jede Klasse bietet mehrere Zahlenräume an, je nachdem wie weit die Klasse im Schuljahr ist.
   const GRADES = {
-    1: { range: "bis 20",   note: "Plus und Minus im Zahlenraum bis 20. Die Hilfe zeigt das Zwanzigerfeld.", topics: ["plus", "minus", "luecke", "mix"] },
-    2: { range: "bis 100",  note: "Plus und Minus bis 100 und das kleine Einmaleins.", topics: ["plus", "minus", "mal", "geteilt", "luecke", "mix"] },
-    3: { range: "bis 1000", note: "Rechnen bis 1000, Einmaleins und Zehnereinmaleins.", topics: ["plus", "minus", "mal", "geteilt", "luecke", "mix"] },
-    4: { range: "bis 10.000", note: "Große Zahlen, Malnehmen und Teilen mit mehrstelligen Zahlen.", topics: ["plus", "minus", "mal", "geteilt", "luecke", "mix"] },
+    1: { ranges: [10, 20, 100],                       start: 20,    topics: ["plus", "minus", "luecke", "mix"] },
+    2: { ranges: [20, 50, 100],                       start: 100,   topics: ["plus", "minus", "mal", "geteilt", "luecke", "mix"] },
+    3: { ranges: [100, 500, 1000],                    start: 1000,  topics: ["plus", "minus", "mal", "geteilt", "luecke", "mix"] },
+    4: { ranges: [1000, 10000, 100000, 1000000],      start: 10000, topics: ["plus", "minus", "mal", "geteilt", "luecke", "mix"] },
+  };
+
+  const RANGE_NOTES = {
+    10: "Kleine Zahlen bis 10. Gut für den Anfang.",
+    20: "Rechnen im Zwanzigerraum. Die Hilfe zeigt das Zwanzigerfeld.",
+    50: "Zahlen bis 50, auch mit Zehnerübergang.",
+    100: "Der ganze Hunderterraum und das kleine Einmaleins.",
+    500: "Zahlen bis 500, oft mit Zehnern und Hundertern.",
+    1000: "Der Tausenderraum mit Zehnereinmaleins.",
+    10000: "Zahlen bis 10.000. Malnehmen und Teilen mit mehrstelligen Zahlen.",
+    100000: "Große Zahlen bis 100.000.",
+    1000000: "Riesige Zahlen bis zu einer Million.",
   };
 
   // Eine Aufgabe: a op b = c. "blank" sagt, welche Zahl gesucht ist.
   const mk = (a, op, b, c, blank = "c") => ({ a, op, b, c, blank, answer: { a, b, c }[blank] });
 
-  const plusMinus = {
-    1: {
-      plus:  () => { const a = R(1, 15); const b = R(1, 20 - a); return mk(a, "+", b, a + b); },
-      minus: () => { const a = R(3, 20); const b = R(1, a - 1); return mk(a, "−", b, a - b); },
-    },
-    2: {
-      plus:  () => { const a = R(10, 85); const b = Math.random() < .4 ? R(2, 9) : R(11, 99 - a); return mk(a, "+", b, a + b); },
-      minus: () => { const a = R(20, 100); const b = Math.random() < .4 ? R(2, 9) : R(11, a - 5); return mk(a, "−", b, a - b); },
-    },
-    3: {
-      plus:  () => { let a = R(100, 850), b = R(20, 990 - a); if (Math.random() < .5) { a = round10(a); b = round10(b) || 10; } return mk(a, "+", b, a + b); },
-      minus: () => { let a = R(150, 1000), b = R(20, a - 50); if (Math.random() < .5) { a = round10(a); b = round10(b) || 10; } return mk(a, "−", b, a - b); },
-    },
-    4: {
-      plus:  () => { let a = R(1000, 8500), b = R(100, 9990 - a); if (Math.random() < .7) { a = round10(a); b = round10(b); } return mk(a, "+", b, a + b); },
-      minus: () => { let a = R(1500, 10000), b = R(100, a - 200); if (Math.random() < .7) { a = round10(a); b = round10(b); } return mk(a, "−", b, a - b); },
-    },
-  };
+  // Rundungsstufen: In großen Zahlenräumen sind runde Zahlen im Kopf gut lösbar.
+  function steps(N) {
+    if (N <= 100) return [1];
+    if (N <= 10000) return [1, 10, 10, 100];
+    if (N <= 100000) return [10, 100, 1000, 1000];
+    return [100, 1000, 1000, 10000];
+  }
 
-  const malGeteilt = {
-    2: {
-      mal:     () => { const a = R(1, 10), b = pick([2, 5, 10, R(1, 10), R(1, 10)]); return mk(a, "·", b, a * b); },
-      geteilt: () => { const b = pick([2, 5, 10, R(2, 10)]), q = R(1, 10); return mk(b * q, ":", b, q); },
-    },
-    3: {
-      mal:     () => Math.random() < .55
-        ? (() => { const a = R(2, 10), b = R(2, 10); return mk(a, "·", b, a * b); })()
-        : (() => { const a = R(2, 9) * 10, b = R(2, 9); return mk(a, "·", b, a * b); })(),
-      geteilt: () => { const b = R(2, 10), q = Math.random() < .6 ? R(2, 10) : R(2, 9) * 10; return mk(b * q, ":", b, q); },
-    },
-    4: {
-      mal:     () => Math.random() < .65
-        ? (() => { const a = R(12, 99), b = R(2, 9); return mk(a, "·", b, a * b); })()
-        : (() => { const a = R(2, 99), b = pick([10, 100]); return mk(a, "·", b, a * b); })(),
-      geteilt: () => { const b = R(2, 9), q = R(11, 120); return mk(b * q, ":", b, q); },
-    },
-  };
+  // Plus: a + b = c mit c ≤ N
+  function plusTask(N) {
+    for (;;) {
+      let a, b;
+      if (N <= 20) { a = R(1, N - 1); b = R(1, N - a); return mk(a, "+", b, a + b); }
+      const s = pick(steps(N));
+      a = Math.round(R(Math.ceil(N * 0.05), Math.floor(N * 0.85)) / s) * s;
+      b = Math.random() < 0.35 ? R(2, 9) * s : Math.round(R(Math.ceil(N * 0.05), N - a) / s) * s;
+      if (a >= 1 && b >= 1 && a + b <= N) return mk(a, "+", b, a + b);
+    }
+  }
 
-  function generate(grade, topic) {
-    if (topic === "mix") return generate(grade, pick(GRADES[grade].topics.filter((t) => t !== "mix" && t !== "luecke")));
-    if (topic === "plus" || topic === "minus") return plusMinus[grade][topic]();
-    if (topic === "mal" || topic === "geteilt") return malGeteilt[grade][topic]();
+  // Minus ist die Umkehrung einer Plusaufgabe: c − b = a
+  function minusTask(N) {
+    const t = plusTask(N);
+    return mk(t.c, "−", t.b, t.a);
+  }
+
+  // Mal: das größere Ergebnis bleibt im Zahlenraum. b ist der kleine Faktor.
+  function malTask(N) {
+    const tiers = [() => [R(1, 10), R(1, 10)]];
+    if (N >= 500) tiers.push(() => [R(2, 9) * 10, R(2, 9)], () => [R(11, 99), R(2, 9)]);
+    if (N >= 10000) tiers.push(() => [R(101, 999), R(2, 9)], () => [R(2, 99), pick([10, 100])], () => [R(2, 9) * 100, R(2, 9)]);
+    if (N >= 100000) tiers.push(() => [R(1001, 9999), R(2, 9)], () => [R(2, 99) * 100, pick([10, 100])], () => [R(2, 9) * 1000, R(2, 9)]);
+    if (N >= 1000000) tiers.push(() => [R(11, 99) * 1000, R(2, 9)], () => [R(2, 9) * 10000, R(2, 9)], () => [R(101, 999), 1000]);
+    for (;;) {
+      // Neuere, schwierigere Aufgabenarten etwas häufiger ziehen
+      const gen = Math.random() < 0.6 ? tiers[tiers.length - 1 - Math.floor(Math.random() * Math.min(3, tiers.length))] : pick(tiers);
+      const [a, b] = gen();
+      if (a * b <= N && a * b >= 2) return mk(a, "·", b, a * b);
+    }
+  }
+
+  // Geteilt ist die Umkehrung einer Malaufgabe: c : b = a
+  function geteiltTask(N) {
+    const t = malTask(N);
+    if (t.b === 1 && t.a > 1) return mk(t.c, ":", t.a, t.b);
+    return mk(t.c, ":", t.b, t.a);
+  }
+
+  const MAKERS = { plus: plusTask, minus: minusTask, mal: malTask, geteilt: geteiltTask };
+
+  function generate(grade, topic, N) {
+    const basic = GRADES[grade].topics.filter((t) => t !== "mix" && t !== "luecke");
+    if (topic === "mix") return MAKERS[pick(basic)](N);
+    if (topic !== "luecke") return MAKERS[topic](N);
     // Lückenaufgabe: eine bekannte Aufgabe nehmen und eine Zahl verstecken
-    const base = pick(GRADES[grade].topics.filter((t) => t !== "mix" && t !== "luecke"));
-    const t = generate(grade, base);
+    const t = MAKERS[pick(basic)](N);
     t.blank = pick(["a", "b"]);
     t.answer = t[t.blank];
     return t;
   }
 
-  function makeRound(grade, topic) {
+  function makeRound(grade, topic, N) {
     const seen = new Set();
     const list = [];
     let guard = 0;
     while (list.length < 10 && guard++ < 500) {
-      const t = generate(grade, topic);
+      const t = generate(grade, topic, N);
       const key = `${t.a}${t.op}${t.b}${t.blank}`;
       if (seen.has(key)) continue;
       seen.add(key);
@@ -442,12 +480,17 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   const state = {
     grade: store.get("rw-grade", 1),
     topic: "plus",
-    best: store.get("rw-best", {}),       // "1-plus": 3
+    ranges: store.get("rw-ranges", {}),   // gewählter Zahlenraum je Klasse, z. B. { "2": 50 }
+    best: store.get("rw-best", {}),       // "2-100-plus": 3
     garden: store.get("rw-garden", []),   // ["f2", "b0", ...]
     sound: store.get("rw-sound", true),
     round: null,
   };
   if (!GRADES[state.grade]) state.grade = 1;
+  const rangeOf = (grade) => {
+    const r = state.ranges[grade];
+    return GRADES[grade].ranges.includes(r) ? r : GRADES[grade].start;
+  };
 
   // ---------- Ton ----------
   let audio;
@@ -492,11 +535,18 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
     $("grades").innerHTML = Object.keys(GRADES).map((n) =>
       `<button class="grade" type="button" data-grade="${n}" aria-pressed="${Number(n) === state.grade}">
-         <b>${n}</b><small>${GRADES[n].range}</small></button>`).join("");
-    $("gradeNote").textContent = g.note;
+         <b>${n}</b><small>Klasse</small></button>`).join("");
+
+    const N = rangeOf(state.grade);
+    $("ranges").style.setProperty("--n", g.ranges.length);
+    $("ranges").classList.toggle("four", g.ranges.length === 4);
+    $("ranges").innerHTML = g.ranges.map((r) =>
+      `<button class="range" type="button" data-range="${r}" aria-pressed="${r === N}">
+         <small>bis</small><b>${rangeLabel(r)}</b></button>`).join("");
+    $("rangeNote").textContent = RANGE_NOTES[N];
 
     $("topics").innerHTML = g.topics.map((t) => {
-      const best = state.best[`${state.grade}-${t}`] || 0;
+      const best = state.best[`${state.grade}-${N}-${t}`] || 0;
       const stars = best ? `<span class="stars" aria-label="${best} von 3 Sternen">${"★".repeat(best)}${"☆".repeat(3 - best)}</span>`
                          : `<span class="stars none">neu</span>`;
       const wide = g.topics.length % 2 === 1 && t === "mix" ? " wide" : "";
@@ -514,8 +564,9 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
   // ---------- Spiel ----------
   function startRound() {
-    state.round = { tasks: makeRound(state.grade, state.topic), i: 0, input: "", tries: 0, results: [], locked: false };
-    $("where").textContent = `Klasse ${state.grade} · ${TOPICS[state.topic].name}`;
+    const N = rangeOf(state.grade);
+    state.round = { tasks: makeRound(state.grade, state.topic, N), N, i: 0, input: "", tries: 0, results: [], locked: false };
+    $("where").textContent = `Klasse ${state.grade} · bis ${rangeLabel(N)} · ${TOPICS[state.topic].name}`;
     show("gameView");
     renderTask();
   }
@@ -566,7 +617,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     if (!r || r.locked) return;
     if (d === "del") r.input = r.input.slice(0, -1);
     else if (d === "ok") return check();
-    else if (r.input.length < 6) r.input = (r.input === "0" ? "" : r.input) + d;
+    else if (r.input.length < String(r.N).length) r.input = (r.input === "0" ? "" : r.input) + d;
     if ($("say").classList.contains("oops")) say("");
     renderTask();
   }
@@ -646,6 +697,9 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     return `<div class="array" style="grid-template-columns: repeat(${cols}, 16px)" aria-hidden="true">${dots}</div>`;
   }
 
+  const trailingZeros = (n) => { let z = 0; while (n && n % 10 === 0) { n /= 10; z++; } return z; };
+  const zeros = (p) => { const z = trailingZeros(p); return z === 1 ? "eine Null" : `${["", "", "zwei", "drei", "vier", "fünf"][z]} Nullen`; };
+
   function tipFor(t) {
     const { a, b, c, op, blank } = t;
     if (blank === "a") {
@@ -667,17 +721,29 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
         if (op === "−" && a > 10 && a - b < 10) return `Erst bis zur 10: ${a} − ${a - 10} = 10, dann noch ${b - (a - 10)} weg.`;
         return op === "+" ? "Zähle die roten und blauen Plättchen zusammen." : "Zähle die Plättchen, die übrig bleiben.";
       }
+      const z = Math.min(trailingZeros(a), trailingZeros(b));
+      if (z) {
+        const p = 10 ** z, c2 = op === "+" ? a / p + b / p : a / p - b / p;
+        return `Denk dir ${zeros(p)} weg: ${fmt(a / p)} ${op} ${fmt(b / p)} = ${fmt(c2)}. Dann hänge ${zeros(p)} wieder an.`;
+      }
       const big = b >= 1000 ? Math.floor(b / 1000) * 1000 : b >= 100 ? Math.floor(b / 100) * 100 : Math.floor(b / 10) * 10;
       const rest = b - big;
       if (big && rest) return `Zerlege ${fmt(b)} in ${fmt(big)} und ${fmt(rest)}: erst ${fmt(a)} ${op} ${fmt(big)} = ${fmt(op === "+" ? a + big : a - big)}, dann ${op} ${fmt(rest)}.`;
-      return `Rechne mit den Stellen: Tausender, Hunderter, Zehner, Einer.`;
+      return `Rechne Stelle für Stelle: erst die Einer, dann die Zehner, dann die Hunderter.`;
     }
     if (op === "·") {
-      if (b === 10 || b === 100) return `Mal ${fmt(b)}: Hänge ${b === 10 ? "eine Null" : "zwei Nullen"} an ${fmt(a)}.`;
-      if (a >= 10 && a % 10 === 0) return `Rechne erst ${a / 10} · ${b} = ${a / 10 * b}, dann mal 10.`;
-      if (a > 10) return `Zerlege: ${Math.floor(a / 10) * 10} · ${b} = ${fmt(Math.floor(a / 10) * 10 * b)} und ${a % 10} · ${b} = ${a % 10 * b}. Dann addieren.`;
+      if (b === 10 || b === 100 || b === 1000) return `Mal ${fmt(b)}: Hänge ${zeros(b)} an ${fmt(a)}.`;
+      const z = trailingZeros(a);
+      if (z && a / 10 ** z <= 10) return `Rechne erst ${a / 10 ** z} · ${b} = ${a / 10 ** z * b} und hänge ${zeros(10 ** z)} an.`;
+      if (a > 10) {
+        const p = 10 ** (String(a).length - 1), head = Math.floor(a / p) * p, rest = a - head;
+        return `Zerlege: ${fmt(head)} · ${b} = ${fmt(head * b)} und ${fmt(rest)} · ${b} = ${fmt(rest * b)}. Dann addieren.`;
+      }
       return `${a} Reihen mit je ${b} Punkten. Wie viele sind es zusammen?`;
     }
+    const zq = trailingZeros(c);
+    if (zq && b < 10) return `Rechne erst ${fmt(a / 10 ** zq)} : ${b} = ${fmt(c / 10 ** zq)} und hänge ${zeros(10 ** zq)} an.`;
+    if (b >= 10 && trailingZeros(b) === String(b).length - 1 && b > 1) return `Geteilt durch ${fmt(b)}: Streiche ${zeros(b)} am Ende von ${fmt(a)}.`;
     if (a > 100 && c > 10) {
       const tens = Math.floor(c / 10) * 10;
       return `Zerlege ${fmt(a)} in ${fmt(tens * b)} und ${fmt(a - tens * b)}. Teile beide Teile durch ${b}.`;
@@ -703,7 +769,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     const missed = r.results.filter((x) => x === "missed").length;
     const stars = first >= 9 ? 3 : first + second >= 7 ? 2 : 1;
 
-    const key = `${state.grade}-${state.topic}`;
+    const key = `${state.grade}-${r.N}-${state.topic}`;
     state.best[key] = Math.max(state.best[key] || 0, stars);
     r.results.forEach((x, i) => {
       if (x === "first") state.garden.push("f" + (i % 4));
@@ -739,6 +805,10 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   $("grades").addEventListener("click", (e) => {
     const b = e.target.closest("[data-grade]"); if (!b) return;
     state.grade = Number(b.dataset.grade); store.set("rw-grade", state.grade); renderStart();
+  });
+  $("ranges").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-range]"); if (!b) return;
+    state.ranges[state.grade] = Number(b.dataset.range); store.set("rw-ranges", state.ranges); renderStart();
   });
   $("topics").addEventListener("click", (e) => {
     const b = e.target.closest("[data-topic]"); if (!b) return;
