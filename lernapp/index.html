@@ -1034,7 +1034,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function show(view) {
     for (const id of VIEWS) $(id).hidden = id !== view;
     fx.stop();
-    if (window.speechSynthesis) speechSynthesis.cancel();
+    stopSpeaking();
     if (view !== "balloonView") stopBalloons();
     window.scrollTo(0, 0);
   }
@@ -1071,11 +1071,26 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (mood) { void el.offsetWidth; el.classList.add(mood); }
   }
 
+  // ---------- Android-App (Capacitor) ----------
+  // In der App gibt es window.Capacitor. Im Browser bleibt alles wie gehabt.
+  const cap = window.Capacitor;
+  const isApp = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
+  const nativeTTS = isApp ? cap.registerPlugin("TextToSpeech") : null;
+
   // ---------- Vorlesen ----------
-  const canSpeak = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+  const canSpeak = !!nativeTTS || ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window);
   const SPEAKER = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+  function stopSpeaking() {
+    if (nativeTTS) nativeTTS.stop().catch(() => {});
+    else if (window.speechSynthesis) speechSynthesis.cancel();
+  }
   function speak(text) {
     if (!canSpeak || !text) return;
+    if (nativeTTS) {   // Sprachausgabe von Android
+      nativeTTS.stop().catch(() => {}).finally(() =>
+        nativeTTS.speak({ text, lang: "de-DE", rate: 0.9 }).catch(() => {}));
+      return;
+    }
     try {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -2229,6 +2244,18 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("iconMemory").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="12" width="28" height="38" rx="5" fill="var(--grass)" transform="rotate(-10 20 31)"/><rect x="28" y="10" width="28" height="38" rx="5" fill="var(--paper)" stroke="var(--blue)" stroke-width="3" transform="rotate(8 42 29)"/><text x="42" y="36" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="18" fill="var(--blue)" transform="rotate(8 42 29)">12</text></svg>';
   $("iconFlower").innerHTML = flowerSVG("flower", "var(--petal-2)");
   $("iconTricks").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="26" r="17" fill="var(--sun)"/><rect x="24" y="42" width="16" height="10" rx="3" fill="var(--ink-soft)"/><path d="M26 30l6-8 6 8" stroke="var(--sun-ink)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 4v4M10 26H6M58 26h-4M15 10l3 3M49 10l-3 3" stroke="var(--sun)" stroke-width="3" stroke-linecap="round"/></svg>';
+  // Android-Zurück-Taste: einen Schritt zurück statt die App zu schließen
+  if (isApp) {
+    const appPlugin = cap.registerPlugin("App");
+    const BACK = { setupView: "setupBack", gameView: "backBtn", resultView: "menuBtn", tricksView: "tricksBack",
+      balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack" };
+    appPlugin.addListener("backButton", () => {
+      const btn = $(BACK[VIEWS.find((id) => !$(id).hidden)] || "");
+      if (btn && !btn.hidden) btn.click();
+      else appPlugin.exitApp();
+    });
+  }
+
   renderTricks("plus");
   renderHeader();
   openSetup(0);

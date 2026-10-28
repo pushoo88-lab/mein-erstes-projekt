@@ -1,0 +1,92 @@
+name: Android-App bauen
+
+# Baut bei jeder Änderung an der Rechenwiese eine installierbare APK-Datei.
+on:
+  push:
+    paths:
+      - 'lernapp/**'
+      - 'app/**'
+      - '.github/workflows/android-app.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    name: Rechenwiese-APK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Web-Teil aus lernapp/index.html bauen
+        run: npm run build:web
+
+      - name: Android-Projekt anlegen
+        run: npx cap add android
+
+      - name: App-Symbol und Startbild erzeugen
+        run: npx @capacitor/assets generate --android --iconBackgroundColor '#e6f2f6' --splashBackgroundColor '#e6f2f6' --splashBackgroundColorDark '#0f2228'
+
+      - name: Versionsnummer setzen
+        run: |
+          sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/" android/app/build.gradle
+          sed -i "s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
+          grep -n "versionCode\|versionName" android/app/build.gradle
+
+      # Immer derselbe Schlüssel, damit Updates über die alte App installiert werden können
+      # und der Fortschritt (Garten, Pfad, Rekorde) erhalten bleibt.
+      - name: Signatur-Schlüssel bereitlegen
+        run: |
+          mkdir -p ~/.android
+          cp signing/rechenwiese-debug.keystore ~/.android/debug.keystore
+
+      - name: Web-Teil in das Android-Projekt kopieren
+        run: npx cap sync android
+
+      - name: APK bauen
+        working-directory: app/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: APK umbenennen
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk Rechenwiese.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Rechenwiese-APK
+          path: app/Rechenwiese.apk
+
+      - name: Als Download bereitstellen
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rechenwiese-app
+          name: Rechenwiese für Android
+          make_latest: true
+          files: app/Rechenwiese.apk
+          body: |
+            Die neueste Rechenwiese als Android-App (Version 1.0.${{ github.run_number }}).
+
+            So installierst du sie:
+            1. Auf dem Android-Handy oder Tablet unten bei „Assets“ auf **Rechenwiese.apk** tippen.
+            2. Die heruntergeladene Datei öffnen.
+            3. Falls Android fragt: Installation aus dieser Quelle erlauben.
+            4. „Installieren“ tippen.
+
+            Neue Versionen werden genauso installiert. Garten, Pfad und Rekorde bleiben erhalten.

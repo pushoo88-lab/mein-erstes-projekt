@@ -61,3 +61,10 @@ Feuerwerk bei 3 Sternen oder einem neuen Rekord, eine Goldblume für eine fehler
 
 Bedienbar per Antippen (Tablet, Handy) oder Tastatur (Ziffern, Rücktaste, Enter). Garten, Einkäufe,
 Pfad-Fortschritt, Sterne und Rekorde werden im Browser gespeichert.
+
+### Als Android-App
+
+Im Ordner `app/` wird die Rechenwiese als Android-App verpackt. GitHub baut bei jeder Änderung
+automatisch eine installierbare `Rechenwiese.apk` (Release „Rechenwiese für Android“).
+Die App läuft offline, liest mit der Sprachausgabe von Android vor und behält bei Updates
+den Fortschritt. Details und Installationsanleitung: [`app/README.md`](app/README.md).
