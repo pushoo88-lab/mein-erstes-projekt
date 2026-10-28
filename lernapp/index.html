@@ -173,8 +173,10 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .tricks-link { border: 2px dashed var(--line); background: transparent; border-radius: 16px; padding: 12px; font-weight: 700; }
 
 /* Rechentricks */
-.trick-nav { display: flex; flex-wrap: wrap; gap: 8px; }
-.trick-nav button { border: 2px solid var(--line); background: var(--paper); border-radius: 999px; padding: 4px 12px; font-weight: 700; font-size: 15px; }
+.trick-nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.trick-nav button { flex: none; }
+.trick-nav button { border: 2px solid var(--line); background: var(--paper); border-radius: 999px; padding: 6px 14px; font-weight: 700; font-size: 16px; }
+.trick-nav button[aria-pressed="true"] { background: var(--grass); border-color: var(--grass-deep); color: #fff; }
 .trick-group { display: grid; gap: 12px; scroll-margin-top: 12px; }
 .trick { display: grid; gap: 10px; }
 .trick h3 { font-family: var(--display); font-weight: 800; font-size: 21px; margin: 0; line-height: 1.15; text-wrap: balance; }
@@ -413,11 +415,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       <button class="back" id="tricksBack" type="button">← Zurück</button>
       <span class="where">Rechentricks</span>
     </div>
-    <section class="sheet">
-      <h2>So rechnest du am besten</h2>
-      <p class="muted" style="margin-top:8px">Hier findest du Tricks, mit denen Rechnen leichter geht. Such dir ein Thema aus.</p>
-      <div class="trick-nav" id="trickNav" style="margin-top:12px"></div>
-    </section>
+    <div class="trick-nav" id="trickNav" role="group" aria-label="Thema der Rechentricks"></div>
     <div id="tricks" style="display:grid; gap:22px;"></div>
   </main>
 
@@ -1153,7 +1151,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     const more = `<button class="more-tricks" type="button" data-tricks="${t.topic}">Mehr Rechentricks dazu</button>`;
     if (t.kind) {
       $("help").innerHTML = `${t.helpPic || ""}<p>${afterMiss ? "So geht's: " : "Tipp: "}${t.tip}</p>${more}`;
-      $("help").hidden = false;
+      revealHelp();
       return;
     }
     let picture = "";
@@ -1161,7 +1159,13 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     else if (t.blank === "c" && t.op === "·" && t.a <= 10 && t.b <= 10) picture = dotArray(t.a, t.b);
     else if (t.blank === "c" && t.op === ":" && t.a <= 60) picture = dotArray(t.c, t.b);
     $("help").innerHTML = `${picture}<p>${afterMiss ? "So geht's: " : "Tipp: "}${tipFor(t)}</p>${more}`;
+    revealHelp();
+  }
+
+  // Hilfe einblenden und ins Bild holen, falls sie unter dem sichtbaren Bereich liegt
+  function revealHelp() {
     $("help").hidden = false;
+    try { $("help").scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch { /* Scrollen nicht möglich */ }
   }
 
   // ---------- Rechentricks ----------
@@ -1227,19 +1231,34 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     ] },
   ];
 
-  function renderTricks() {
-    $("trickNav").innerHTML = TRICKS.map((g) => `<button type="button" data-jump="${g.id}">${g.title}</button>`).join("");
-    $("tricks").innerHTML = TRICKS.map((g) => `<section class="trick-group" id="trick-${g.id}"><h2>${g.title}</h2>` +
+  // Zeigt nur die Tricks eines Themas. So steht das Passende immer gleich oben, ohne Scrollen.
+  function renderTricks(id) {
+    $("trickNav").innerHTML = TRICKS.map((g) =>
+      `<button type="button" data-jump="${g.id}" aria-pressed="${g.id === id}">${g.title}</button>`).join("");
+    $("tricks").innerHTML = TRICKS.filter((g) => g.id === id).map((g) => `<section class="trick-group" id="trick-${g.id}"><h2>${g.title}</h2>` +
       g.cards.map((c) => `<article class="sheet trick"><h3>${c.h}</h3>${c.p ? `<p>${c.p}</p>` : ""}${c.html || ""}` +
         `${c.ex || ""}${c.pic ? `<div class="pic">${c.pic()}</div>` : ""}</article>`).join("") + "</section>").join("");
+    showActiveTab();
+  }
+
+  // Rollt die Themenleiste so, dass der gewählte Reiter zu sehen ist
+  function showActiveTab() {
+    requestAnimationFrame(() => {
+      const nav = $("trickNav"), b = nav.querySelector('[aria-pressed="true"]');
+      if (b) nav.scrollLeft = b.offsetLeft - nav.offsetLeft - 16;
+    });
   }
 
   let tricksFrom = "startView";
+  const hasTricks = (id) => TRICKS.some((g) => g.id === id);
   function openTricks(topic) {
     tricksFrom = ["gameView", "resultView"].find((id) => !$(id).hidden) || "startView";
+    // Aus einer Aufgabe: Thema der Aufgabe. Von der Startseite: erstes gewähltes Thema.
+    const id = hasTricks(topic) ? topic : state.topics.find(hasTricks) || "plus";
+    renderTricks(id);
+    $("tricksBack").textContent = tricksFrom === "gameView" ? "← Zurück zur Aufgabe" : "← Zurück";
     show("tricksView");
-    const target = $(`trick-${topic}`);
-    if (target) target.scrollIntoView({ block: "start" });
+    showActiveTab();
   }
 
   // ---------- Ballonjagd ----------
@@ -1477,7 +1496,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   $("tricksBtn").addEventListener("click", () => openTricks(""));
   $("tricksBack").addEventListener("click", () => { show(tricksFrom); });
   $("trickNav").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-jump]"); if (b) $(`trick-${b.dataset.jump}`).scrollIntoView({ block: "start", behavior: "smooth" });
+    const b = e.target.closest("[data-jump]"); if (b) renderTricks(b.dataset.jump);
   });
   $("help").addEventListener("click", (e) => { const b = e.target.closest("[data-tricks]"); if (b) openTricks(b.dataset.tricks); });
   $("topics").addEventListener("click", (e) => {
@@ -1507,7 +1526,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     }
   });
 
-  renderTricks();
+  renderTricks("plus");
   renderStart();
   show("startView");
 })();

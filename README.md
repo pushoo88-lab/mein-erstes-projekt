@@ -52,8 +52,8 @@ Kind tippt den richtigen an, bevor er davonfliegt. 3 Leben, Punkte (früh getrof
 Extrapunkte), alle 5 Treffer ein neues Level mit schnelleren Ballons und ein gespeicherter Rekord.
 
 **Rechentricks:** Eine eigene Seite erklärt kindgerecht, wie man am besten rechnet
-(z. B. „Erst bis zur 10“, Tauschaufgabe, Signalwörter in Textaufgaben). Die Hilfe in
-jeder Aufgabe verlinkt direkt auf den passenden Trick.
+(z. B. „Erst bis zur 10“, Tauschaufgabe, Signalwörter in Textaufgaben). Oben wählt man das
+Thema über Reiter. Die Hilfe in jeder Aufgabe öffnet direkt die Tricks zum Thema der Aufgabe.
 
 **Belohnungen:** 3 Aufgaben in Folge beim ersten Versuch richtig gibt einen kleinen Funkenregen
 (bei 3, 6 und 9). Eine Runde mit 3 Sternen startet ein Feuerwerk. Sind alle 10 Aufgaben beim
