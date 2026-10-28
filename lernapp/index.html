@@ -121,7 +121,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .grade:active { transform: scale(.96); }
 .grade-note { margin: 12px 0 0; color: var(--ink-soft); font-size: 16px; }
 
-.topics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.topics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .topic {
   border: 3px solid var(--line); background: var(--key); border-radius: 16px;
   padding: 10px 12px; display: grid; grid-template-columns: 44px 1fr; align-items: center; gap: 10px; text-align: left;
@@ -130,7 +130,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   width: 44px; height: 44px; border-radius: 12px; background: var(--paper); border: 2px solid var(--line);
   display: grid; place-items: center; font-family: var(--display); font-size: 28px; font-weight: 800; line-height: 1;
 }
-.topic .name { font-weight: 700; line-height: 1.2; }
+.topic .name { font-weight: 700; line-height: 1.2; overflow-wrap: break-word; }
+.topic > span:last-child { min-width: 0; }
 .topic .stars { display: block; font-size: 14px; color: var(--sun); letter-spacing: 2px; min-height: 1em; }
 .topic .stars.none { color: var(--ink-soft); letter-spacing: 0; font-size: 13px; }
 .topic .sym.small { font-size: 16px; letter-spacing: -0.02em; }
@@ -207,7 +208,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
 .mode.wide { grid-column: 1 / -1; }
 .mode.adventure { background: color-mix(in srgb, var(--sun) 18%, var(--paper)); border-color: color-mix(in srgb, var(--sun) 60%, var(--line)); box-shadow: 0 5px 0 color-mix(in srgb, var(--sun) 60%, var(--line)); }
-.mode.adventure .tag { color: color-mix(in srgb, var(--sun-ink) 70%, var(--sun)); }
+.mode.adventure .tag { color: var(--ink-soft); }
 .mode.garden-tile { background: color-mix(in srgb, var(--grass) 12%, var(--paper)); border-color: color-mix(in srgb, var(--grass) 45%, var(--line)); box-shadow: 0 5px 0 color-mix(in srgb, var(--grass) 45%, var(--line)); }
 .mode.garden-tile .tag { color: var(--grass-deep); }
 
@@ -290,7 +291,12 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .bj-task { padding: 14px 12px 10px; }
 .bj-task .task { font-size: clamp(32px, 9vw, 52px); }
 .bj-task .task.is-text { font-size: 19px; }
-.bj-task .say { margin-top: 6px; font-size: 18px; }
+.bj-task .say { margin-top: 6px; font-size: 17px; min-height: 0; }
+.bj-task .task.is-text { gap: 8px; }
+.bj-task .task.is-text .answer { display: none; }   /* die Antwort sind die Ballons */
+.bj-task .dienes { height: 56px; }
+.bar .icon-btn.speak-task { flex: none; font-size: 0; gap: 0; }
+.bar .icon-btn.speak-task svg { width: 20px; height: 20px; }
 .sky {
   position: relative; height: clamp(300px, 50vh, 520px); border-radius: 22px; overflow: hidden; border: 2px solid var(--line);
   background: linear-gradient(to bottom, var(--sky-top) 0%, var(--paper) 93%, var(--grass) 93%);
@@ -319,7 +325,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
 /* Spiel */
 .bar { display: flex; align-items: center; gap: 10px; }
-.back { border: 2px solid var(--line); background: var(--paper); border-radius: 12px; padding: 6px 12px; font-weight: 700; }
+.back { border: 2px solid var(--line); background: var(--paper); border-radius: 12px; padding: 6px 12px; font-weight: 700; white-space: nowrap; flex: none; }
+.count { white-space: nowrap; }
 .where { font-weight: 700; color: var(--ink-soft); flex: 1; min-width: 0; font-size: 15px; line-height: 1.25; }
 .count { font-variant-numeric: tabular-nums; font-weight: 700; }
 
@@ -348,6 +355,10 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .tafel th, .tafel td { border: 2px solid var(--line); padding: 4px 10px; text-align: center; }
 .tafel th { background: var(--key); font-family: var(--body); font-size: 15px; color: var(--ink-soft); }
 .tafel td { font-family: var(--display); font-size: 30px; font-weight: 800; line-height: 1.2; min-width: 1.6em; }
+/* Nichts in einer Aufgabe darf die Seite breiter machen als den Bildschirm */
+main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
+.help > * { max-width: 100%; }
+.help .tafel, .help .dienes { overflow-x: auto; }
 .streak { background: var(--sun); color: var(--sun-ink); border-radius: 999px; padding: 2px 10px; font-weight: 700; font-size: 15px; white-space: nowrap; }
 .streak.pop { animation: grow .5s cubic-bezier(.3,1.6,.5,1); }
 #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
@@ -409,12 +420,26 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .foot { margin-top: auto; text-align: center; font-size: 14px; color: var(--ink-soft); }
 
 @media (max-width: 420px) {
+  .tafel th, .tafel td { padding: 3px 6px; }
+  .tafel th { font-size: 13px; }
+  .tafel td { font-size: 24px; min-width: 1.2em; }
   .grade b { font-size: 34px; }
   .grade small { font-size: 11px; }
   .topic { grid-template-columns: 38px 1fr; padding: 8px 10px; }
   .topic .sym { width: 38px; height: 38px; font-size: 24px; }
   .topic .name { font-size: 16px; }
   .key { min-height: 56px; }
+}
+@media (max-width: 360px) {
+  .topic { grid-template-columns: 1fr; justify-items: start; gap: 6px; }
+  .topic .sym { width: 34px; height: 34px; font-size: 22px; }
+  .topic .sym.small { font-size: 14px; }
+  .bar { gap: 6px; }
+  .back { padding: 6px 9px; }
+  .hearts { font-size: 16px; letter-spacing: 0; }
+  .brand { font-size: 25px; }
+  .top-right { gap: 6px; }
+  .pill { padding-right: 9px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -425,7 +450,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 </head>
 <body>
 <!-- /body -->
-<div class="app" id="app">
+<div class="app" id="app" lang="de">
   <header class="top">
     <h1 class="brand">Rechen<span>wiese</span></h1>
     <div class="top-right">
@@ -580,13 +605,13 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     <div class="bar">
       <button class="back" id="bjBack" type="button">← Zurück</button>
       <span class="where"></span>
+      <button class="icon-btn speak-task" type="button" data-speak-task="balloon" aria-label="Aufgabe vorlesen">Vorlesen</button>
       <span class="hearts" id="bjHearts" aria-label="Leben"></span>
       <span class="count" id="bjScore"></span>
     </div>
     <section class="sheet task-card bj-task" id="bjTaskCard">
       <div class="task" id="bjTask"></div>
       <p class="say" id="bjSay" aria-live="assertive">Tippe auf den Ballon mit der richtigen Lösung!</p>
-      <div class="task-tools"><button class="tool speak-task" type="button" data-speak-task="balloon">Vorlesen</button></div>
     </section>
     <div class="sky" id="bjSky" aria-label="Ballons"></div>
     <section class="sheet result" id="bjOver" hidden>
@@ -652,8 +677,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     mal:     { name: "Mal",             sym: "·" },
     geteilt: { name: "Geteilt",         sym: ":" },
     stellen: { name: "Zehner & Einer",  sym: "ZE", small: true },
-    text:    { name: "Textaufgaben",    sym: "Abc", small: true },
-    luecke:  { name: "Lückenaufgaben",  sym: "□" },
+    text:    { name: "Text\u00ADaufgaben",    sym: "Abc", small: true },
+    luecke:  { name: "Lücken\u00ADaufgaben",  sym: "□" },
     all:     { name: "Alles mischen",   sym: "★" },
   };
 
@@ -670,9 +695,10 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   const opsFor = (cfg) => (cfg.mal ? ["plus", "minus", "mal", "geteilt"] : ["plus", "minus"]);
   const topicsFor = (cfg) => [...opsFor(cfg), ...(cfg.N >= 20 ? ["stellen"] : []), "text", "luecke"];
   // Name einer Auswahl, z. B. "Plus" oder "Mix: Plus, Minus, Mal"
-  const selectionName = (sel, N) => (sel.length === 1 ? topicName(sel[0], N) : `Mix: ${sel.map((t) => topicName(t, N)).join(", ")}`);
+  const selectionName = (sel, N) => (sel.length === 1 ? topicName(sel[0], N)
+    : sel.length === 2 ? sel.map((t) => topicName(t, N)).join(" + ") : "Bunt gemischt");
   const selectionKey = (sel) => [...sel].sort().join("+");
-  const topicName = (t, N) => (t === "stellen" && N > 100 ? "Stellenwerte" : TOPICS[t].name);
+  const topicName = (t, N) => (t === "stellen" && N > 100 ? "Stellen\u00ADwerte" : TOPICS[t].name);
   const topicSym = (t, N) => (t === "stellen" && N > 100 ? "HZE" : TOPICS[t].sym);
 
   function noteFor(N) {
@@ -1382,9 +1408,16 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     if (op === "+" || op === "−") {
       if (a + (op === "+" ? b : 0) <= 20) {
         const toTen = 10 - (a % 10);
-        if (op === "+" && a < 10 && a + b > 10) return `Erst bis zur 10: ${a} + ${toTen} = 10, dann noch ${b - toTen} dazu.`;
-        if (op === "−" && a > 10 && a - b < 10) return `Erst bis zur 10: ${a} − ${a - 10} = 10, dann noch ${b - (a - 10)} weg.`;
-        return op === "+" ? "Zähle die roten und blauen Plättchen zusammen." : "Zähle die Plättchen, die übrig bleiben.";
+        if (op === "+") {
+          if (a < 10 && b >= 10) return `Tausche die Zahlen: ${b} + ${a} ist leichter.`;
+          if (a < 10 && a + b > 10) return `Erst bis zur 10: ${a} + ${toTen} = 10, dann noch ${b - toTen} dazu.`;
+          if (a >= 10 && a + b < 20) return `Rechne nur mit den Einern: ${a - 10} + ${b}. Die 10 bleibt.`;
+          return "Zähle die roten und blauen Plättchen zusammen.";
+        }
+        if (a > 10 && b >= 10) return `Nimm erst die 10 weg: ${a} − 10 = ${a - 10}, dann noch ${b - 10} weg.`;
+        if (a > 10 && a - b < 10) return `Erst bis zur 10: ${a} − ${a - 10} = 10, dann noch ${b - (a - 10)} weg.`;
+        if (a > 10) return `Rechne nur mit den Einern: ${a - 10} − ${b}. Die 10 bleibt.`;
+        return "Zähle die Plättchen, die übrig bleiben.";
       }
       // Einstellige Zahl dazu oder weg: über den nächsten Zehner rechnen
       if (b < 10) {
@@ -1589,6 +1622,14 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   // Verzögert die nächste Welle, aber nur wenn noch dasselbe Spiel läuft
   function later(fn, ms) { const gen = bj.gen; setTimeout(() => { if (bj.gen === gen) fn(); }, ms); }
 
+  // Der Himmel füllt den Rest des Bildschirms, damit nichts gescrollt werden muss
+  function fitSky() {
+    const sky = $("bjSky");
+    sky.style.height = "";
+    const top = sky.getBoundingClientRect().top;
+    sky.style.height = `${Math.round(Math.max(200, Math.min(560, window.innerHeight - top - 12)))}px`;
+  }
+
   function stopBalloons() {
     bj.running = false;
     cancelAnimationFrame(bj.raf);
@@ -1606,6 +1647,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     if (!bj.running) return;
     const t = generate(bj.cfg, pick(bj.sel), bj.sel);
     drawTask($("bjTask"), t, '<span class="slot">?</span>');
+    fitSky();   // nach dem Anzeigen der Aufgabe, denn deren Höhe ändert sich
     const sky = $("bjSky");
     sky.querySelectorAll(".balloon, .level-up").forEach((n) => n.remove());
     const W = sky.clientWidth, H = sky.clientHeight, lane = W / 4, size = Math.min(lane - 8, 96);
@@ -1919,7 +1961,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
   // Kurzer Kartentext, z. B. "7 + 5" oder "47 = 40 + □"
   function cardLabel(t) {
-    if (t.kind === "parts") return t.parts.map((p) => (p === "§" ? "□" : p)).join(" ");
+    if (t.kind === "parts") return t.parts.join(" ").replace(/ = §$/, "").replace("§", "□");
     if (t.blank === "c") return `${fmt(t.a)} ${t.op} ${fmt(t.b)}`;
     const v = (k) => (t.blank === k ? "□" : fmt(t[k]));
     return `${v("a")} ${t.op} ${v("b")} = ${fmt(t.c)}`;
@@ -1929,11 +1971,29 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     const pool = sel.filter((t) => t !== "text");
     const use = pool.length ? pool : opsFor(cfg);
     const pairs = [], answers = new Set();
-    for (let guard = 0; pairs.length < 6 && guard < 600; guard++) {
-      const t = guard < 400 ? generate(cfg, pick(use), use) : { ...plusTask(cfg.N), topic: "plus" };
-      if (t.kind === "text" || answers.has(t.answer)) continue;
+    const numbersIn = (label) => (label.match(/\d[\d.]*/g) || []).map((x) => Number(x.replace(/\./g, "")));
+    for (let guard = 0; pairs.length < 6 && guard < 800; guard++) {
+      const strict = guard < 300;   // bei kleinen Zahlenräumen gibt es zu wenige Zahlen, dann lockerer
+      const t = guard < 600 ? generate(cfg, pick(use), use) : { ...plusTask(cfg.N), topic: "plus" };
+      if (t.kind === "text") continue;
+      if (t.topic === "stellen") {   // Stellenwert-Karte, z. B. "3 H + 4 Z + 7 E"
+        const k = String(cfg.N - 1).length, n = R(10 ** (k - 1), cfg.N - 1);
+        const heads = PLACES.slice(0, k).reverse();
+        const parts = String(n).split("").map((d, i) => (d !== "0" ? `${d} ${heads[i][0]}` : "")).filter(Boolean);
+        if (answers.has(n)) continue;
+        answers.add(n);
+        pairs.push({ label: parts.join(" + "), answer: n });
+        continue;
+      }
+      // Auf Karten nur "Aufgabe = ?" zeigen: Lücken werden zur normalen Aufgabe, bei Stellenwerten nur "4 Z + 7 E"
+      if (!t.kind && t.blank !== "c") { t.blank = "c"; t.answer = t.c; }
+      if (t.kind === "parts" && !/ Z$/.test(t.parts[0])) continue;
+      const label = cardLabel(t);
+      // Keine Zahl darf doppelt vorkommen, sonst passt eine Karte scheinbar zu zwei anderen
+      if (answers.has(t.answer)) continue;
+      if (strict && (pairs.some((pp) => numbersIn(pp.label).includes(t.answer)) || numbersIn(label).some((x) => answers.has(x)))) continue;
       answers.add(t.answer);
-      pairs.push({ label: cardLabel(t), answer: t.answer });
+      pairs.push({ label, answer: t.answer });
     }
     return pairs;
   }
