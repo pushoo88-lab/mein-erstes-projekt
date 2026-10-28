@@ -14,6 +14,8 @@
 :root {
   --sky: #e6f2f6;
   --sky-top: #cfe7f1;
+  --bee-ink: #3b2f14;
+  --wing: #ffffff;
   --paper: #ffffff;
   --ink: #1d3a3c;
   --ink-soft: #557073;
@@ -39,7 +41,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --sky: #0f2228; --sky-top: #17323d; --paper: #18323a; --ink: #e4f1ee; --ink-soft: #9db8b8; --line: #2c4a52;
+    --sky: #0f2228; --sky-top: #17323d; --wing: #d8eef5; --paper: #18323a; --ink: #e4f1ee; --ink-soft: #9db8b8; --line: #2c4a52;
     --grass: #4a9542; --grass-deep: #3a7e36; --stem: #5aa651; --sun: #f6c24a; --sun-ink: #2a1d00;
     --petal-1: #f483ad; --petal-2: #a68cf0; --petal-3: #f59a55; --petal-4: #5ab8e3;
     --red: #f06a60; --blue: #6c9cf0; --ok: #6fcf6a; --oops: #f0915f;
@@ -48,7 +50,7 @@
   }
 }
 :root[data-theme="dark"] {
-  --sky: #0f2228; --sky-top: #17323d; --paper: #18323a; --ink: #e4f1ee; --ink-soft: #9db8b8; --line: #2c4a52;
+  --sky: #0f2228; --sky-top: #17323d; --wing: #d8eef5; --paper: #18323a; --ink: #e4f1ee; --ink-soft: #9db8b8; --line: #2c4a52;
   --grass: #4a9542; --grass-deep: #3a7e36; --stem: #5aa651; --sun: #f6c24a; --sun-ink: #2a1d00;
   --petal-1: #f483ad; --petal-2: #a68cf0; --petal-3: #f59a55; --petal-4: #5ab8e3;
   --red: #f06a60; --blue: #6c9cf0; --ok: #6fcf6a; --oops: #f0915f;
@@ -151,26 +153,70 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .go:active { transform: translateY(4px); box-shadow: 0 1px 0 color-mix(in srgb, var(--sun) 55%, #000); }
 .go.secondary { background: var(--key); color: var(--ink); box-shadow: 0 5px 0 var(--line); border: 2px solid var(--line); font-size: 22px; }
 
-/* Startseite: Zahlenraum eintippen, Mal/Geteilt */
-.range-input { display: flex; align-items: center; gap: 12px; font-family: var(--display); font-weight: 800; font-size: 26px; }
-.range-input input {
-  flex: 1; min-width: 0; font: inherit; font-size: 34px; padding: 4px 14px;
-  border: 3px solid var(--line); border-radius: 16px; background: var(--key); color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-.range-input input::placeholder { color: var(--ink-soft); opacity: .6; font-size: 26px; }
-.range-input input:focus { outline: none; border-color: var(--blue); background: var(--paper); }
-.range-input input.bad { border-color: var(--oops); }
-.grade-note.bad { color: var(--oops); font-weight: 700; }
+/* Einrichtung */
 .yesno { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice { border: 3px solid var(--line); background: var(--key); border-radius: 16px; padding: 12px; font-family: var(--display); font-weight: 800; font-size: 22px; line-height: 1.1; }
 .choice[aria-pressed="true"] { border-color: var(--grass-deep); background: var(--grass); color: #fff; }
-.start-msg { margin: 0; text-align: center; color: var(--oops); font-weight: 700; }
-.play-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.play-buttons .go { font-size: 22px; padding: 14px 8px; line-height: 1.1; }
-.go.play { background: var(--blue); color: var(--paper); box-shadow: 0 5px 0 color-mix(in srgb, var(--blue) 55%, #000); }
-.go.play:active { box-shadow: 0 1px 0 color-mix(in srgb, var(--blue) 55%, #000); }
-.tricks-link { border: 2px dashed var(--line); background: transparent; border-radius: 16px; padding: 12px; font-weight: 700; }
+
+.steps { display: flex; justify-content: center; gap: 8px; }
+.steps span { width: 12px; height: 12px; border-radius: 6px; background: var(--line); transition: width .2s; }
+.steps span.on { width: 30px; background: var(--grass); }
+.range-display { display: flex; align-items: center; justify-content: center; gap: 12px; font-family: var(--display); font-weight: 800; font-size: 30px; }
+.range-display .slot { font-size: 46px; min-width: 3.2em; text-align: center; font-variant-numeric: tabular-nums; }
+.setup-note { margin: 10px 0 12px; text-align: center; color: var(--ink-soft); font-size: 16px; }
+.setup-note.bad { color: var(--oops); font-weight: 700; }
+.setup-back { justify-self: start; }
+
+/* Summi, die Rechenbiene */
+.hello { display: grid; grid-template-columns: 84px 1fr; gap: 12px; align-items: center; padding: 14px; }
+.bee { width: 84px; height: 78px; }
+.bee svg { width: 100%; height: 100%; overflow: visible; }
+.bee .float { animation: bob 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 60%; }
+@keyframes bob { 50% { transform: translateY(-5px) rotate(-3deg); } }
+.bee.happy .float { animation: hop .55s ease 2; }
+@keyframes hop { 40% { transform: translateY(-14px) rotate(8deg); } }
+.bee.think .float { animation: none; transform: rotate(-12deg); }
+.bubble { position: relative; background: var(--sky); border-radius: 18px; padding: 10px 14px; display: grid; gap: 8px; justify-items: start; min-width: 0; }
+.bubble::before { content: ""; position: absolute; left: -9px; top: 50%; margin-top: -9px; border: 9px solid transparent; border-left: 0; border-right-color: var(--sky); }
+.bubble p { margin: 0; font-weight: 700; font-size: 19px; line-height: 1.35; }
+.speak { display: inline-flex; align-items: center; gap: 6px; border: 2px solid var(--line); background: var(--paper); border-radius: 999px; padding: 3px 12px 3px 8px; font-weight: 700; font-size: 15px; }
+.speak svg, .speak-task svg { width: 18px; height: 18px; flex: none; }
+.speak-task { display: inline-flex; align-items: center; gap: 6px; }
+.hello.mini { grid-template-columns: 52px 1fr; padding: 0; margin-top: 12px; gap: 8px; }
+.hello.mini .bee { width: 52px; height: 48px; }
+.hello.mini .say { margin: 0; text-align: left; min-height: 0; font-size: 19px; }
+
+/* Startseite */
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mode {
+  border: 3px solid var(--line); background: var(--paper); border-radius: 22px; padding: 14px 10px 12px;
+  display: grid; justify-items: center; align-content: start; gap: 4px; text-align: center;
+  box-shadow: 0 5px 0 var(--line); transition: transform .08s ease, box-shadow .08s ease;
+}
+.mode:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--line); }
+.mode svg { width: 64px; height: 64px; }
+.mode b { font-family: var(--display); font-weight: 800; font-size: 22px; line-height: 1.1; }
+.mode small { color: var(--ink-soft); font-size: 14px; line-height: 1.25; }
+.mode .tag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--blue); }
+.mode.game { background: color-mix(in srgb, var(--blue) 10%, var(--paper)); border-color: color-mix(in srgb, var(--blue) 40%, var(--line)); box-shadow: 0 5px 0 color-mix(in srgb, var(--blue) 40%, var(--line)); }
+.settings-chip {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left;
+  border: 2px dashed var(--line); background: transparent; border-radius: 16px; padding: 10px 14px; font-size: 15px; color: var(--ink-soft);
+}
+.settings-chip b { color: var(--blue); white-space: nowrap; }
+
+/* Zahlen-Memory */
+.memory { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (min-width: 520px) { .memory { grid-template-columns: repeat(4, 1fr); } }
+.card { aspect-ratio: 1; max-width: 100%; border: 0; padding: 0; background: none; perspective: 600px; }
+.card .in { position: relative; display: block; width: 100%; height: 100%; transition: transform .35s ease; transform-style: preserve-3d; }
+.card.open .in, .card.done .in { transform: rotateY(180deg); }
+.card .face { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 16px; backface-visibility: hidden; -webkit-backface-visibility: hidden; border: 3px solid var(--line); padding: 6px; text-align: center; }
+.card .back { background: var(--grass); border-color: var(--grass-deep); }
+.card .back svg { width: 46%; height: auto; }
+.card .front { background: var(--paper); transform: rotateY(180deg); font-family: var(--display); font-weight: 800; font-size: clamp(17px, 5vw, 24px); line-height: 1.15; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.card .front.ans { color: var(--blue); font-size: clamp(24px, 7vw, 34px); }
+.card.done .front { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, var(--paper)); }
 
 /* Rechentricks */
 .trick-nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
@@ -338,39 +384,70 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     </div>
   </header>
 
-  <!-- Startseite -->
-  <main id="startView" class="start" style="display:grid; gap:18px;">
-    <section class="sheet">
-      <p class="label">1. In welche Klasse gehst du?</p>
+  <!-- Einrichtung: Summi fragt, eine Frage pro Bildschirm -->
+  <main id="setupView" hidden style="display:grid; gap:16px;">
+    <div class="steps" id="steps" aria-hidden="true"></div>
+    <section class="sheet hello">
+      <div class="bee" id="setupBee"></div>
+      <div class="bubble"><p id="setupSay"></p><button class="speak" type="button" data-speak-el="setupSay">Vorlesen</button></div>
+    </section>
+    <section class="sheet" id="stepGrade">
       <div class="grades" id="grades" role="group" aria-label="Klasse"></div>
     </section>
-    <section class="sheet">
-      <p class="label"><label for="rangeInput">2. Bis zu welcher Zahl rechnest du?</label></p>
-      <div class="range-input"><span>bis</span>
-        <input id="rangeInput" type="text" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="z. B. 20" aria-describedby="rangeNote"></div>
-      <p class="grade-note" id="rangeNote">Tippe die größte Zahl ein, mit der du rechnest.</p>
+    <section class="sheet" id="stepRange" hidden>
+      <div class="range-display"><span>bis</span><span class="slot" id="rangeShow">?</span></div>
+      <p class="setup-note" id="rangeNote" aria-live="polite"></p>
+      <div class="pad" id="rangePad"></div>
     </section>
-    <section class="sheet">
-      <p class="label">3. Rechnest du schon Mal und Geteilt?</p>
+    <section class="sheet" id="stepMal" hidden>
       <div class="yesno" id="malChoice" role="group" aria-label="Mal und Geteilt">
         <button class="choice" type="button" data-mal="1" aria-pressed="false">Ja</button>
         <button class="choice" type="button" data-mal="0" aria-pressed="false">Noch nicht</button>
       </div>
     </section>
-    <section class="sheet">
-      <p class="label">4. Was möchtest du üben?</p>
-      <p class="topic-hint">Tippe ein oder mehrere Themen an. Mehrere Themen werden gemischt.</p>
+    <section class="sheet" id="stepTopics" hidden style="display:grid; gap:12px;">
       <div class="topics" id="topics" role="group" aria-label="Thema"></div>
+      <p class="setup-note" id="topicNote" aria-live="polite" style="margin:0"></p>
+      <button class="go" id="setupDone" type="button">Fertig!</button>
     </section>
-    <p class="start-msg" id="startMsg" role="alert" hidden></p>
-    <div class="play-buttons">
-      <button class="go" id="startBtn" type="button">Aufgaben üben</button>
-      <button class="go play" id="balloonBtn" type="button">Ballonjagd spielen</button>
+    <button class="back setup-back" id="setupBack" type="button">← Zurück</button>
+  </main>
+
+  <!-- Startseite -->
+  <main id="startView" hidden style="display:grid; gap:16px;">
+    <section class="sheet hello">
+      <div class="bee" id="homeBee"></div>
+      <div class="bubble"><p id="homeSay"></p><button class="speak" type="button" data-speak-el="homeSay">Vorlesen</button></div>
+    </section>
+    <div class="modes">
+      <button class="mode game" id="balloonBtn" type="button"><span class="tag">Spiel</span><span id="iconBalloon"></span><b>Ballonjagd</b><small>Tippe den richtigen Ballon an</small></button>
+      <button class="mode game" id="memoryBtn" type="button"><span class="tag">Spiel</span><span id="iconMemory"></span><b>Zahlen-Memory</b><small>Finde Aufgabe und Ergebnis</small></button>
+      <button class="mode" id="startBtn" type="button"><span class="tag">Üben</span><span id="iconFlower"></span><b>Blumen-Runde</b><small>10 Aufgaben, Blumen sammeln</small></button>
+      <button class="mode" id="tricksBtn" type="button"><span class="tag">Lernen</span><span id="iconTricks"></span><b>Rechentricks</b><small>So geht Rechnen leichter</small></button>
     </div>
-    <button class="tricks-link" id="tricksBtn" type="button">Rechentricks: So rechnest du am besten →</button>
+    <button class="settings-chip" id="settingsChip" type="button"><span id="settingsText"></span><b>Ändern</b></button>
     <section>
       <p class="label">Dein Garten</p>
       <div class="garden" id="garden"></div>
+    </section>
+  </main>
+
+  <!-- Zahlen-Memory -->
+  <main id="memoryView" hidden style="display:grid; gap:14px;">
+    <div class="bar">
+      <button class="back" id="memBack" type="button">← Zurück</button>
+      <span class="where">Zahlen-Memory</span>
+      <span class="count" id="memMoves"></span>
+    </div>
+    <div class="hello mini"><div class="bee" id="memBee"></div><p class="say" id="memSay" aria-live="polite"></p></div>
+    <div class="memory" id="memGrid"></div>
+    <section class="sheet result" id="memOver" hidden>
+      <h2 id="memOverTitle">Geschafft!</h2>
+      <p class="muted" id="memOverText"></p>
+      <div class="actions">
+        <button class="go" id="memAgain" type="button">Nochmal spielen</button>
+        <button class="go secondary" id="memMenu" type="button">Zum Start</button>
+      </div>
     </section>
   </main>
 
@@ -384,8 +461,9 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     </div>
     <section class="sheet task-card">
       <div class="task" id="task" aria-live="polite"></div>
-      <p class="say" id="say" aria-live="assertive"></p>
+      <div class="hello mini"><div class="bee" id="gameBee"></div><p class="say" id="say" aria-live="assertive"></p></div>
       <div class="task-tools">
+        <button class="tool speak-task" type="button" data-speak-task="game">Vorlesen</button>
         <button class="tool" id="helpBtn" type="button">Hilfe</button>
         <button class="tool" id="nextBtn" type="button" hidden>Weiter →</button>
       </div>
@@ -404,7 +482,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       <div class="tally" id="tally"></div>
       <div class="actions">
         <button class="go" id="againBtn" type="button">Nochmal spielen</button>
-        <button class="go secondary" id="menuBtn" type="button">Anderes Thema</button>
+        <button class="go secondary" id="menuBtn" type="button">Zum Start</button>
       </div>
     </section>
   </main>
@@ -430,6 +508,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     <section class="sheet task-card bj-task" id="bjTaskCard">
       <div class="task" id="bjTask"></div>
       <p class="say" id="bjSay" aria-live="assertive">Tippe auf den Ballon mit der richtigen Lösung!</p>
+      <div class="task-tools"><button class="tool speak-task" type="button" data-speak-task="balloon">Vorlesen</button></div>
     </section>
     <div class="sky" id="bjSky" aria-label="Ballons"></div>
     <section class="sheet result" id="bjOver" hidden>
@@ -437,12 +516,11 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       <p class="muted" id="bjOverText"></p>
       <div class="actions">
         <button class="go" id="bjAgain" type="button">Nochmal spielen</button>
-        <button class="go secondary" id="bjMenu" type="button">Zurück zum Start</button>
+        <button class="go secondary" id="bjMenu" type="button">Zum Start</button>
       </div>
     </section>
   </main>
 
-  <p class="foot">Pro Runde 10 Aufgaben. Jede richtige Antwort lässt eine Blume wachsen. Alles richtig? Dann gibt es ein Feuerwerk und eine Goldblume!</p>
 </div>
 <canvas id="fx" aria-hidden="true"></canvas>
 
@@ -746,8 +824,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
   // ---------- Zustand ----------
   const state = {
-    grade: store.get("rw-grade", 1),
-    topics: ["plus"],                     // gewählte Themen, mehrere werden gemischt
+    grade: null,                          // wird beim Start gefragt
+    topics: [],                           // gewählte Themen, mehrere werden gemischt
     N: null,                              // wird jedes Mal neu eingetippt
     mal: null,                            // wird jedes Mal neu gefragt
     best: store.get("rw-best", {}),       // "2-100-plus": 3
@@ -755,7 +833,6 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     sound: store.get("rw-sound", true),
     round: null,
   };
-  if (!GRADES[state.grade]) state.grade = 1;
   const config = () => ({ N: state.N, mal: state.mal === true });
 
   // ---------- Ton ----------
@@ -831,6 +908,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     return {
       // Großes Feuerwerk über den ganzen Bildschirm
       show(seconds) { if (still) return; until = performance.now() + seconds * 1000; nextShot = 0; run(); },
+      // Beim Wechsel des Bildschirms alles wegräumen
+      stop() { until = 0; sparks = []; rockets = []; },
       // Kleine Explosionen über einem Element, z. B. bei einer Serie
       pop(el, count = 2) {
         if (still) return;
@@ -842,8 +921,11 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   })();
 
   // ---------- Ansichten ----------
+  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView"];
   function show(view) {
-    for (const id of ["startView", "gameView", "resultView", "tricksView", "balloonView"]) $(id).hidden = id !== view;
+    for (const id of VIEWS) $(id).hidden = id !== view;
+    fx.stop();
+    if (window.speechSynthesis) speechSynthesis.cancel();
     if (view !== "balloonView") stopBalloons();
     window.scrollTo(0, 0);
   }
@@ -856,66 +938,172 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     $("soundBtn").textContent = state.sound ? "Ton" : "Aus";
   }
 
-  function renderStart() {
-    const N = state.N;
-    const topics = topicsFor({ N: N || 100, mal: state.mal === true });
-    state.topics = state.topics.filter((t) => topics.includes(t));   // z. B. Mal fällt weg bei "Noch nicht"
+  // ---------- Summi, die Rechenbiene ----------
+  let beeCount = 0;
+  function beeSVG() {
+    const id = `beeBody${beeCount++}`;
+    return `<svg viewBox="0 0 100 92" aria-hidden="true"><g class="float">
+      <path d="M42 26Q36 10 27 9M58 26Q64 10 73 9" stroke="var(--bee-ink)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <circle cx="27" cy="9" r="4" fill="var(--bee-ink)"/><circle cx="73" cy="9" r="4" fill="var(--bee-ink)"/>
+      <ellipse cx="20" cy="42" rx="18" ry="12" fill="var(--wing)" fill-opacity=".8" stroke="var(--line)" stroke-width="1.5" transform="rotate(-25 20 42)"/>
+      <ellipse cx="80" cy="42" rx="18" ry="12" fill="var(--wing)" fill-opacity=".8" stroke="var(--line)" stroke-width="1.5" transform="rotate(25 80 42)"/>
+      <clipPath id="${id}"><ellipse cx="50" cy="58" rx="31" ry="30"/></clipPath>
+      <ellipse cx="50" cy="58" rx="31" ry="30" fill="var(--sun)"/>
+      <g clip-path="url(#${id})" fill="var(--bee-ink)"><rect x="10" y="68" width="80" height="6"/><rect x="10" y="80" width="80" height="6"/></g>
+      <circle cx="39" cy="49" r="7" fill="#fff"/><circle cx="61" cy="49" r="7" fill="#fff"/>
+      <circle cx="40" cy="50" r="3.6" fill="var(--bee-ink)"/><circle cx="62" cy="50" r="3.6" fill="var(--bee-ink)"/>
+      <circle cx="31" cy="59" r="4" fill="var(--petal-1)" opacity=".55"/><circle cx="69" cy="59" r="4" fill="var(--petal-1)" opacity=".55"/>
+      <path d="M43 59Q50 65 57 59" stroke="var(--bee-ink)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g></svg>`;
+  }
+  function beeMood(id, mood = "") {
+    const el = $(id);
+    el.classList.remove("happy", "think");
+    if (mood) { void el.offsetWidth; el.classList.add(mood); }
+  }
+
+  // ---------- Vorlesen ----------
+  const canSpeak = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+  const SPEAKER = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+  function speak(text) {
+    if (!canSpeak || !text) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "de-DE";
+      u.rate = 0.9;
+      speechSynthesis.speak(u);
+    } catch { /* Vorlesen nicht möglich */ }
+  }
+  // Rechenaufgabe so, wie man sie laut sagt: "7 plus 5 gleich wie viel"
+  function spokenTask(t) {
+    const word = { "+": "plus", "−": "minus", "·": "mal", ":": "geteilt durch", "=": "gleich" };
+    if (t.kind === "text") return t.text;
+    if (t.kind === "parts") {
+      return t.parts.map((p) => (p === "§" ? "wie viel" : word[p] || p.replace(/ Z$/, " Zehner").replace(/ E$/, " Einer"))).join(" ");
+    }
+    const v = (k) => (t.blank === k ? "wie viel" : fmt(t[k]));
+    return `${v("a")} ${word[t.op]} ${v("b")} gleich ${v("c")}`;
+  }
+
+  // ---------- Einrichtung: eine Frage pro Bildschirm ----------
+  const SETUP_SAY = [
+    "Hallo! Ich bin Summi, die Rechenbiene. In welche Klasse gehst du?",
+    "Bis zu welcher Zahl rechnest du schon? Tippe die Zahl ein.",
+    "Kannst du schon Mal und Geteilt rechnen?",
+    "Was möchtest du rechnen? Tippe alles an, was du üben magst.",
+  ];
+  const SETUP_STEPS = ["stepGrade", "stepRange", "stepMal", "stepTopics"];
+  let setupStep = 0, rangeDigits = "", setupDone = false;
+
+  function openSetup(step = 0) {
+    setupStep = step;
+    rangeDigits = state.N ? String(state.N) : "";
+    $("rangeNote").textContent = "";
+    $("rangeNote").classList.remove("bad");
+    $("topicNote").textContent = "";
+    renderSetup();
+    show("setupView");
+    beeMood("setupBee", "happy");
+  }
+
+  function renderSetup() {
+    SETUP_STEPS.forEach((id, i) => { $(id).hidden = i !== setupStep; });
+    $("steps").innerHTML = SETUP_STEPS.map((_, i) => `<span class="${i === setupStep ? "on" : ""}"></span>`).join("");
+    $("setupSay").textContent = SETUP_SAY[setupStep];
+    $("setupBack").hidden = setupStep === 0 && !setupDone;
 
     $("grades").innerHTML = Object.keys(GRADES).map((n) =>
       `<button class="grade" type="button" data-grade="${n}" aria-pressed="${Number(n) === state.grade}">
          <b>${n}</b><small>Klasse</small></button>`).join("");
 
-    $("rangeInput").placeholder = GRADES[state.grade].example;
+    $("rangeShow").textContent = rangeDigits ? fmt(Number(rangeDigits)) : "?";
+    $("rangeShow").classList.toggle("filled", !!rangeDigits);
+    if (!$("rangeNote").textContent) $("rangeNote").textContent = `Zum Beispiel ${state.grade ? GRADES[state.grade].example.replace("z. B. ", "") : "20"}.`;
+
     for (const b of $("malChoice").querySelectorAll("[data-mal]")) {
       b.setAttribute("aria-pressed", String(state.mal !== null && (b.dataset.mal === "1") === state.mal));
     }
 
+    const N = state.N || 100;
+    const topics = topicsFor({ N, mal: state.mal === true });
+    state.topics = state.topics.filter((t) => topics.includes(t));   // z. B. Mal fällt weg bei "Noch nicht"
     const allOn = topics.every((t) => state.topics.includes(t));
     $("topics").innerHTML = [...topics, "all"].map((t) => {
-      const best = N && t !== "all" ? state.best[`${state.grade}-${N}-${t}`] || 0 : 0;
+      const best = state.N && t !== "all" ? state.best[`${state.grade}-${state.N}-${t}`] || 0 : 0;
       const stars = t === "all" ? `<span class="stars none">alle Themen</span>`
         : best ? `<span class="stars" aria-label="${best} von 3 Sternen">${"★".repeat(best)}${"☆".repeat(3 - best)}</span>`
                : `<span class="stars none">neu</span>`;
       const wide = topics.length % 2 === 0 && t === "all" ? " wide" : "";
       const on = t === "all" ? allOn : state.topics.includes(t);
       return `<button class="topic${wide}" type="button" data-topic="${t}" aria-pressed="${on}">
-        <span class="sym${TOPICS[t].small ? " small" : ""}">${topicSym(t, N || 100)}</span><span><span class="name">${topicName(t, N || 100)}</span>${stars}</span></button>`;
+        <span class="sym${TOPICS[t].small ? " small" : ""}">${topicSym(t, N)}</span><span><span class="name">${topicName(t, N)}</span>${stars}</span></button>`;
     }).join("");
+  }
 
+  function setupNext() {
+    setupStep++;
+    renderSetup();
+    beeMood("setupBee", "happy");
+    window.scrollTo(0, 0);
+  }
+
+  // Zahlenfeld für "Bis zu welcher Zahl?"
+  function rangeKey(k) {
+    if (k === "del") rangeDigits = rangeDigits.slice(0, -1);
+    else if (k === "ok") {
+      const N = Number(rangeDigits);
+      let msg = "";
+      if (!rangeDigits) msg = "Tippe zuerst eine Zahl ein.";
+      else if (N < MIN_N) msg = `Nimm mindestens ${MIN_N}.`;
+      else if (N > MAX_N) msg = `Höchstens ${fmt(MAX_N)}. Das ist eine Million!`;
+      $("rangeNote").textContent = msg;
+      $("rangeNote").classList.toggle("bad", !!msg);
+      if (msg) { beeMood("setupBee", "think"); beep(SOUND_WRONG); renderSetup(); return; }
+      state.N = N;
+      $("rangeNote").textContent = noteFor(N);
+      return setupNext();
+    } else if (rangeDigits.length < 7) rangeDigits = (rangeDigits === "0" ? "" : rangeDigits) + k;
+    $("rangeNote").textContent = "";
+    $("rangeNote").classList.remove("bad");
+    renderSetup();
+  }
+
+  function finishSetup() {
+    if (!state.topics.length) {
+      $("topicNote").textContent = "Tippe mindestens ein Thema an.";
+      $("topicNote").classList.add("bad");
+      beeMood("setupBee", "think");
+      return;
+    }
+    setupDone = true;
+    goHome("Super! Jetzt kann es losgehen. Möchtest du spielen oder Blumen sammeln?");
+  }
+
+  // ---------- Startseite ----------
+  const HOME_SAY = ["Was möchtest du jetzt machen?", "Lust auf ein Spiel?", "Wollen wir zusammen rechnen?", "Toll, dass du da bist! Was spielen wir?"];
+  function goHome(text) {
+    renderHome(text || pick(HOME_SAY));
+    show("startView");
+    beeMood("homeBee", "happy");
+  }
+
+  function renderHome(text) {
+    $("homeSay").textContent = text;
+    $("settingsText").textContent = `Klasse ${state.grade} · bis ${fmt(state.N)} · ${state.mal ? "mit" : "ohne"} Mal und Geteilt · ${state.topics.map((t) => topicName(t, state.N)).join(", ")}`;
     const flowers = state.garden.slice(-60);
     $("garden").innerHTML = flowers.length
       ? flowers.map((f) => flowerSVG(f[0] === "g" ? "gold" : f[0] === "f" ? "flower" : "bud", PETALS[Number(f[1]) % 4])).join("")
-      : `<p class="empty">Noch leer. Rechne eine Runde und pflanze deine ersten Blumen!</p>` +
+      : `<p class="empty">Noch leer. Spiel oder rechne, dann wachsen hier deine Blumen!</p>` +
         flowerSVG("sprout") + flowerSVG("sprout") + flowerSVG("sprout");
     renderHeader();
   }
 
-  // Zahlenraum aus dem Eingabefeld lesen
-  function readRange() {
-    const digits = $("rangeInput").value.replace(/\D/g, "");
-    const N = Number(digits);
-    let msg = "Tippe die größte Zahl ein, mit der du rechnest.", bad = false;
-    state.N = null;
-    if (digits) {
-      if (N < MIN_N) { msg = `Bitte mindestens ${MIN_N} eingeben.`; bad = true; }
-      else if (N > MAX_N) { msg = `Höchstens ${fmt(MAX_N)}. Das ist eine Million!`; bad = true; }
-      else { state.N = N; msg = noteFor(N); }
-    }
-    $("rangeNote").textContent = msg;
-    $("rangeNote").classList.toggle("bad", bad);
-    $("rangeInput").classList.toggle("bad", bad);
-  }
-
-  // Erst loslegen, wenn alle Fragen beantwortet sind
+  // Alles gefragt? Sonst zurück zu Summis Fragen
   function ready() {
-    let msg = "";
-    if (!state.N) msg = "Tippe zuerst ein, bis zu welcher Zahl du rechnest.";
-    else if (state.mal === null) msg = "Sag noch, ob du schon Mal und Geteilt rechnest.";
-    else if (!state.topics.length) msg = "Tippe mindestens ein Thema an.";
-    $("startMsg").textContent = msg;
-    $("startMsg").hidden = !msg;
-    if (!state.N) $("rangeInput").focus();
-    return !msg;
+    if (state.grade && state.N && state.mal !== null && state.topics.length) return true;
+    openSetup(!state.grade ? 0 : !state.N ? 1 : state.mal === null ? 2 : 3);
+    return false;
   }
 
   // ---------- Spiel ----------
@@ -924,7 +1112,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     const N = state.N;
     const sel = [...state.topics];
     state.round = { tasks: makeRound(config(), sel), sel, N, i: 0, input: "", tries: 0, results: [], locked: false, streak: 0 };
-    $("where").textContent = `Klasse ${state.grade} · bis ${rangeLabel(N)} · ${selectionName(sel, N)}`;
+    $("where").textContent = `Bis ${rangeLabel(N)} · ${selectionName(sel, N)}`;
     renderStreak();
     resetTaskUi();
     show("gameView");
@@ -985,10 +1173,11 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   function say(text, cls = "") {
     $("say").textContent = text;
     $("say").className = "say " + cls;
+    if (text) beeMood("gameBee", cls === "ok" ? "happy" : cls === "oops" ? "think" : "");
   }
 
   function resetTaskUi() {
-    say("");
+    say(pick(["Du schaffst das!", "Schau genau hin.", "Los geht's!", "Denk in Ruhe nach."]));
     $("help").hidden = true;
     $("help").innerHTML = "";
     $("nextBtn").hidden = true;
@@ -1028,7 +1217,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       renderStreak(party);
       if (party) fx.pop($("task"), r.streak >= 6 ? 3 : 2);
       setPadEnabled(false);
-      setTimeout(nextTask, party ? 1700 : 1100);
+      setTimeout(() => { if (state.round === r) nextTask(); }, party ? 1700 : 1100);
       return;
     }
     r.tries++;
@@ -1116,6 +1305,19 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
         if (op === "−" && a > 10 && a - b < 10) return `Erst bis zur 10: ${a} − ${a - 10} = 10, dann noch ${b - (a - 10)} weg.`;
         return op === "+" ? "Zähle die roten und blauen Plättchen zusammen." : "Zähle die Plättchen, die übrig bleiben.";
       }
+      // Einstellige Zahl dazu oder weg: über den nächsten Zehner rechnen
+      if (b < 10) {
+        const ones = a % 10, base = a - ones;
+        if (op === "+") {
+          const toTen = 10 - ones;
+          if (!ones) return `Zu ${fmt(a)} kommen ${b} Einer dazu.`;
+          if (b > toTen) return `Erst bis zur ${fmt(base + 10)}: ${fmt(a)} + ${toTen} = ${fmt(base + 10)}, dann noch ${b - toTen} dazu.`;
+          return `Rechne nur mit den Einern: ${ones} + ${b}. Die Zehner bleiben gleich.`;
+        }
+        if (!ones) return `Denk an 10 − ${b}. Von ${fmt(a)} gehst du ${b} zurück.`;
+        if (ones < b) return `Erst zurück bis ${fmt(base)}: ${fmt(a)} − ${ones} = ${fmt(base)}, dann noch ${b - ones} weg.`;
+        return `Rechne nur mit den Einern: ${ones} − ${b}. Die Zehner bleiben gleich.`;
+      }
       const z = Math.min(trailingZeros(a), trailingZeros(b));
       if (z) {
         const p = 10 ** z, c2 = op === "+" ? a / p + b / p : a / p - b / p;
@@ -1124,7 +1326,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       const big = b >= 1000 ? Math.floor(b / 1000) * 1000 : b >= 100 ? Math.floor(b / 100) * 100 : Math.floor(b / 10) * 10;
       const rest = b - big;
       if (big && rest) return `Zerlege ${fmt(b)} in ${fmt(big)} und ${fmt(rest)}: erst ${fmt(a)} ${op} ${fmt(big)} = ${fmt(op === "+" ? a + big : a - big)}, dann ${op} ${fmt(rest)}.`;
-      return `Rechne Stelle für Stelle: erst die Einer, dann die Zehner, dann die Hunderter.`;
+      return a < 100 ? "Rechne erst die Zehner, dann die Einer." : "Rechne Stelle für Stelle: erst die Hunderter, dann die Zehner, dann die Einer.";
     }
     if (op === "·") {
       if (b === 10 || b === 100 || b === 1000) return `Mal ${fmt(b)}: Hänge ${zeros(b)} an ${fmt(a)}.`;
@@ -1149,8 +1351,9 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   function showHelp(afterMiss = false) {
     const t = state.round.tasks[state.round.i];
     const more = `<button class="more-tricks" type="button" data-tricks="${t.topic}">Mehr Rechentricks dazu</button>`;
+    const listen = (txt) => (canSpeak ? `<button class="speak" type="button" data-speak-text="${encodeURIComponent(txt)}">${SPEAKER}Tipp vorlesen</button>` : "");
     if (t.kind) {
-      $("help").innerHTML = `${t.helpPic || ""}<p>${afterMiss ? "So geht's: " : "Tipp: "}${t.tip}</p>${more}`;
+      $("help").innerHTML = `${t.helpPic || ""}<p>${afterMiss ? "So geht's: " : "Tipp: "}${t.tip}</p>${listen(t.tip)}${more}`;
       revealHelp();
       return;
     }
@@ -1158,7 +1361,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     if (t.blank === "c" && (t.op === "+" || t.op === "−") && t.a <= 20 && (t.op === "−" || t.a + t.b <= 20)) picture = zwanzigerfeld(t);
     else if (t.blank === "c" && t.op === "·" && t.a <= 10 && t.b <= 10) picture = dotArray(t.a, t.b);
     else if (t.blank === "c" && t.op === ":" && t.a <= 60) picture = dotArray(t.c, t.b);
-    $("help").innerHTML = `${picture}<p>${afterMiss ? "So geht's: " : "Tipp: "}${tipFor(t)}</p>${more}`;
+    $("help").innerHTML = `${picture}<p>${afterMiss ? "So geht's: " : "Tipp: "}${tipFor(t)}</p>${listen(tipFor(t))}${more}`;
     revealHelp();
   }
 
@@ -1336,12 +1539,21 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       el.addEventListener("click", () => hitBalloon(b));
       return b;
     });
-    bj.wave = { t, balloons, done: false };
+    bj.wave = { t, balloons, done: false, dur: riseTime(t) };
+  }
+
+  // Sekunden, die ein Ballon für den Weg nach oben braucht. Schwere Aufgaben bekommen mehr Zeit.
+  function riseTime(t) {
+    const N = bj.cfg.N;
+    let d = N <= 20 ? 10 : N <= 100 ? 14 : N <= 1000 ? 16 : 18;
+    if (t.kind === "text") d += 7;
+    return d;
   }
 
   function bjSpeed() {
     const H = $("bjSky").clientHeight;
-    return Math.min(H / 6.5 * (1 + 0.07 * bj.hits), H / 2.6);   // Pixel pro Sekunde, wird mit jedem Treffer schneller
+    const d = bj.wave.dur * Math.max(0.55, 1 - 0.04 * bj.hits);   // mit jedem Treffer etwas schneller
+    return H / d;   // Pixel pro Sekunde
   }
 
   function bjFrame(now) {
@@ -1349,7 +1561,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     const dt = Math.min(0.05, (now - bj.last) / 1000);
     bj.last = now;
     const w = bj.wave;
-    if (w) {
+    if (w && w.balloons.length) {
       const v = bjSpeed();
       for (const b of w.balloons) {
         if (b.out) continue;
@@ -1430,6 +1642,102 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     $("bjAgain").focus();
   }
 
+  // ---------- Zahlen-Memory ----------
+  const mem = { cards: [], open: [], moves: 0, found: 0, lock: false };
+
+  // Kurzer Kartentext, z. B. "7 + 5" oder "47 = 40 + □"
+  function cardLabel(t) {
+    if (t.kind === "parts") return t.parts.map((p) => (p === "§" ? "□" : p)).join(" ");
+    if (t.blank === "c") return `${fmt(t.a)} ${t.op} ${fmt(t.b)}`;
+    const v = (k) => (t.blank === k ? "□" : fmt(t[k]));
+    return `${v("a")} ${t.op} ${v("b")} = ${fmt(t.c)}`;
+  }
+
+  function memoryPairs(cfg, sel) {
+    const pool = sel.filter((t) => t !== "text");
+    const use = pool.length ? pool : opsFor(cfg);
+    const pairs = [], answers = new Set();
+    for (let guard = 0; pairs.length < 6 && guard < 600; guard++) {
+      const t = guard < 400 ? generate(cfg, pick(use), use) : { ...plusTask(cfg.N), topic: "plus" };
+      if (t.kind === "text" || answers.has(t.answer)) continue;
+      answers.add(t.answer);
+      pairs.push({ label: cardLabel(t), answer: t.answer });
+    }
+    return pairs;
+  }
+
+  function startMemory() {
+    if (!ready()) return;
+    const pairs = memoryPairs(config(), [...state.topics]);
+    mem.cards = shuffle(pairs.flatMap((p, i) => [{ pair: i, text: p.label, ans: false }, { pair: i, text: fmt(p.answer), ans: true }]));
+    Object.assign(mem, { open: [], moves: 0, found: 0, lock: false });
+    const back = flowerSVG("flower", "var(--sun)", "var(--petal-1)");
+    $("memGrid").innerHTML = mem.cards.map((c, i) =>
+      `<button class="card" type="button" data-card="${i}" aria-label="Karte ${i + 1}, verdeckt"><span class="in">
+         <span class="face back">${back}</span><span class="face front${c.ans ? " ans" : ""}">${c.text}</span></span></button>`).join("");
+    $("memGrid").hidden = false;
+    $("memOver").hidden = true;
+    $("memMoves").textContent = "0 Züge";
+    $("memSay").textContent = "Finde immer eine Aufgabe und ihr Ergebnis! Tippe zwei Karten an.";
+    show("memoryView");
+    beeMood("memBee", "happy");
+  }
+
+  function flipCard(i) {
+    const c = mem.cards[i], el = $("memGrid").children[i];
+    if (mem.lock || c.done || mem.open.includes(i)) return;
+    el.classList.add("open");
+    el.setAttribute("aria-label", c.text);
+    mem.open.push(i);
+    if (mem.open.length < 2) return;
+
+    mem.moves++;
+    $("memMoves").textContent = `${mem.moves} ${mem.moves === 1 ? "Zug" : "Züge"}`;
+    const [a, b] = mem.open.map((k) => mem.cards[k]);
+    if (a.pair === b.pair) {
+      a.done = b.done = true;
+      for (const k of mem.open) $("memGrid").children[k].classList.add("done");
+      mem.open = [];
+      mem.found++;
+      beep(SOUND_RIGHT);
+      fx.pop(el, 1);
+      $("memSay").textContent = `${pick(PRAISE)} ${a.ans ? b.text : a.text} = ${a.ans ? a.text : b.text}`;
+      beeMood("memBee", "happy");
+      if (mem.found === mem.cards.length / 2) setTimeout(memoryWon, 700);
+      return;
+    }
+    mem.lock = true;
+    $("memSay").textContent = "Das passt nicht zusammen. Merk dir, wo die Karten liegen!";
+    beeMood("memBee", "think");
+    setTimeout(() => {
+      for (const k of mem.open) {
+        $("memGrid").children[k].classList.remove("open");
+        $("memGrid").children[k].setAttribute("aria-label", `Karte ${k + 1}, verdeckt`);
+      }
+      mem.open = [];
+      mem.lock = false;
+    }, 1300);
+  }
+
+  function memoryWon() {
+    const best = store.get("rw-mem-best", 0);
+    const record = !best || mem.moves < best;
+    if (record) store.set("rw-mem-best", mem.moves);
+    for (let i = 0; i < 3; i++) state.garden.push("f" + (i % 4));
+    state.garden = state.garden.slice(-500);
+    store.set("rw-garden", state.garden);
+    renderHeader();
+    $("memGrid").hidden = true;
+    $("memOver").hidden = false;
+    $("memOverTitle").textContent = record ? "Neuer Rekord!" : "Geschafft!";
+    $("memOverText").textContent = `Du hast alle 6 Paare in ${mem.moves} Zügen gefunden. ` +
+      (record ? "So wenige Züge hattest du noch nie!" : `Dein Rekord: ${best} Züge.`) + " 3 Blumen wachsen in deinem Garten.";
+    $("memSay").textContent = "Super gemacht!";
+    beeMood("memBee", "happy");
+    if (record || mem.moves <= 9) { beep(SOUND_PERFECT); fx.show(4); } else beep(SOUND_DONE);
+    $("memAgain").focus();
+  }
+
   // ---------- Ergebnis ----------
   function finish() {
     const r = state.round;
@@ -1478,23 +1786,54 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
        aria-label="${k === "ok" ? "Prüfen" : k === "del" ? "Löschen" : k}">${k === "ok" ? "OK" : k === "del" ? "⌫" : k}</button>`).join("");
 
   $("pad").addEventListener("click", (e) => { const b = e.target.closest("[data-key]"); if (b) type(b.dataset.key); });
+  $("rangePad").innerHTML = ["7", "8", "9", "4", "5", "6", "1", "2", "3", "del", "0", "ok"].map((k) =>
+    `<button class="key${k === "ok" ? " ok" : k === "del" ? " del" : ""}" type="button" data-key="${k}"
+       aria-label="${k === "ok" ? "Weiter" : k === "del" ? "Löschen" : k}">${k === "ok" ? "Weiter" : k === "del" ? "⌫" : k}</button>`).join("");
+  $("rangePad").addEventListener("click", (e) => { const b = e.target.closest("[data-key]"); if (b) rangeKey(b.dataset.key); });
   $("grades").addEventListener("click", (e) => {
     const b = e.target.closest("[data-grade]"); if (!b) return;
-    state.grade = Number(b.dataset.grade); store.set("rw-grade", state.grade); renderStart();
+    state.grade = Number(b.dataset.grade);
+    renderSetup();
+    setTimeout(setupNext, 250);
   });
-  $("rangeInput").addEventListener("input", () => { readRange(); $("startMsg").hidden = true; renderStart(); });
-  $("rangeInput").addEventListener("change", () => { if (state.N) $("rangeInput").value = fmt(state.N); });
-  $("rangeInput").addEventListener("keydown", (e) => { if (e.key === "Enter") $("rangeInput").blur(); });
   $("malChoice").addEventListener("click", (e) => {
     const b = e.target.closest("[data-mal]"); if (!b) return;
-    state.mal = b.dataset.mal === "1"; $("startMsg").hidden = true; renderStart();
+    state.mal = b.dataset.mal === "1";
+    renderSetup();
+    setTimeout(setupNext, 250);
   });
+  $("setupDone").addEventListener("click", finishSetup);
+  $("setupBack").addEventListener("click", () => {
+    if (setupStep === 0) return goHome();
+    setupStep--; renderSetup();
+  });
+  $("settingsChip").addEventListener("click", () => openSetup(0));
+  $("memoryBtn").addEventListener("click", startMemory);
+  $("memAgain").addEventListener("click", startMemory);
+  $("memBack").addEventListener("click", () => goHome());
+  $("memMenu").addEventListener("click", () => goHome());
+  $("memGrid").addEventListener("click", (e) => { const b = e.target.closest("[data-card]"); if (b) flipCard(Number(b.dataset.card)); });
+
+  // Vorlesen: Sprechblasen, Aufgaben und Tipps
+  for (const b of document.querySelectorAll(".speak, .speak-task")) {
+    if (!canSpeak) { b.hidden = true; continue; }
+    b.innerHTML = SPEAKER + b.textContent;
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-speak-el], [data-speak-task], [data-speak-text]");
+    if (!b) return;
+    if (b.dataset.speakEl) speak($(b.dataset.speakEl).textContent);
+    else if (b.dataset.speakText) speak(decodeURIComponent(b.dataset.speakText));
+    else if (b.dataset.speakTask === "game" && state.round) speak(spokenTask(state.round.tasks[state.round.i]));
+    else if (b.dataset.speakTask === "balloon" && bj.wave) speak(spokenTask(bj.wave.t));
+  });
+
   $("balloonBtn").addEventListener("click", startBalloons);
   $("bjAgain").addEventListener("click", startBalloons);
-  $("bjBack").addEventListener("click", () => { stopBalloons(); renderStart(); show("startView"); });
-  $("bjMenu").addEventListener("click", () => { renderStart(); show("startView"); });
+  $("bjBack").addEventListener("click", () => { stopBalloons(); goHome(); });
+  $("bjMenu").addEventListener("click", () => goHome());
   $("tricksBtn").addEventListener("click", () => openTricks(""));
-  $("tricksBack").addEventListener("click", () => { show(tricksFrom); });
+  $("tricksBack").addEventListener("click", () => { if (tricksFrom === "startView") goHome(); else show(tricksFrom); });
   $("trickNav").addEventListener("click", (e) => {
     const b = e.target.closest("[data-jump]"); if (b) renderTricks(b.dataset.jump);
   });
@@ -1505,18 +1844,23 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     const all = topicsFor({ N: state.N || 100, mal: state.mal === true });
     if (t === "all") state.topics = all.every((x) => state.topics.includes(x)) ? [] : all;
     else state.topics = state.topics.includes(t) ? state.topics.filter((x) => x !== t) : [...state.topics, t];
-    $("startMsg").hidden = true;
-    renderStart();
+    $("topicNote").textContent = "";
+    renderSetup();
   });
   $("startBtn").addEventListener("click", startRound);
   $("againBtn").addEventListener("click", startRound);
-  $("menuBtn").addEventListener("click", () => { renderStart(); show("startView"); });
-  $("backBtn").addEventListener("click", () => { state.round = null; resetTaskUi(); renderStart(); show("startView"); });
+  $("menuBtn").addEventListener("click", () => goHome());
+  $("backBtn").addEventListener("click", () => { state.round = null; resetTaskUi(); goHome(); });
   $("helpBtn").addEventListener("click", () => { if ($("help").hidden) showHelp(); else $("help").hidden = true; });
   $("nextBtn").addEventListener("click", nextTask);
   $("soundBtn").addEventListener("click", () => { state.sound = !state.sound; store.set("rw-sound", state.sound); renderHeader(); });
 
   document.addEventListener("keydown", (e) => {
+    if (!$("setupView").hidden && setupStep === 1) {
+      const k = /^[0-9]$/.test(e.key) ? e.key : e.key === "Backspace" ? "del" : e.key === "Enter" ? "ok" : "";
+      if (k) { rangeKey(k); e.preventDefault(); }
+      return;
+    }
     if ($("gameView").hidden || !state.round) return;
     if (/^[0-9]$/.test(e.key)) { type(e.key); e.preventDefault(); }
     else if (e.key === "Backspace") { type("del"); e.preventDefault(); }
@@ -1526,9 +1870,14 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     }
   });
 
+  for (const id of ["setupBee", "homeBee", "gameBee", "memBee"]) $(id).innerHTML = beeSVG();
+  $("iconBalloon").innerHTML = balloonSVG("var(--petal-1)");
+  $("iconMemory").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="12" width="28" height="38" rx="5" fill="var(--grass)" transform="rotate(-10 20 31)"/><rect x="28" y="10" width="28" height="38" rx="5" fill="var(--paper)" stroke="var(--blue)" stroke-width="3" transform="rotate(8 42 29)"/><text x="42" y="36" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="18" fill="var(--blue)" transform="rotate(8 42 29)">12</text></svg>';
+  $("iconFlower").innerHTML = flowerSVG("flower", "var(--petal-2)");
+  $("iconTricks").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="26" r="17" fill="var(--sun)"/><rect x="24" y="42" width="16" height="10" rx="3" fill="var(--ink-soft)"/><path d="M26 30l6-8 6 8" stroke="var(--sun-ink)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 4v4M10 26H6M58 26h-4M15 10l3 3M49 10l-3 3" stroke="var(--sun)" stroke-width="3" stroke-linecap="round"/></svg>';
   renderTricks("plus");
-  renderStart();
-  show("startView");
+  renderHeader();
+  openSetup(0);
 })();
 </script>
 <!-- /body-ende -->
