@@ -134,6 +134,12 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .topic .sym.small { font-size: 16px; letter-spacing: -0.02em; }
 .topic[aria-pressed="true"] { border-color: var(--sun); background: var(--paper); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sun) 35%, transparent); }
 .topic.wide { grid-column: 1 / -1; }
+.topic { position: relative; }
+.topic[aria-pressed="true"]::after {
+  content: "✓"; position: absolute; top: 6px; right: 10px;
+  font-family: var(--display); font-weight: 800; font-size: 20px; line-height: 1; color: var(--grass-deep);
+}
+.topic-hint { margin: -2px 0 12px; color: var(--ink-soft); font-size: 16px; }
 
 .go {
   width: 100%; border: 0; border-radius: 18px; padding: 16px;
@@ -351,6 +357,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     </section>
     <section class="sheet">
       <p class="label">4. Was möchtest du üben?</p>
+      <p class="topic-hint">Tippe ein oder mehrere Themen an. Mehrere Themen werden gemischt.</p>
       <div class="topics" id="topics" role="group" aria-label="Thema"></div>
     </section>
     <p class="start-msg" id="startMsg" role="alert" hidden></p>
@@ -493,7 +500,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     stellen: { name: "Zehner & Einer",  sym: "ZE", small: true },
     text:    { name: "Textaufgaben",    sym: "Abc", small: true },
     luecke:  { name: "Lückenaufgaben",  sym: "□" },
-    mix:     { name: "Bunt gemischt",   sym: "?" },
+    all:     { name: "Alles mischen",   sym: "★" },
   };
 
   // Die Klasse gibt nur Beispiele vor. Zahlenraum und Mal/Geteilt wählt das Kind selbst.
@@ -507,7 +514,10 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
   // cfg = { N: größte Zahl, mal: Mal und Geteilt schon gelernt? }
   const opsFor = (cfg) => (cfg.mal ? ["plus", "minus", "mal", "geteilt"] : ["plus", "minus"]);
-  const topicsFor = (cfg) => [...opsFor(cfg), ...(cfg.N >= 20 ? ["stellen"] : []), "text", "luecke", "mix"];
+  const topicsFor = (cfg) => [...opsFor(cfg), ...(cfg.N >= 20 ? ["stellen"] : []), "text", "luecke"];
+  // Name einer Auswahl, z. B. "Plus" oder "Mix: Plus, Minus, Mal"
+  const selectionName = (sel, N) => (sel.length === 1 ? topicName(sel[0], N) : `Mix: ${sel.map((t) => topicName(t, N)).join(", ")}`);
+  const selectionKey = (sel) => [...sel].sort().join("+");
   const topicName = (t, N) => (t === "stellen" && N > 100 ? "Stellenwerte" : TOPICS[t].name);
   const topicSym = (t, N) => (t === "stellen" && N > 100 ? "HZE" : TOPICS[t].sym);
 
@@ -693,8 +703,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     ],
   };
 
-  function textTask(cfg) {
-    const N = cfg.N, ops = opsFor(cfg);
+  function textTask(cfg, ops) {
+    const N = cfg.N;
     for (;;) {
       const op = pick(ops);
       const t = (op === "minus" ? plusTask : op === "geteilt" ? malTask : MAKERS[op])(N);
@@ -706,11 +716,13 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     }
   }
 
-  function generate(cfg, topic) {
-    const N = cfg.N, basic = opsFor(cfg);
-    if (topic === "mix") topic = pick(topicsFor(cfg).filter((t) => t !== "mix" && t !== "luecke"));
+  // sel = alle gewählten Themen. Sind Rechenarten dabei, nutzen Text- und Lückenaufgaben nur diese.
+  function generate(cfg, topic, sel = [topic]) {
+    const N = cfg.N;
+    const chosenOps = sel.filter((t) => opsFor(cfg).includes(t));
+    const basic = chosenOps.length ? chosenOps : opsFor(cfg);
     if (topic === "stellen") return { ...placeTask(N), topic };
-    if (topic === "text") return textTask(cfg);
+    if (topic === "text") return textTask(cfg, basic);
     if (topic !== "luecke") return { ...MAKERS[topic](N), topic };
     // Lückenaufgabe: eine bekannte Aufgabe nehmen und eine Zahl verstecken
     const t = MAKERS[pick(basic)](N);
@@ -720,12 +732,12 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     return t;
   }
 
-  function makeRound(cfg, topic) {
+  function makeRound(cfg, sel) {
     const seen = new Set();
     const list = [];
     let guard = 0;
     while (list.length < 10 && guard++ < 500) {
-      const t = generate(cfg, topic);
+      const t = generate(cfg, pick(sel), sel);
       const key = t.key || `${t.a}${t.op}${t.b}${t.blank}`;
       if (seen.has(key)) continue;
       seen.add(key);
@@ -737,7 +749,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   // ---------- Zustand ----------
   const state = {
     grade: store.get("rw-grade", 1),
-    topic: "plus",
+    topics: ["plus"],                     // gewählte Themen, mehrere werden gemischt
     N: null,                              // wird jedes Mal neu eingetippt
     mal: null,                            // wird jedes Mal neu gefragt
     best: store.get("rw-best", {}),       // "2-100-plus": 3
@@ -849,7 +861,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   function renderStart() {
     const N = state.N;
     const topics = topicsFor({ N: N || 100, mal: state.mal === true });
-    if (!topics.includes(state.topic)) state.topic = topics[0];
+    state.topics = state.topics.filter((t) => topics.includes(t));   // z. B. Mal fällt weg bei "Noch nicht"
 
     $("grades").innerHTML = Object.keys(GRADES).map((n) =>
       `<button class="grade" type="button" data-grade="${n}" aria-pressed="${Number(n) === state.grade}">
@@ -860,12 +872,15 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       b.setAttribute("aria-pressed", String(state.mal !== null && (b.dataset.mal === "1") === state.mal));
     }
 
-    $("topics").innerHTML = topics.map((t) => {
-      const best = N ? state.best[`${state.grade}-${N}-${t}`] || 0 : 0;
-      const stars = best ? `<span class="stars" aria-label="${best} von 3 Sternen">${"★".repeat(best)}${"☆".repeat(3 - best)}</span>`
-                         : `<span class="stars none">neu</span>`;
-      const wide = topics.length % 2 === 1 && t === "mix" ? " wide" : "";
-      return `<button class="topic${wide}" type="button" data-topic="${t}" aria-pressed="${t === state.topic}">
+    const allOn = topics.every((t) => state.topics.includes(t));
+    $("topics").innerHTML = [...topics, "all"].map((t) => {
+      const best = N && t !== "all" ? state.best[`${state.grade}-${N}-${t}`] || 0 : 0;
+      const stars = t === "all" ? `<span class="stars none">alle Themen</span>`
+        : best ? `<span class="stars" aria-label="${best} von 3 Sternen">${"★".repeat(best)}${"☆".repeat(3 - best)}</span>`
+               : `<span class="stars none">neu</span>`;
+      const wide = topics.length % 2 === 0 && t === "all" ? " wide" : "";
+      const on = t === "all" ? allOn : state.topics.includes(t);
+      return `<button class="topic${wide}" type="button" data-topic="${t}" aria-pressed="${on}">
         <span class="sym${TOPICS[t].small ? " small" : ""}">${topicSym(t, N || 100)}</span><span><span class="name">${topicName(t, N || 100)}</span>${stars}</span></button>`;
     }).join("");
 
@@ -898,6 +913,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     let msg = "";
     if (!state.N) msg = "Tippe zuerst ein, bis zu welcher Zahl du rechnest.";
     else if (state.mal === null) msg = "Sag noch, ob du schon Mal und Geteilt rechnest.";
+    else if (!state.topics.length) msg = "Tippe mindestens ein Thema an.";
     $("startMsg").textContent = msg;
     $("startMsg").hidden = !msg;
     if (!state.N) $("rangeInput").focus();
@@ -908,8 +924,9 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   function startRound() {
     if (!ready()) return;
     const N = state.N;
-    state.round = { tasks: makeRound(config(), state.topic), N, i: 0, input: "", tries: 0, results: [], locked: false, streak: 0 };
-    $("where").textContent = `Klasse ${state.grade} · bis ${rangeLabel(N)} · ${topicName(state.topic, N)}`;
+    const sel = [...state.topics];
+    state.round = { tasks: makeRound(config(), sel), sel, N, i: 0, input: "", tries: 0, results: [], locked: false, streak: 0 };
+    $("where").textContent = `Klasse ${state.grade} · bis ${rangeLabel(N)} · ${selectionName(sel, N)}`;
     renderStreak();
     resetTaskUi();
     show("gameView");
@@ -1252,7 +1269,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   function startBalloons() {
     if (!ready()) return;
     bj.gen = (bj.gen || 0) + 1;
-    Object.assign(bj, { cfg: config(), topic: state.topic, score: 0, lives: 3, hits: 0, wave: null, running: true, last: performance.now() });
+    Object.assign(bj, { cfg: config(), sel: [...state.topics], score: 0, lives: 3, hits: 0, wave: null, running: true, last: performance.now() });
     $("bjOver").hidden = true;
     $("bjSky").hidden = false;
     $("bjTaskCard").hidden = false;
@@ -1282,7 +1299,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
   function nextWave() {
     if (!bj.running) return;
-    const t = generate(bj.cfg, bj.topic);
+    const t = generate(bj.cfg, pick(bj.sel), bj.sel);
     drawTask($("bjTask"), t, '<span class="slot">?</span>');
     const sky = $("bjSky");
     sky.querySelectorAll(".balloon, .level-up").forEach((n) => n.remove());
@@ -1403,7 +1420,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     const stars = first >= 9 ? 3 : first + second >= 7 ? 2 : 1;
     const perfect = first === 10;
 
-    const key = `${state.grade}-${r.N}-${state.topic}`;
+    const key = `${state.grade}-${r.N}-${selectionKey(r.sel)}`;
     state.best[key] = Math.max(state.best[key] || 0, stars);
     r.results.forEach((x, i) => {
       if (x === "first") state.garden.push("f" + (i % 4));
@@ -1465,7 +1482,12 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   $("help").addEventListener("click", (e) => { const b = e.target.closest("[data-tricks]"); if (b) openTricks(b.dataset.tricks); });
   $("topics").addEventListener("click", (e) => {
     const b = e.target.closest("[data-topic]"); if (!b) return;
-    state.topic = b.dataset.topic; renderStart();
+    const t = b.dataset.topic;
+    const all = topicsFor({ N: state.N || 100, mal: state.mal === true });
+    if (t === "all") state.topics = all.every((x) => state.topics.includes(x)) ? [] : all;
+    else state.topics = state.topics.includes(t) ? state.topics.filter((x) => x !== t) : [...state.topics, t];
+    $("startMsg").hidden = true;
+    renderStart();
   });
   $("startBtn").addEventListener("click", startRound);
   $("againBtn").addEventListener("click", startRound);

@@ -40,7 +40,10 @@ Danach wird ein Thema gewählt: Plus, Minus, Mal und Geteilt (wenn freigeschalte
   und Einerwürfeln erkennen, Stellenwerttafel lesen, „4 Z + 7 E = ?“, „47 = 40 + ?“
 - **Textaufgaben**: Rätsel wie „Wenn du zu meiner Zahl 9 dazuzählst, kommt 19 heraus.
   Welche Zahl bin ich?“ und kleine Sachaufgaben
-- **Lückenaufgaben** und **Bunt gemischt**
+- **Lückenaufgaben**
+
+Es können **mehrere Themen gleichzeitig** angetippt werden, z. B. Plus, Minus und Mal. Dann
+kommen gemischte Aufgaben nur aus diesen Themen. „Alles mischen“ wählt alle Themen auf einmal.
 
 Die Hilfe zeigt im Zahlenraum bis 20 das Zwanzigerfeld, sonst passende Rechentipps.
 
