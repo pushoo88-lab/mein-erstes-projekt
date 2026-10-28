@@ -205,6 +205,56 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 }
 .settings-chip b { color: var(--blue); white-space: nowrap; }
 
+.mode.wide { grid-column: 1 / -1; }
+.mode.adventure { background: color-mix(in srgb, var(--sun) 18%, var(--paper)); border-color: color-mix(in srgb, var(--sun) 60%, var(--line)); box-shadow: 0 5px 0 color-mix(in srgb, var(--sun) 60%, var(--line)); }
+.mode.adventure .tag { color: color-mix(in srgb, var(--sun-ink) 70%, var(--sun)); }
+.mode.garden-tile { background: color-mix(in srgb, var(--grass) 12%, var(--paper)); border-color: color-mix(in srgb, var(--grass) 45%, var(--line)); box-shadow: 0 5px 0 color-mix(in srgb, var(--grass) 45%, var(--line)); }
+.mode.garden-tile .tag { color: var(--grass-deep); }
+
+/* Abenteuer-Pfad */
+.path { position: relative; margin: 0 4px; }
+.trail { position: absolute; inset: 0; width: 100%; height: 100%; }
+.trail polyline { fill: none; stroke: var(--line); stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; stroke-dasharray: 2 16; }
+.trail polyline.walked { stroke: var(--sun); stroke-dasharray: none; stroke-width: 8; }
+.node {
+  position: absolute; transform: translate(-50%, -50%); width: 68px; height: 68px; border-radius: 50%;
+  border: 4px solid var(--line); background: var(--key); display: grid; place-items: center;
+  font-family: var(--display); font-size: 28px; font-weight: 800; line-height: 1; color: var(--ink);
+}
+.node svg { width: 26px; height: 26px; }
+.node.done { background: var(--grass); border-color: var(--grass-deep); color: #fff; }
+.node.now { background: var(--sun); border-color: color-mix(in srgb, var(--sun) 55%, #000); color: var(--sun-ink); animation: pulse2 1.1s ease-in-out infinite alternate; }
+@keyframes pulse2 { to { box-shadow: 0 0 0 10px color-mix(in srgb, var(--sun) 30%, transparent); } }
+.node.locked { color: var(--ink-soft); }
+.node.boss { width: 82px; height: 82px; }
+.node[aria-pressed="true"] { outline: 4px solid var(--blue); outline-offset: 4px; }
+.nstars { position: absolute; top: -18px; left: 50%; translate: -50% 0; color: var(--sun); font-size: 15px; letter-spacing: 1px; white-space: nowrap; text-shadow: 0 1px 0 var(--paper); }
+.nlabel { position: absolute; top: 100%; left: 50%; translate: -50% 0; margin-top: 6px; display: grid; justify-items: center; white-space: nowrap; font-family: var(--body); font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.15; }
+.nlabel small { font-size: 12px; color: var(--ink-soft); font-weight: 700; }
+.path-bee { position: absolute; width: 56px; height: 52px; pointer-events: none; }
+
+/* Mein Garten und Gartenladen */
+.scene {
+  position: relative; aspect-ratio: 4 / 3; max-width: 100%; border-radius: 22px; overflow: hidden; border: 2px solid var(--line);
+  background: linear-gradient(to bottom, var(--sky-top) 0%, var(--paper) 52%, var(--grass) 52%, var(--grass-deep) 100%);
+}
+.scene .deco, .scene .fl { position: absolute; }
+.scene svg { display: block; width: 100%; height: auto; }
+.scene .fly { animation: flutter 3s ease-in-out infinite; }
+@keyframes flutter { 50% { transform: translate(10px, -8px) rotate(6deg); } }
+.scene .sun { position: absolute; right: 5%; top: 6%; width: 14%; aspect-ratio: 1; border-radius: 50%; background: var(--sun); box-shadow: 0 0 0 8px color-mix(in srgb, var(--sun) 25%, transparent); }
+.shop { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.shop-item { background: var(--paper); border: 2px solid var(--line); border-radius: 18px; padding: 12px 10px; display: grid; justify-items: center; gap: 6px; text-align: center; }
+.shop-item.owned { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, var(--paper)); }
+.shop-icon { width: 64px; height: 64px; display: grid; place-items: center; }
+.shop-icon svg { max-width: 100%; max-height: 100%; }
+.shop-item b { font-family: var(--display); font-size: 19px; line-height: 1.1; }
+.buy { display: inline-flex; align-items: center; gap: 4px; border: 0; border-radius: 999px; padding: 6px 16px 6px 10px; background: var(--sun); color: var(--sun-ink); font-family: var(--display); font-weight: 800; font-size: 19px; box-shadow: 0 3px 0 color-mix(in srgb, var(--sun) 55%, #000); }
+.buy svg { width: 16px; height: 24px; }
+.buy:disabled { background: var(--key); color: var(--ink-soft); box-shadow: 0 3px 0 var(--line); cursor: default; }
+.shop-item small { color: var(--ink-soft); font-size: 13px; }
+.have { color: var(--ok); font-weight: 700; }
+
 /* Zahlen-Memory */
 .memory { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 @media (min-width: 520px) { .memory { grid-template-columns: repeat(4, 1fr); } }
@@ -420,16 +470,44 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       <div class="bubble"><p id="homeSay"></p><button class="speak" type="button" data-speak-el="homeSay">Vorlesen</button></div>
     </section>
     <div class="modes">
+      <button class="mode adventure wide" id="pathBtn" type="button"><span class="tag">Abenteuer</span><span id="iconPath"></span><b>Abenteuer-Pfad</b><small id="pathInfo"></small></button>
       <button class="mode game" id="balloonBtn" type="button"><span class="tag">Spiel</span><span id="iconBalloon"></span><b>Ballonjagd</b><small>Tippe den richtigen Ballon an</small></button>
       <button class="mode game" id="memoryBtn" type="button"><span class="tag">Spiel</span><span id="iconMemory"></span><b>Zahlen-Memory</b><small>Finde Aufgabe und Ergebnis</small></button>
       <button class="mode" id="startBtn" type="button"><span class="tag">Üben</span><span id="iconFlower"></span><b>Blumen-Runde</b><small>10 Aufgaben, Blumen sammeln</small></button>
       <button class="mode" id="tricksBtn" type="button"><span class="tag">Lernen</span><span id="iconTricks"></span><b>Rechentricks</b><small>So geht Rechnen leichter</small></button>
+      <button class="mode garden-tile wide" id="gardenBtn" type="button"><span class="tag">Belohnung</span><span id="iconGarden"></span><b>Mein Garten</b><small id="gardenInfo"></small></button>
     </div>
     <button class="settings-chip" id="settingsChip" type="button"><span id="settingsText"></span><b>Ändern</b></button>
-    <section>
-      <p class="label">Dein Garten</p>
-      <div class="garden" id="garden"></div>
+  </main>
+
+  <!-- Abenteuer-Pfad -->
+  <main id="pathView" hidden style="display:grid; gap:14px;">
+    <div class="bar">
+      <button class="back" id="pathBack" type="button">← Zurück</button>
+      <span class="where">Abenteuer-Pfad</span>
+      <span class="count" id="pathCount"></span>
+    </div>
+    <section class="sheet hello">
+      <div class="bee" id="pathBee"></div>
+      <div class="bubble"><p id="pathSay"></p><button class="speak" type="button" data-speak-el="pathSay">Vorlesen</button></div>
     </section>
+    <button class="go" id="pathPlay" type="button">Los geht's!</button>
+    <div class="path" id="path"></div>
+  </main>
+
+  <!-- Mein Garten mit Gartenladen -->
+  <main id="gardenView" hidden style="display:grid; gap:14px;">
+    <div class="bar">
+      <button class="back" id="gardenBack" type="button">← Zurück</button>
+      <span class="where">Mein Garten</span>
+    </div>
+    <section class="sheet hello">
+      <div class="bee" id="gardenBee"></div>
+      <div class="bubble"><p id="gardenSay"></p><button class="speak" type="button" data-speak-el="gardenSay">Vorlesen</button></div>
+    </section>
+    <div class="scene" id="scene" aria-label="Dein Garten"></div>
+    <p class="label" style="margin:6px 0 0">Gartenladen: Bezahle mit deinen Blumen</p>
+    <div class="shop" id="shop"></div>
   </main>
 
   <!-- Zahlen-Memory -->
@@ -831,9 +909,14 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     best: store.get("rw-best", {}),       // "2-100-plus": 3
     garden: store.get("rw-garden", []),   // ["f2", "b0", ...]
     sound: store.get("rw-sound", true),
+    owned: store.get("rw-owned", []),     // gekaufte Sachen für den Garten
+    spent: store.get("rw-spent", 0),      // ausgegebene Blumen
+    path: store.get("rw-path", { done: 0, stars: [] }),
+    level: null,                          // { i, N } während ein Level gespielt wird
     round: null,
   };
-  const config = () => ({ N: state.N, mal: state.mal === true });
+  // Im Abenteuer-Pfad gibt das Level den Zahlenraum vor (frühe Level mit kleineren Zahlen)
+  const config = () => ({ N: state.level ? state.level.N : state.N, mal: state.mal === true });
 
   // ---------- Ton ----------
   let audio;
@@ -921,7 +1004,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   })();
 
   // ---------- Ansichten ----------
-  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView"];
+  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView", "pathView", "gardenView"];
   function show(view) {
     for (const id of VIEWS) $(id).hidden = id !== view;
     fx.stop();
@@ -932,7 +1015,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
   function renderHeader() {
     $("flowerIcon").innerHTML = flowerSVG("flower", "var(--petal-1)");
-    $("flowerCount").textContent = fmt(state.garden.filter((f) => f[0] === "f" || f[0] === "g").length);
+    $("flowerCount").textContent = fmt(balance());
     $("soundBtn").setAttribute("aria-pressed", String(state.sound));
     $("soundBtn").setAttribute("aria-label", state.sound ? "Ton ausschalten" : "Ton einschalten");
     $("soundBtn").textContent = state.sound ? "Ton" : "Aus";
@@ -1091,11 +1174,9 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   function renderHome(text) {
     $("homeSay").textContent = text;
     $("settingsText").textContent = `Klasse ${state.grade} · bis ${fmt(state.N)} · ${state.mal ? "mit" : "ohne"} Mal und Geteilt · ${state.topics.map((t) => topicName(t, state.N)).join(", ")}`;
-    const flowers = state.garden.slice(-60);
-    $("garden").innerHTML = flowers.length
-      ? flowers.map((f) => flowerSVG(f[0] === "g" ? "gold" : f[0] === "f" ? "flower" : "bud", PETALS[Number(f[1]) % 4])).join("")
-      : `<p class="empty">Noch leer. Spiel oder rechne, dann wachsen hier deine Blumen!</p>` +
-        flowerSVG("sprout") + flowerSVG("sprout") + flowerSVG("sprout");
+    const done = state.path.done;
+    $("pathInfo").textContent = done >= LEVELS.length ? "Alle Level geschafft!" : `Weiter mit Level ${done + 1} von ${LEVELS.length}: ${LEVELS[done].place}`;
+    $("gardenInfo").textContent = `${balance()} Blumen zum Ausgeben · ${state.owned.length} von ${SHOP.length} Sachen im Garten`;
     renderHeader();
   }
 
@@ -1109,10 +1190,10 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   // ---------- Spiel ----------
   function startRound() {
     if (!ready()) return;
-    const N = state.N;
+    const N = config().N;
     const sel = [...state.topics];
     state.round = { tasks: makeRound(config(), sel), sel, N, i: 0, input: "", tries: 0, results: [], locked: false, streak: 0 };
-    $("where").textContent = `Bis ${rangeLabel(N)} · ${selectionName(sel, N)}`;
+    $("where").textContent = state.level ? `Level ${state.level.i + 1} · ${LEVELS[state.level.i].place}` : `Bis ${rangeLabel(N)} · ${selectionName(sel, N)}`;
     renderStreak();
     resetTaskUi();
     show("gameView");
@@ -1491,6 +1572,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   function startBalloons() {
     if (!ready()) return;
     bj.gen = (bj.gen || 0) + 1;
+    const L = state.level && LEVELS[state.level.i];
+    bj.target = L && L.type === "ballon" ? L.target : 0;
     Object.assign(bj, { cfg: config(), sel: [...state.topics], score: 0, lives: 3, hits: 0, wave: null, running: true, last: performance.now() });
     $("bjOver").hidden = true;
     $("bjSky").hidden = false;
@@ -1516,7 +1599,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   function renderBjBar() {
     $("bjHearts").innerHTML = [0, 1, 2].map((i) => `<span class="${i < bj.lives ? "" : "lost"}">♥</span>`).join("");
     $("bjHearts").setAttribute("aria-label", `${bj.lives} Leben`);
-    $("bjScore").textContent = `${fmt(bj.score)} Punkte`;
+    $("bjScore").textContent = bj.target ? `${bj.hits} / ${bj.target} Ballons` : `${fmt(bj.score)} Punkte`;
   }
 
   function nextWave() {
@@ -1588,11 +1671,17 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       const bonus = Math.max(0, Math.round(10 * b.y / H));   // früh getroffen gibt Extrapunkte
       bj.score += 10 + bonus;
       bj.hits++;
+      if (bj.target && bj.hits >= bj.target) {   // Level-Ziel erreicht
+        beep(SOUND_RIGHT);
+        fx.pop(b.el, 1);
+        renderBjBar();
+        return later(() => gameOver("Alle Ballons geschafft!", true), 500);
+      }
       fx.pop(b.el, 1);
       if (bj.hits % 5 === 0) {
         beep(SOUND_STREAK);
         sayBj(`${bj.hits} Treffer! Jetzt wird es schneller!`, "ok");
-        $("bjSky").insertAdjacentHTML("beforeend", `<div class="level-up">Level ${bj.hits / 5 + 1}!</div>`);
+        $("bjSky").insertAdjacentHTML("beforeend", `<div class="level-up">Stufe ${bj.hits / 5 + 1}!</div>`);
       } else {
         beep(SOUND_RIGHT);
         sayBj(`${pick(PRAISE)} +${10 + bonus} Punkte`, "ok");
@@ -1621,25 +1710,208 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     later(nextWave, 1500);
   }
 
-  function gameOver(lastText) {
+  function gameOver(lastText, won = false) {
     stopBalloons();
     const best = store.get("rw-bj-best", 0);
     const record = bj.score > best;
     if (record) store.set("rw-bj-best", bj.score);
     const flowers = Math.floor(bj.hits / 3);
     for (let i = 0; i < flowers; i++) state.garden.push("f" + (i % 4));
-    state.garden = state.garden.slice(-500);
+    state.garden = state.garden.slice(-5000);
     store.set("rw-garden", state.garden);
     renderHeader();
     $("bjSky").hidden = true;
     $("bjTaskCard").hidden = true;
     $("bjOver").hidden = false;
-    $("bjOverTitle").textContent = record && bj.score > 0 ? "Neuer Rekord!" : "Spiel vorbei!";
+    $("bjOverTitle").textContent = won ? "Level geschafft!" : record && bj.score > 0 ? "Neuer Rekord!" : "Spiel vorbei!";
     $("bjOverText").textContent = `${lastText} Du hast ${bj.hits} Ballons richtig getroffen und ${fmt(bj.score)} Punkte geholt.` +
-      (record && bj.score > 0 ? "" : ` Dein Rekord: ${fmt(Math.max(best, bj.score))} Punkte.`) +
-      (flowers ? ` ${flowers} ${flowers === 1 ? "Blume wächst" : "Blumen wachsen"} in deinem Garten.` : "");
-    if (record && bj.score > 0) { beep(SOUND_PERFECT); fx.show(5); } else beep(SOUND_DONE);
+      (bj.target || (record && bj.score > 0) ? "" : ` Dein Rekord: ${fmt(Math.max(best, bj.score))} Punkte.`) +
+      (flowers ? ` ${flowers} ${flowers === 1 ? "Blume wächst" : "Blumen wachsen"} in deinem Garten.` : "") +
+      (state.level ? " " + completeLevel(bj.lives, won) : "");
+    if (won || (record && bj.score > 0)) { beep(SOUND_PERFECT); fx.show(5); } else beep(SOUND_DONE);
     $("bjAgain").focus();
+  }
+
+  // ---------- Abenteuer-Pfad ----------
+  const LEVEL_PLACES = ["Blumenwiese", "Bienenstock", "Kleeblattfeld", "Pilzwald", "Teich", "Schmetterlingsgarten",
+    "Holzbrücke", "Windmühle", "Sonnenhügel", "Regenbogen", "Wolkenberg", "Honigschloss"];
+  const TYPE_NAME = { runde: "Blumen-Runde", ballon: "Ballonjagd", memory: "Zahlen-Memory" };
+  const LEVELS = LEVEL_PLACES.map((place, i) => {
+    const type = ["runde", "ballon", "memory", "runde"][i % 4];
+    const boss = i % 4 === 3;                       // jedes 4. Level ist ein Finale
+    const target = 6 + Math.floor(i / 4) * 2;       // Ballons, die getroffen werden müssen
+    const goal = boss ? "Großes Finale! Schaffe mindestens 8 von 10 Aufgaben."
+      : type === "runde" ? "Schaffe mindestens 7 von 10 Aufgaben."
+      : type === "ballon" ? `Triff ${target} Ballons, bevor deine 3 Leben weg sind.`
+      : "Finde alle 6 Paare.";
+    return { place, type, boss, target, goal, name: boss ? "Großes Finale" : TYPE_NAME[type] };
+  });
+  const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2.5" fill="none"/></svg>';
+
+  // Zahlenraum eines Levels: am Anfang ein gutes Drittel, am Ende der ganze eingetippte Zahlenraum
+  function levelN(i) {
+    const N = state.N, x = N * (0.35 + 0.65 * i / (LEVELS.length - 1));
+    const min = state.topics.includes("stellen") ? 20 : MIN_N;
+    let n = Math.round(x);
+    if (N > 20) { const step = 10 ** Math.max(0, String(n).length - 2); n = Math.round(x / step) * step; }
+    return Math.max(min, Math.min(N, n));
+  }
+
+  let pathSel = 0;
+  function openPath() {
+    if (!ready()) return;
+    pathSel = Math.min(state.path.done, LEVELS.length - 1);
+    renderPath();
+    show("pathView");
+    beeMood("pathBee", "happy");
+  }
+
+  function renderPath(msg) {
+    const n = LEVELS.length, rowH = 104, H = n * rowH + 20;
+    const xs = [50, 80, 50, 20];
+    const pts = LEVELS.map((_, i) => [xs[i % 4], 54 + i * rowH]);
+    const done = state.path.done;
+    const walked = pts.slice(0, Math.min(done, n - 1) + 1);
+    let html = `<svg class="trail" viewBox="0 0 100 ${H}" preserveAspectRatio="none" aria-hidden="true">` +
+      `<polyline points="${pts.map((p) => p.join(",")).join(" ")}"/>` +
+      (walked.length > 1 ? `<polyline class="walked" points="${walked.map((p) => p.join(",")).join(" ")}"/>` : "") + "</svg>";
+    LEVELS.forEach((L, i) => {
+      const [x, y] = pts[i];
+      const st = i < done ? "done" : i === done ? "now" : "locked";
+      const stars = state.path.stars[i] || 0;
+      html += `<button class="node ${st}${L.boss ? " boss" : ""}" type="button" data-level="${i}" aria-pressed="${i === pathSel}"
+          style="left:${x}%;top:${y}px" aria-label="Level ${i + 1}, ${L.place}, ${L.name}${st === "locked" ? ", noch zu" : ""}">
+        ${st === "locked" ? LOCK : i + 1}${stars ? `<span class="nstars">${"★".repeat(stars)}</span>` : ""}
+        <span class="nlabel">${L.place}<small>${L.name}</small></span></button>`;
+    });
+    // Summi wartet beim aktuellen Level
+    const [bx, by] = pts[Math.min(done, n - 1)];
+    html += `<div class="bee path-bee" style="left:calc(${bx}% ${bx > 60 ? "- 104px" : "+ 46px"});top:${by - 44}px">${beeSVG()}</div>`;
+    $("path").style.height = `${H}px`;
+    $("path").innerHTML = html;
+
+    const L = LEVELS[pathSel];
+    $("pathSay").textContent = msg || (done >= n && pathSel === n - 1
+      ? "Du hast den ganzen Pfad geschafft! Du kannst jedes Level nochmal spielen."
+      : `Level ${pathSel + 1}: ${L.place}. ${L.name}! ${L.goal}`);
+    $("pathPlay").textContent = `Level ${pathSel + 1} spielen`;
+    $("pathCount").textContent = `${Math.min(done, n)} / ${n}`;
+  }
+
+  function startLevel(i) {
+    state.level = { i, N: levelN(i) };
+    setLevelButtons();
+    const type = LEVELS[i].type;
+    if (type === "runde") startRound();
+    else if (type === "ballon") startBalloons();
+    else startMemory();
+  }
+
+  // Ergebnis eines Levels speichern; gibt den Text für die Ergebnisseite zurück
+  function completeLevel(stars, passed) {
+    const i = state.level.i;
+    if (!passed) return `Für dieses Level fehlt noch ein bisschen. ${LEVELS[i].goal} Versuch es gleich nochmal!`;
+    const path = state.path;
+    path.stars[i] = Math.max(path.stars[i] || 0, stars);
+    let text = `Level ${i + 1} geschafft!`;
+    if (i === path.done) {
+      path.done++;
+      for (let k = 0; k < 3; k++) state.garden.push("f" + k);   // Bonus fürs Freischalten
+      store.set("rw-garden", state.garden);
+      text += path.done < LEVELS.length ? " Bonus: 3 Blumen! Das nächste Level ist jetzt offen." : " Du hast den ganzen Abenteuer-Pfad geschafft!";
+    }
+    store.set("rw-path", path);
+    renderHeader();
+    return text;
+  }
+
+  function setLevelButtons() {
+    for (const id of ["menuBtn", "bjMenu", "memMenu"]) $(id).textContent = state.level ? "Zum Pfad" : "Zum Start";
+  }
+
+  // Zurück aus einem Spiel: im Level zum Pfad, sonst zur Startseite
+  function leaveGame() {
+    if (state.level) { state.level = null; setLevelButtons(); openPath(); }
+    else goHome();
+  }
+
+  // ---------- Mein Garten und Gartenladen ----------
+  const SHOP = [
+    { id: "schnecke", art: "Die", name: "Schnecke", price: 4, pos: [68, 3, 12] },
+    { id: "kaefer", art: "Der", name: "Marienkäfer", price: 5, pos: [40, 26, 7] },
+    { id: "pilz", art: "Der", name: "Pilz", price: 6, pos: [47, 8, 10] },
+    { id: "schmetterling", art: "Der", name: "Schmetterling", price: 8, pos: [58, 64, 11], fly: true },
+    { id: "sonnenblume", art: "Die", name: "Sonnenblume", price: 10, pos: [27, 16, 12] },
+    { id: "zwerg", art: "Der", name: "Gartenzwerg", price: 12, pos: [14, 3, 12] },
+    { id: "vogelhaus", art: "Das", name: "Vogelhaus", price: 15, pos: [3, 30, 17] },
+    { id: "teich", art: "Der", name: "Teich", price: 18, pos: [55, 2, 38] },
+    { id: "bienenstock", art: "Der", name: "Bienenstock", price: 22, pos: [80, 30, 15] },
+    { id: "regenbogen", art: "Der", name: "Regenbogen", price: 30, pos: [4, 44, 92] },
+  ];
+
+  function decoSVG(id) {
+    const W = "#fff";
+    switch (id) {
+      case "schnecke": return `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M6 88Q6 72 28 74H84Q96 74 94 82Q92 88 80 88Z" fill="#c9b27c"/><path d="M84 76L92 58M78 76L80 58" stroke="#c9b27c" stroke-width="4" stroke-linecap="round"/><circle cx="48" cy="54" r="26" fill="var(--petal-3)"/><path d="M48 54m-4 0a4 4 0 1 1 8 0a10 10 0 1 1-20 0a16 16 0 1 1 32 0" stroke="var(--bee-ink)" stroke-width="3" fill="none"/></svg>`;
+      case "kaefer": return `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="30" r="13" fill="var(--bee-ink)"/><ellipse cx="50" cy="60" rx="32" ry="28" fill="var(--red)"/><path d="M50 34V88" stroke="var(--bee-ink)" stroke-width="3"/><circle cx="36" cy="52" r="6" fill="var(--bee-ink)"/><circle cx="64" cy="52" r="6" fill="var(--bee-ink)"/><circle cx="38" cy="72" r="5" fill="var(--bee-ink)"/><circle cx="62" cy="72" r="5" fill="var(--bee-ink)"/></svg>`;
+      case "pilz": return `<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="38" y="48" width="24" height="44" rx="9" fill="#efe4cf"/><path d="M8 56Q10 10 50 8Q90 10 92 56Z" fill="var(--red)"/><circle cx="30" cy="34" r="7" fill="${W}"/><circle cx="56" cy="22" r="6" fill="${W}"/><circle cx="72" cy="42" r="6" fill="${W}"/></svg>`;
+      case "schmetterling": return `<svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="30" cy="38" rx="22" ry="18" fill="var(--petal-2)"/><ellipse cx="70" cy="38" rx="22" ry="18" fill="var(--petal-2)"/><ellipse cx="35" cy="66" rx="15" ry="13" fill="var(--petal-1)"/><ellipse cx="65" cy="66" rx="15" ry="13" fill="var(--petal-1)"/><rect x="46" y="28" width="8" height="50" rx="4" fill="var(--bee-ink)"/><path d="M48 30Q42 16 36 14M52 30Q58 16 64 14" stroke="var(--bee-ink)" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`;
+      case "sonnenblume": {
+        let petals = "";
+        for (let k = 0; k < 12; k++) petals += `<ellipse cx="50" cy="12" rx="7" ry="13" fill="var(--sun)" transform="rotate(${k * 30} 50 32)"/>`;
+        return `<svg viewBox="0 0 100 150" aria-hidden="true"><path d="M50 150V50" stroke="var(--stem)" stroke-width="6"/><path d="M50 110c-16-2-24-14-22-24 14 2 22 12 22 24z" fill="var(--grass-deep)"/>${petals}<circle cx="50" cy="32" r="13" fill="#7a4a1a"/></svg>`;
+      }
+      case "zwerg": return `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 2L30 40H70Z" fill="var(--red)"/><circle cx="50" cy="46" r="13" fill="#f2c9a0"/><circle cx="45" cy="44" r="2" fill="var(--bee-ink)"/><circle cx="55" cy="44" r="2" fill="var(--bee-ink)"/><rect x="32" y="60" width="36" height="30" rx="10" fill="var(--blue)"/><path d="M36 50Q50 82 64 50Q58 58 50 58Q42 58 36 50Z" fill="${W}"/><rect x="34" y="88" width="12" height="8" rx="3" fill="var(--bee-ink)"/><rect x="54" y="88" width="12" height="8" rx="3" fill="var(--bee-ink)"/></svg>`;
+      case "vogelhaus": return `<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="46" y="58" width="8" height="42" fill="#8a5a2b"/><rect x="24" y="30" width="52" height="34" rx="3" fill="var(--petal-3)"/><path d="M14 36L50 8L86 36Z" fill="var(--red)"/><circle cx="50" cy="46" r="8" fill="var(--bee-ink)"/><rect x="42" y="57" width="16" height="4" rx="2" fill="#8a5a2b"/></svg>`;
+      case "teich": return `<svg viewBox="0 0 100 50" aria-hidden="true"><ellipse cx="50" cy="26" rx="48" ry="22" fill="var(--blue)" opacity=".85"/><ellipse cx="50" cy="24" rx="40" ry="15" fill="var(--petal-4)" opacity=".6"/><path d="M28 26a9 6 0 1 0 14-4l-7 4z" fill="var(--grass-deep)"/><circle cx="66" cy="22" r="4" fill="var(--petal-1)"/></svg>`;
+      case "bienenstock": return `<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="47" y="0" width="6" height="14" fill="#8a5a2b"/><g fill="var(--sun)" stroke="var(--sun-ink)" stroke-opacity=".35" stroke-width="2"><ellipse cx="50" cy="80" rx="32" ry="13"/><ellipse cx="50" cy="60" rx="36" ry="13"/><ellipse cx="50" cy="40" rx="30" ry="12"/><ellipse cx="50" cy="22" rx="20" ry="10"/></g><ellipse cx="50" cy="68" rx="7" ry="8" fill="var(--bee-ink)"/></svg>`;
+      case "regenbogen": return `<svg viewBox="0 0 200 100" aria-hidden="true">${["var(--red)", "var(--petal-3)", "var(--sun)", "var(--grass)", "var(--blue)", "var(--petal-2)"]
+        .map((c, k) => `<path d="M${10 + k * 9} 100A${90 - k * 9} ${90 - k * 9} 0 0 1 ${190 - k * 9} 100" stroke="${c}" stroke-width="9" fill="none" opacity=".75"/>`).join("")}</svg>`;
+    }
+    return "";
+  }
+
+  // Blumen zum Ausgeben = gewachsene Blumen und Knospen minus Ausgaben
+  function balance() {
+    return state.garden.filter((f) => f[0] === "f" || f[0] === "g" || f[0] === "b").length - state.spent;
+  }
+
+  function openGarden() { renderGarden(); show("gardenView"); beeMood("gardenBee", "happy"); }
+
+  function renderGarden(msg) {
+    const bal = balance();
+    $("gardenSay").textContent = msg || (bal
+      ? `Du hast ${bal} ${bal === 1 ? "Blume" : "Blumen"}. Such dir im Laden etwas Schönes für deinen Garten aus!`
+      : "Sammle Blumen beim Spielen und Üben. Dann kannst du hier einkaufen!");
+    // Szene: Sonne, Regenbogen, Blumen, dann die anderen Sachen von hinten nach vorn
+    const owned = SHOP.filter((it) => state.owned.includes(it.id));
+    const place = (it) => `<div class="deco${it.fly ? " fly" : ""}" style="left:${it.pos[0]}%;bottom:${it.pos[1]}%;width:${it.pos[2]}%">${decoSVG(it.id)}</div>`;
+    const flowers = state.garden.filter((f) => f[0] !== "s").slice(-40).map((f, k) =>
+      `<div class="fl" style="left:${(k * 37) % 90 + 2}%;bottom:${(k * 17) % 34 + 1}%;width:6%">${flowerSVG(f[0] === "g" ? "gold" : f[0] === "b" ? "bud" : "flower", PETALS[Number(f[1]) % 4])}</div>`).join("");
+    $("scene").innerHTML = '<div class="sun"></div>' +
+      owned.filter((it) => it.id === "regenbogen").map(place).join("") + flowers +
+      owned.filter((it) => it.id !== "regenbogen").sort((a, b) => b.pos[1] - a.pos[1]).map(place).join("");
+    $("shop").innerHTML = SHOP.map((it) => {
+      const own = state.owned.includes(it.id), can = bal >= it.price;
+      return `<div class="shop-item${own ? " owned" : ""}"><div class="shop-icon">${decoSVG(it.id)}</div><b>${it.name}</b>` +
+        (own ? `<span class="have">Im Garten ✓</span>`
+             : `<button class="buy" type="button" data-buy="${it.id}"${can ? "" : " disabled"} aria-label="${it.name} für ${it.price} Blumen kaufen">${flowerSVG("flower", "var(--petal-1)")}${it.price}</button>` +
+               (can ? "" : `<small>Noch ${it.price - bal} ${it.price - bal === 1 ? "Blume" : "Blumen"} sammeln</small>`)) + "</div>";
+    }).join("");
+    renderHeader();
+  }
+
+  function buy(id) {
+    const it = SHOP.find((x) => x.id === id);
+    if (!it || state.owned.includes(id) || balance() < it.price) return;
+    state.owned.push(id);
+    state.spent += it.price;
+    store.set("rw-owned", state.owned);
+    store.set("rw-spent", state.spent);
+    renderGarden(`Juhu! ${it.art} ${it.name} ist jetzt in deinem Garten.`);
+    beep(SOUND_PERFECT);
+    fx.pop($("scene"), 3);
+    beeMood("gardenBee", "happy");
   }
 
   // ---------- Zahlen-Memory ----------
@@ -1724,14 +1996,15 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     const record = !best || mem.moves < best;
     if (record) store.set("rw-mem-best", mem.moves);
     for (let i = 0; i < 3; i++) state.garden.push("f" + (i % 4));
-    state.garden = state.garden.slice(-500);
+    state.garden = state.garden.slice(-5000);
     store.set("rw-garden", state.garden);
     renderHeader();
     $("memGrid").hidden = true;
     $("memOver").hidden = false;
     $("memOverTitle").textContent = record ? "Neuer Rekord!" : "Geschafft!";
     $("memOverText").textContent = `Du hast alle 6 Paare in ${mem.moves} Zügen gefunden. ` +
-      (record ? "So wenige Züge hattest du noch nie!" : `Dein Rekord: ${best} Züge.`) + " 3 Blumen wachsen in deinem Garten.";
+      (record ? "So wenige Züge hattest du noch nie!" : `Dein Rekord: ${best} Züge.`) + " 3 Blumen wachsen in deinem Garten." +
+      (state.level ? " " + completeLevel(mem.moves <= 8 ? 3 : mem.moves <= 12 ? 2 : 1, true) : "");
     $("memSay").textContent = "Super gemacht!";
     beeMood("memBee", "happy");
     if (record || mem.moves <= 9) { beep(SOUND_PERFECT); fx.show(4); } else beep(SOUND_DONE);
@@ -1754,7 +2027,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       else if (x === "second") state.garden.push("b" + (i % 4));
     });
     if (perfect) state.garden.push("g0");
-    state.garden = state.garden.slice(-500);
+    state.garden = state.garden.slice(-5000);
     store.set("rw-best", state.best);
     store.set("rw-garden", state.garden);
 
@@ -1769,6 +2042,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       `<span>${flowerSVG("bud", "var(--petal-2)")} ${second} Knospen</span>` +
       `<span>${flowerSVG("sprout")} ${missed} Sprösslinge</span>` +
       (perfect ? `<span>${flowerSVG("gold")} 1 Goldblume</span>` : "");
+    if (state.level) $("resultText").textContent += " " + completeLevel(stars, first + second >= (LEVELS[state.level.i].boss ? 8 : 7));
     state.round = null;
     renderHeader();
     show("resultView");
@@ -1808,10 +2082,28 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     setupStep--; renderSetup();
   });
   $("settingsChip").addEventListener("click", () => openSetup(0));
-  $("memoryBtn").addEventListener("click", startMemory);
+  $("memoryBtn").addEventListener("click", () => { state.level = null; setLevelButtons(); startMemory(); });
+  $("pathBtn").addEventListener("click", openPath);
+  $("pathBack").addEventListener("click", () => goHome());
+  $("pathPlay").addEventListener("click", () => startLevel(pathSel));
+  $("path").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-level]"); if (!b) return;
+    const i = Number(b.dataset.level);
+    if (i > state.path.done) {
+      renderPath(`Level ${i + 1} ist noch zu. Schaffe erst Level ${state.path.done + 1}, dann geht es weiter!`);
+      beeMood("pathBee", "think");
+      return;
+    }
+    pathSel = i;
+    renderPath();
+    beeMood("pathBee", "happy");
+  });
+  $("gardenBtn").addEventListener("click", openGarden);
+  $("gardenBack").addEventListener("click", () => goHome());
+  $("shop").addEventListener("click", (e) => { const b = e.target.closest("[data-buy]"); if (b) buy(b.dataset.buy); });
   $("memAgain").addEventListener("click", startMemory);
-  $("memBack").addEventListener("click", () => goHome());
-  $("memMenu").addEventListener("click", () => goHome());
+  $("memBack").addEventListener("click", leaveGame);
+  $("memMenu").addEventListener("click", leaveGame);
   $("memGrid").addEventListener("click", (e) => { const b = e.target.closest("[data-card]"); if (b) flipCard(Number(b.dataset.card)); });
 
   // Vorlesen: Sprechblasen, Aufgaben und Tipps
@@ -1828,10 +2120,10 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     else if (b.dataset.speakTask === "balloon" && bj.wave) speak(spokenTask(bj.wave.t));
   });
 
-  $("balloonBtn").addEventListener("click", startBalloons);
+  $("balloonBtn").addEventListener("click", () => { state.level = null; setLevelButtons(); startBalloons(); });
   $("bjAgain").addEventListener("click", startBalloons);
-  $("bjBack").addEventListener("click", () => { stopBalloons(); goHome(); });
-  $("bjMenu").addEventListener("click", () => goHome());
+  $("bjBack").addEventListener("click", () => { stopBalloons(); leaveGame(); });
+  $("bjMenu").addEventListener("click", leaveGame);
   $("tricksBtn").addEventListener("click", () => openTricks(""));
   $("tricksBack").addEventListener("click", () => { if (tricksFrom === "startView") goHome(); else show(tricksFrom); });
   $("trickNav").addEventListener("click", (e) => {
@@ -1847,10 +2139,10 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     $("topicNote").textContent = "";
     renderSetup();
   });
-  $("startBtn").addEventListener("click", startRound);
+  $("startBtn").addEventListener("click", () => { state.level = null; setLevelButtons(); startRound(); });
   $("againBtn").addEventListener("click", startRound);
-  $("menuBtn").addEventListener("click", () => goHome());
-  $("backBtn").addEventListener("click", () => { state.round = null; resetTaskUi(); goHome(); });
+  $("menuBtn").addEventListener("click", leaveGame);
+  $("backBtn").addEventListener("click", () => { state.round = null; resetTaskUi(); leaveGame(); });
   $("helpBtn").addEventListener("click", () => { if ($("help").hidden) showHelp(); else $("help").hidden = true; });
   $("nextBtn").addEventListener("click", nextTask);
   $("soundBtn").addEventListener("click", () => { state.sound = !state.sound; store.set("rw-sound", state.sound); renderHeader(); });
@@ -1870,7 +2162,9 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     }
   });
 
-  for (const id of ["setupBee", "homeBee", "gameBee", "memBee"]) $(id).innerHTML = beeSVG();
+  for (const id of ["setupBee", "homeBee", "gameBee", "memBee", "pathBee", "gardenBee"]) $(id).innerHTML = beeSVG();
+  $("iconPath").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 54C24 54 14 36 32 34S44 16 54 14" stroke="var(--sun)" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="2 8"/><circle cx="10" cy="54" r="6" fill="var(--grass)"/><circle cx="32" cy="34" r="6" fill="var(--grass)"/><path d="M54 6V30" stroke="var(--bee-ink)" stroke-width="3"/><path d="M54 6L68 11L54 16Z" fill="var(--red)" transform="translate(-4 0)"/></svg>';
+  $("iconGarden").innerHTML = decoSVG("pilz");
   $("iconBalloon").innerHTML = balloonSVG("var(--petal-1)");
   $("iconMemory").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="12" width="28" height="38" rx="5" fill="var(--grass)" transform="rotate(-10 20 31)"/><rect x="28" y="10" width="28" height="38" rx="5" fill="var(--paper)" stroke="var(--blue)" stroke-width="3" transform="rotate(8 42 29)"/><text x="42" y="36" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="18" fill="var(--blue)" transform="rotate(8 42 29)">12</text></svg>';
   $("iconFlower").innerHTML = flowerSVG("flower", "var(--petal-2)");

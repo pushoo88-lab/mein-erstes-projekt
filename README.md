@@ -41,14 +41,16 @@ Aufgaben und Tipps lassen sich **vorlesen** – wichtig für Kinder, die noch ni
 
 Es ist nichts vorausgewählt. Über „Ändern“ auf der Startseite lässt sich alles neu einstellen.
 
-**2. Startseite mit vier großen Kacheln**
+**2. Startseite mit großen Kacheln**
 
 | Kachel | Was passiert |
 |---|---|
-| **Ballonjagd** (Spiel) | Ballons mit Antworten steigen auf, der richtige wird angetippt. 3 Leben, Punkte, Level, Rekord. Die Ballons lassen sich Zeit (10 bis 25 Sekunden, je nach Zahlenraum und Aufgabe). |
+| **Abenteuer-Pfad** | 12 Level auf einem Weg mit Orten wie Blumenwiese, Teich und Honigschloss. Jedes Level ist eine Blumen-Runde, Ballonjagd oder ein Memory mit einem Ziel (z. B. „Triff 6 Ballons“). Erst wenn ein Level geschafft ist, öffnet sich das nächste, dazu gibt es 3 Bonus-Blumen. Die ersten Level nutzen kleinere Zahlen, das letzte den ganzen eingetippten Zahlenraum. Jedes 4. Level ist ein „Großes Finale“. |
+| **Ballonjagd** (Spiel) | Ballons mit Antworten steigen auf, der richtige wird angetippt. 3 Leben, Punkte, alle 5 Treffer eine neue Stufe, Rekord. Die Ballons lassen sich Zeit (10 bis 25 Sekunden, je nach Zahlenraum und Aufgabe). |
 | **Zahlen-Memory** (Spiel) | 12 Karten: immer eine Aufgabe und ihr Ergebnis bilden ein Paar. Züge zählen, Rekord, 3 Blumen pro Spiel. |
 | **Blumen-Runde** (Üben) | 10 Aufgaben mit Zahlenfeld. Jede richtige Antwort lässt eine Blume wachsen, Hilfe mit Bildern und Tipps. |
 | **Rechentricks** (Lernen) | Kindgerechte Erklärungen, wie man am besten rechnet, z. B. „Erst bis zur 10“, Tauschaufgabe, Signalwörter. |
+| **Mein Garten** (Belohnung) | Alle gesammelten Blumen wachsen in einem Garten-Bild. Im Gartenladen bezahlt das Kind mit Blumen und kauft Schnecke, Pilz, Schmetterling, Gartenzwerg, Teich, Bienenstock, Regenbogen und mehr (4 bis 30 Blumen). |
 
 **Themen:** Plus, Minus, Mal und Geteilt (wenn freigeschaltet), Zehner & Einer bzw. Stellenwerte
 (Zehnerstangen, Einerwürfel, Stellenwerttafel), Textaufgaben (Zahlenrätsel wie „Wenn du zu meiner
@@ -57,5 +59,5 @@ Zahl 9 dazuzählst, kommt 19 heraus. Welche Zahl bin ich?“ und kleine Sachaufg
 **Belohnungen:** Blumen für den eigenen Garten, Funken bei 3, 6 und 9 richtigen Antworten in Folge,
 Feuerwerk bei 3 Sternen oder einem neuen Rekord, eine Goldblume für eine fehlerfreie Blumen-Runde.
 
-Bedienbar per Antippen (Tablet, Handy) oder Tastatur (Ziffern, Rücktaste, Enter). Garten, Sterne
-und Rekorde werden im Browser gespeichert.
+Bedienbar per Antippen (Tablet, Handy) oder Tastatur (Ziffern, Rücktaste, Enter). Garten, Einkäufe,
+Pfad-Fortschritt, Sterne und Rekorde werden im Browser gespeichert.
