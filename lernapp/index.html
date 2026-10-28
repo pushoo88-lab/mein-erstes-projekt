@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- /kopf -->
+<title>Rechenwiese</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* Layout: eine schmale Spalte wie ein Arbeitsblatt, unten wächst die Wiese mit jeder richtigen Aufgabe */
+:root {
+  --sky: #e6f2f6;
+  --paper: #ffffff;
+  --ink: #1d3a3c;
+  --ink-soft: #557073;
+  --line: #c9dfe3;
+  --grass: #4f9e45;
+  --grass-deep: #2f7a33;
+  --stem: #3d8a3a;
+  --sun: #f4b329;
+  --sun-ink: #4a3300;
+  --petal-1: #ef6f9e;
+  --petal-2: #8f72dd;
+  --petal-3: #f08a3c;
+  --petal-4: #3fa7d6;
+  --red: #e0453c;
+  --blue: #2f6fd6;
+  --ok: #2f8a3a;
+  --oops: #c4572a;
+  --key: #f3f9fa;
+  --key-press: #d9ecef;
+  --display: "Baloo 2", "Comic Neue", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Andika", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  height: 100%;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sky: #0f2228; --paper: #18323a; --ink: #e4f1ee; --ink-soft: #9db8b8; --line: #2c4a52;
+    --grass: #4a9542; --grass-deep: #3a7e36; --stem: #5aa651; --sun: #f6c24a; --sun-ink: #2a1d00;
+    --petal-1: #f483ad; --petal-2: #a68cf0; --petal-3: #f59a55; --petal-4: #5ab8e3;
+    --red: #f06a60; --blue: #6c9cf0; --ok: #6fcf6a; --oops: #f0915f;
+    --key: #1f3c45; --key-press: #2b525c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --sky: #0f2228; --paper: #18323a; --ink: #e4f1ee; --ink-soft: #9db8b8; --line: #2c4a52;
+  --grass: #4a9542; --grass-deep: #3a7e36; --stem: #5aa651; --sun: #f6c24a; --sun-ink: #2a1d00;
+  --petal-1: #f483ad; --petal-2: #a68cf0; --petal-3: #f59a55; --petal-4: #5ab8e3;
+  --red: #f06a60; --blue: #6c9cf0; --ok: #6fcf6a; --oops: #f0915f;
+  --key: #1f3c45; --key-press: #2b525c;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--sky);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 18px;
+  line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+.app {
+  max-width: 560px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+/* Kopfzeile */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { font-family: var(--display); font-weight: 800; font-size: 30px; line-height: 1; margin: 0; letter-spacing: -0.01em; }
+.brand span { color: var(--grass-deep); }
+.top-right { display: flex; align-items: center; gap: 8px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--paper); border: 2px solid var(--line); border-radius: 999px;
+  padding: 4px 12px 4px 6px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.pill svg { width: 22px; height: 30px; }
+.icon-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--paper); border: 2px solid var(--line);
+  display: grid; place-items: center; font-size: 15px; font-weight: 700;
+}
+
+/* Allgemeine Bausteine */
+.sheet { background: var(--paper); border: 2px solid var(--line); border-radius: 22px; padding: 18px; }
+.label { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); font-weight: 700; margin: 0 0 10px; }
+h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.muted { color: var(--ink-soft); margin: 0; }
+
+/* Startseite: Klasse wählen */
+.grades { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.grade {
+  border: 3px solid var(--line); background: var(--key); border-radius: 18px;
+  padding: 10px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  transition: transform .12s ease;
+}
+.grade b { font-family: var(--display); font-size: 40px; line-height: 1; }
+.grade small { font-size: 13px; color: var(--ink-soft); }
+.grade[aria-pressed="true"] { border-color: var(--grass-deep); background: var(--grass); color: #fff; }
+.grade[aria-pressed="true"] small { color: #eaffe6; }
+.grade:active { transform: scale(.96); }
+.grade-note { margin: 12px 0 0; color: var(--ink-soft); font-size: 16px; }
+
+.topics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.topic {
+  border: 3px solid var(--line); background: var(--key); border-radius: 16px;
+  padding: 10px 12px; display: grid; grid-template-columns: 44px 1fr; align-items: center; gap: 10px; text-align: left;
+}
+.topic .sym {
+  width: 44px; height: 44px; border-radius: 12px; background: var(--paper); border: 2px solid var(--line);
+  display: grid; place-items: center; font-family: var(--display); font-size: 28px; font-weight: 800; line-height: 1;
+}
+.topic .name { font-weight: 700; line-height: 1.2; }
+.topic .stars { display: block; font-size: 14px; color: var(--sun); letter-spacing: 2px; min-height: 1em; }
+.topic .stars.none { color: var(--ink-soft); letter-spacing: 0; font-size: 13px; }
+.topic[aria-pressed="true"] { border-color: var(--sun); background: var(--paper); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sun) 35%, transparent); }
+.topic.wide { grid-column: 1 / -1; }
+
+.go {
+  width: 100%; border: 0; border-radius: 18px; padding: 16px;
+  background: var(--sun); color: var(--sun-ink);
+  font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1;
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--sun) 55%, #000);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.go:active { transform: translateY(4px); box-shadow: 0 1px 0 color-mix(in srgb, var(--sun) 55%, #000); }
+.go.secondary { background: var(--key); color: var(--ink); box-shadow: 0 5px 0 var(--line); border: 2px solid var(--line); font-size: 22px; }
+
+/* Garten */
+.garden {
+  position: relative; min-height: 96px; border-radius: 18px; overflow: hidden;
+  background: linear-gradient(to bottom, transparent 70%, var(--grass) 70%);
+  border: 2px solid var(--line);
+  display: flex; align-items: flex-end; flex-wrap: wrap; gap: 0 2px; padding: 6px 10px 0;
+}
+.garden svg { width: 28px; height: 42px; margin-bottom: 6px; }
+.garden .empty { position: absolute; inset: 10px 14px auto; font-size: 15px; color: var(--ink-soft); margin: 0; }
+
+/* Spiel */
+.bar { display: flex; align-items: center; gap: 10px; }
+.back { border: 2px solid var(--line); background: var(--paper); border-radius: 12px; padding: 6px 12px; font-weight: 700; }
+.where { font-weight: 700; color: var(--ink-soft); flex: 1; min-width: 0; }
+.count { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+.task-card { text-align: center; padding: 26px 12px 18px; position: relative; }
+.task {
+  font-family: var(--display); font-weight: 800; font-size: clamp(40px, 11vw, 64px); line-height: 1.1;
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0 .25em;
+  font-variant-numeric: tabular-nums;
+}
+.task .op { color: var(--grass-deep); }
+.slot {
+  min-width: 1.8em; padding: 0 .2em; border-radius: 14px; border: 4px dashed var(--line);
+  background: var(--sky); color: var(--ink); display: inline-block;
+}
+.slot.filled { border-style: solid; border-color: var(--blue); }
+.slot.right { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, var(--paper)); }
+.slot.wrong { border-color: var(--oops); animation: shake .35s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.say { min-height: 1.5em; margin: 14px 0 0; font-weight: 700; font-size: 20px; }
+.say.ok { color: var(--ok); }
+.say.oops { color: var(--oops); }
+.task-tools { display: flex; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.tool { border: 2px solid var(--line); background: var(--key); border-radius: 999px; padding: 6px 16px; font-weight: 700; font-size: 16px; }
+
+.help { margin-top: 14px; display: grid; justify-items: center; gap: 8px; }
+.help p { margin: 0; font-size: 17px; max-width: 34ch; }
+.field20 { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; width: min(100%, 360px); }
+.field20 .cell { aspect-ratio: 1; max-width: 100%; border: 2px solid var(--line); border-radius: 6px; display: grid; place-items: center; }
+.field20 .cell:nth-child(5n) { margin-right: 6px; }
+.dot { width: 76%; aspect-ratio: 1; border-radius: 50%; }
+.dot.r { background: var(--red); }
+.dot.b { background: var(--blue); }
+.dot.gone { position: relative; opacity: .35; }
+.dot.gone::after { content: ""; position: absolute; left: -10%; right: -10%; top: 45%; height: 3px; background: var(--ink); transform: rotate(-35deg); }
+.array { display: grid; gap: 4px; }
+.array .dot { width: 16px; }
+
+.pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.key {
+  border: 2px solid var(--line); background: var(--paper); border-radius: 16px;
+  min-height: 60px; font-family: var(--display); font-size: 30px; font-weight: 800;
+  box-shadow: 0 4px 0 var(--line); transition: transform .06s ease, box-shadow .06s ease;
+}
+.key:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); background: var(--key-press); }
+.key.ok { background: var(--grass); border-color: var(--grass-deep); color: #fff; box-shadow: 0 4px 0 var(--grass-deep); }
+.key.del { font-size: 22px; }
+.key:disabled { opacity: .5; }
+
+.meadow {
+  display: grid; grid-template-columns: repeat(10, 1fr); align-items: end;
+  height: 72px; padding: 0 6px; border-radius: 16px;
+  background: linear-gradient(to bottom, transparent 62%, var(--grass) 62%);
+  border: 2px solid var(--line);
+}
+.meadow .spot { display: grid; place-items: end center; height: 100%; }
+.meadow .spot > div { width: 100%; display: grid; place-items: end center; }
+.meadow .spot svg { width: 30px; max-width: 100%; height: 52px; margin-bottom: 4px; }
+.meadow .spot.now::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--sun); margin-bottom: 8px; animation: pulse 1s infinite alternate; }
+@keyframes pulse { to { transform: scale(1.5); } }
+.grow { transform-origin: 50% 100%; animation: grow .5s cubic-bezier(.3,1.6,.5,1); }
+@keyframes grow { from { transform: scale(0); } }
+
+/* Ergebnis */
+.result { text-align: center; display: grid; gap: 14px; justify-items: center; }
+.big-stars { display: flex; gap: 8px; }
+.big-stars svg { width: 64px; height: 64px; }
+.big-stars .off path { fill: var(--line); }
+.big-stars .on path { fill: var(--sun); }
+.result .actions { display: grid; gap: 14px; width: 100%; }
+.tally { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; font-weight: 700; }
+.tally span { display: flex; align-items: center; gap: 4px; }
+.tally svg { width: 22px; height: 32px; }
+
+.foot { margin-top: auto; text-align: center; font-size: 14px; color: var(--ink-soft); }
+
+@media (max-width: 420px) {
+  .grade b { font-size: 34px; }
+  .grade small { font-size: 11px; }
+  .topic { grid-template-columns: 38px 1fr; padding: 8px 10px; }
+  .topic .sym { width: 38px; height: 38px; font-size: 24px; }
+  .topic .name { font-size: 16px; }
+  .key { min-height: 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+<!-- /kopf-ende -->
+</head>
+<body>
+<!-- /body -->
+<div class="app" id="app">
+  <header class="top">
+    <h1 class="brand">Rechen<span>wiese</span></h1>
+    <div class="top-right">
+      <span class="pill" title="Blumen in deinem Garten"><span id="flowerIcon"></span><span id="flowerCount">0</span></span>
+      <button class="icon-btn" id="soundBtn" type="button" aria-label="Ton ausschalten" aria-pressed="true">Ton</button>
+    </div>
+  </header>
+
+  <!-- Startseite -->
+  <main id="startView" class="start" style="display:grid; gap:18px;">
+    <section class="sheet">
+      <p class="label">1. In welche Klasse gehst du?</p>
+      <div class="grades" id="grades" role="group" aria-label="Klasse"></div>
+      <p class="grade-note" id="gradeNote"></p>
+    </section>
+    <section class="sheet">
+      <p class="label">2. Was möchtest du üben?</p>
+      <div class="topics" id="topics" role="group" aria-label="Thema"></div>
+    </section>
+    <button class="go" id="startBtn" type="button">Los geht's!</button>
+    <section>
+      <p class="label">Dein Garten</p>
+      <div class="garden" id="garden"></div>
+    </section>
+  </main>
+
+  <!-- Spiel -->
+  <main id="gameView" hidden style="display:grid; gap:16px;">
+    <div class="bar">
+      <button class="back" id="backBtn" type="button">← Zurück</button>
+      <span class="where" id="where"></span>
+      <span class="count" id="count"></span>
+    </div>
+    <section class="sheet task-card">
+      <div class="task" id="task" aria-live="polite"></div>
+      <p class="say" id="say" aria-live="assertive"></p>
+      <div class="task-tools">
+        <button class="tool" id="helpBtn" type="button">Hilfe</button>
+        <button class="tool" id="nextBtn" type="button" hidden>Weiter →</button>
+      </div>
+      <div class="help" id="help" hidden></div>
+    </section>
+    <div class="pad" id="pad"></div>
+    <div class="meadow" id="meadow" aria-label="Deine Blumen in dieser Runde"></div>
+  </main>
+
+  <!-- Ergebnis -->
+  <main id="resultView" hidden>
+    <section class="sheet result">
+      <h2 id="resultTitle"></h2>
+      <div class="big-stars" id="bigStars"></div>
+      <p class="muted" id="resultText"></p>
+      <div class="tally" id="tally"></div>
+      <div class="actions">
+        <button class="go" id="againBtn" type="button">Nochmal spielen</button>
+        <button class="go secondary" id="menuBtn" type="button">Anderes Thema</button>
+      </div>
+    </section>
+  </main>
+
+  <p class="foot">Pro Runde 10 Aufgaben. Jede richtige Antwort lässt eine Blume wachsen.</p>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------- Hilfsfunktionen ----------
+  const $ = (id) => document.getElementById(id);
+  const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const fmt = (n) => n.toLocaleString("de-DE");
+  const round10 = (n) => Math.round(n / 10) * 10;
+
+  const store = {
+    get(key, fallback) {
+      try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+    },
+    set(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Speicher nicht verfügbar */ }
+    },
+  };
+
+  // ---------- Blumen ----------
+  const PETALS = ["var(--petal-1)", "var(--petal-2)", "var(--petal-3)", "var(--petal-4)"];
+  function flowerSVG(kind, color) {
+    const stem = '<path d="M20 58V26" stroke="var(--stem)" stroke-width="3" stroke-linecap="round" fill="none"/>' +
+      '<path d="M20 46c-7-1-11-6-11-11 7 0 11 4 11 9z" fill="var(--grass-deep)"/>';
+    if (kind === "sprout") {
+      return '<svg viewBox="0 0 40 60" aria-hidden="true"><path d="M20 58V44" stroke="var(--stem)" stroke-width="3" stroke-linecap="round"/>' +
+        '<path d="M20 48c-6 0-9-4-9-8 6 0 9 4 9 8zM20 48c6 0 9-4 9-8-6 0-9 4-9 8z" fill="var(--grass-deep)"/></svg>';
+    }
+    if (kind === "bud") {
+      return '<svg viewBox="0 0 40 60" aria-hidden="true">' + stem +
+        `<ellipse cx="20" cy="22" rx="6" ry="9" fill="${color}"/><path d="M14 26c2 4 10 4 12 0" fill="var(--grass-deep)"/></svg>`;
+    }
+    let petals = "";
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      petals += `<circle cx="${(20 + Math.cos(a) * 8).toFixed(1)}" cy="${(20 + Math.sin(a) * 8).toFixed(1)}" r="6.5" fill="${color}"/>`;
+    }
+    return `<svg viewBox="0 0 40 60" aria-hidden="true">${stem}${petals}<circle cx="20" cy="20" r="5.5" fill="var(--sun)"/></svg>`;
+  }
+  const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
+
+  // ---------- Lehrplan & Aufgaben ----------
+  const TOPICS = {
+    plus:    { name: "Plus",            sym: "+" },
+    minus:   { name: "Minus",           sym: "−" },
+    mal:     { name: "Mal",             sym: "·" },
+    geteilt: { name: "Geteilt",         sym: ":" },
+    luecke:  { name: "Lückenaufgaben",  sym: "□" },
+    mix:     { name: "Bunt gemischt",   sym: "?" },
+  };
+
+  const GRADES = {
+    1: { range: "bis 20",   note: "Plus und Minus im Zahlenraum bis 20. Die Hilfe zeigt das Zwanzigerfeld.", topics: ["plus", "minus", "luecke", "mix"] },
+    2: { range: "bis 100",  note: "Plus und Minus bis 100 und das kleine Einmaleins.", topics: ["plus", "minus", "mal", "geteilt", "luecke", "mix"] },
+    3: { range: "bis 1000", note: "Rechnen bis 1000, Einmaleins und Zehnereinmaleins.", topics: ["plus", "minus", "mal", "geteilt", "luecke", "mix"] },
+    4: { range: "bis 10.000", note: "Große Zahlen, Malnehmen und Teilen mit mehrstelligen Zahlen.", topics: ["plus", "minus", "mal", "geteilt", "luecke", "mix"] },
+  };
+
+  // Eine Aufgabe: a op b = c. "blank" sagt, welche Zahl gesucht ist.
+  const mk = (a, op, b, c, blank = "c") => ({ a, op, b, c, blank, answer: { a, b, c }[blank] });
+
+  const plusMinus = {
+    1: {
+      plus:  () => { const a = R(1, 15); const b = R(1, 20 - a); return mk(a, "+", b, a + b); },
+      minus: () => { const a = R(3, 20); const b = R(1, a - 1); return mk(a, "−", b, a - b); },
+    },
+    2: {
+      plus:  () => { const a = R(10, 85); const b = Math.random() < .4 ? R(2, 9) : R(11, 99 - a); return mk(a, "+", b, a + b); },
+      minus: () => { const a = R(20, 100); const b = Math.random() < .4 ? R(2, 9) : R(11, a - 5); return mk(a, "−", b, a - b); },
+    },
+    3: {
+      plus:  () => { let a = R(100, 850), b = R(20, 990 - a); if (Math.random() < .5) { a = round10(a); b = round10(b) || 10; } return mk(a, "+", b, a + b); },
+      minus: () => { let a = R(150, 1000), b = R(20, a - 50); if (Math.random() < .5) { a = round10(a); b = round10(b) || 10; } return mk(a, "−", b, a - b); },
+    },
+    4: {
+      plus:  () => { let a = R(1000, 8500), b = R(100, 9990 - a); if (Math.random() < .7) { a = round10(a); b = round10(b); } return mk(a, "+", b, a + b); },
+      minus: () => { let a = R(1500, 10000), b = R(100, a - 200); if (Math.random() < .7) { a = round10(a); b = round10(b); } return mk(a, "−", b, a - b); },
+    },
+  };
+
+  const malGeteilt = {
+    2: {
+      mal:     () => { const a = R(1, 10), b = pick([2, 5, 10, R(1, 10), R(1, 10)]); return mk(a, "·", b, a * b); },
+      geteilt: () => { const b = pick([2, 5, 10, R(2, 10)]), q = R(1, 10); return mk(b * q, ":", b, q); },
+    },
+    3: {
+      mal:     () => Math.random() < .55
+        ? (() => { const a = R(2, 10), b = R(2, 10); return mk(a, "·", b, a * b); })()
+        : (() => { const a = R(2, 9) * 10, b = R(2, 9); return mk(a, "·", b, a * b); })(),
+      geteilt: () => { const b = R(2, 10), q = Math.random() < .6 ? R(2, 10) : R(2, 9) * 10; return mk(b * q, ":", b, q); },
+    },
+    4: {
+      mal:     () => Math.random() < .65
+        ? (() => { const a = R(12, 99), b = R(2, 9); return mk(a, "·", b, a * b); })()
+        : (() => { const a = R(2, 99), b = pick([10, 100]); return mk(a, "·", b, a * b); })(),
+      geteilt: () => { const b = R(2, 9), q = R(11, 120); return mk(b * q, ":", b, q); },
+    },
+  };
+
+  function generate(grade, topic) {
+    if (topic === "mix") return generate(grade, pick(GRADES[grade].topics.filter((t) => t !== "mix" && t !== "luecke")));
+    if (topic === "plus" || topic === "minus") return plusMinus[grade][topic]();
+    if (topic === "mal" || topic === "geteilt") return malGeteilt[grade][topic]();
+    // Lückenaufgabe: eine bekannte Aufgabe nehmen und eine Zahl verstecken
+    const base = pick(GRADES[grade].topics.filter((t) => t !== "mix" && t !== "luecke"));
+    const t = generate(grade, base);
+    t.blank = pick(["a", "b"]);
+    t.answer = t[t.blank];
+    return t;
+  }
+
+  function makeRound(grade, topic) {
+    const seen = new Set();
+    const list = [];
+    let guard = 0;
+    while (list.length < 10 && guard++ < 500) {
+      const t = generate(grade, topic);
+      const key = `${t.a}${t.op}${t.b}${t.blank}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      list.push(t);
+    }
+    return list;
+  }
+
+  // ---------- Zustand ----------
+  const state = {
+    grade: store.get("rw-grade", 1),
+    topic: "plus",
+    best: store.get("rw-best", {}),       // "1-plus": 3
+    garden: store.get("rw-garden", []),   // ["f2", "b0", ...]
+    sound: store.get("rw-sound", true),
+    round: null,
+  };
+  if (!GRADES[state.grade]) state.grade = 1;
+
+  // ---------- Ton ----------
+  let audio;
+  function beep(notes) {
+    if (!state.sound) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      let t = audio.currentTime;
+      for (const [freq, dur] of notes) {
+        const o = audio.createOscillator(), g = audio.createGain();
+        o.type = "triangle"; o.frequency.value = freq;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g).connect(audio.destination);
+        o.start(t); o.stop(t + dur + 0.02);
+        t += dur * 0.8;
+      }
+    } catch { /* kein Ton möglich */ }
+  }
+  const SOUND_RIGHT = [[660, .12], [880, .18]];
+  const SOUND_WRONG = [[330, .2]];
+  const SOUND_DONE = [[523, .14], [659, .14], [784, .14], [1047, .3]];
+
+  // ---------- Ansichten ----------
+  function show(view) {
+    for (const id of ["startView", "gameView", "resultView"]) $(id).hidden = id !== view;
+    window.scrollTo(0, 0);
+  }
+
+  function renderHeader() {
+    $("flowerIcon").innerHTML = flowerSVG("flower", "var(--petal-1)");
+    $("flowerCount").textContent = fmt(state.garden.filter((f) => f[0] === "f").length);
+    $("soundBtn").setAttribute("aria-pressed", String(state.sound));
+    $("soundBtn").setAttribute("aria-label", state.sound ? "Ton ausschalten" : "Ton einschalten");
+    $("soundBtn").textContent = state.sound ? "Ton" : "Aus";
+  }
+
+  function renderStart() {
+    const g = GRADES[state.grade];
+    if (!g.topics.includes(state.topic)) state.topic = g.topics[0];
+
+    $("grades").innerHTML = Object.keys(GRADES).map((n) =>
+      `<button class="grade" type="button" data-grade="${n}" aria-pressed="${Number(n) === state.grade}">
+         <b>${n}</b><small>${GRADES[n].range}</small></button>`).join("");
+    $("gradeNote").textContent = g.note;
+
+    $("topics").innerHTML = g.topics.map((t) => {
+      const best = state.best[`${state.grade}-${t}`] || 0;
+      const stars = best ? `<span class="stars" aria-label="${best} von 3 Sternen">${"★".repeat(best)}${"☆".repeat(3 - best)}</span>`
+                         : `<span class="stars none">neu</span>`;
+      const wide = g.topics.length % 2 === 1 && t === "mix" ? " wide" : "";
+      return `<button class="topic${wide}" type="button" data-topic="${t}" aria-pressed="${t === state.topic}">
+        <span class="sym">${TOPICS[t].sym}</span><span><span class="name">${TOPICS[t].name}</span>${stars}</span></button>`;
+    }).join("");
+
+    const flowers = state.garden.slice(-60);
+    $("garden").innerHTML = flowers.length
+      ? flowers.map((f) => flowerSVG(f[0] === "f" ? "flower" : "bud", PETALS[Number(f[1]) % 4])).join("")
+      : `<p class="empty">Noch leer. Rechne eine Runde und pflanze deine ersten Blumen!</p>` +
+        flowerSVG("sprout") + flowerSVG("sprout") + flowerSVG("sprout");
+    renderHeader();
+  }
+
+  // ---------- Spiel ----------
+  function startRound() {
+    state.round = { tasks: makeRound(state.grade, state.topic), i: 0, input: "", tries: 0, results: [], locked: false };
+    $("where").textContent = `Klasse ${state.grade} · ${TOPICS[state.topic].name}`;
+    show("gameView");
+    renderTask();
+  }
+
+  function num(n, cls = "") { return `<span class="${cls}">${fmt(n)}</span>`; }
+
+  function renderTask(mark = "") {
+    const r = state.round, t = r.tasks[r.i];
+    const slotText = r.input ? fmt(Number(r.input)) : "?";
+    const slotCls = `slot${r.input ? " filled" : ""}${mark ? " " + mark : ""}`;
+    const part = (k) => (t.blank === k ? `<span class="${slotCls}" id="slot">${slotText}</span>` : num(t[k]));
+    $("task").innerHTML = `${part("a")}<span class="op">${t.op}</span>${part("b")}<span class="op">=</span>${part("c")}`;
+    $("task").setAttribute("aria-label", `${t.blank === "a" ? "Lücke" : t.a} ${t.op === "·" ? "mal" : t.op === ":" ? "geteilt durch" : t.op === "+" ? "plus" : "minus"} ${t.blank === "b" ? "Lücke" : t.b} gleich ${t.blank === "c" ? "?" : t.c}`);
+    $("count").textContent = `${r.i + 1} / ${r.tasks.length}`;
+    renderMeadow();
+  }
+
+  function renderMeadow(growIndex = -1) {
+    const r = state.round;
+    let html = "";
+    for (let i = 0; i < 10; i++) {
+      const res = r.results[i];
+      const cls = i === growIndex ? "grow" : "";
+      if (res === "first") html += `<div class="spot"><div class="${cls}">${flowerSVG("flower", PETALS[i % 4])}</div></div>`;
+      else if (res === "second") html += `<div class="spot"><div class="${cls}">${flowerSVG("bud", PETALS[i % 4])}</div></div>`;
+      else if (res === "missed") html += `<div class="spot"><div class="${cls}">${flowerSVG("sprout")}</div></div>`;
+      else html += `<div class="spot${i === r.i ? " now" : ""}"></div>`;
+    }
+    $("meadow").innerHTML = html;
+  }
+
+  function say(text, cls = "") {
+    $("say").textContent = text;
+    $("say").className = "say " + cls;
+  }
+
+  function resetTaskUi() {
+    say("");
+    $("help").hidden = true;
+    $("help").innerHTML = "";
+    $("nextBtn").hidden = true;
+    $("helpBtn").hidden = false;
+    setPadEnabled(true);
+  }
+
+  function type(d) {
+    const r = state.round;
+    if (!r || r.locked) return;
+    if (d === "del") r.input = r.input.slice(0, -1);
+    else if (d === "ok") return check();
+    else if (r.input.length < 6) r.input = (r.input === "0" ? "" : r.input) + d;
+    if ($("say").classList.contains("oops")) say("");
+    renderTask();
+  }
+
+  const PRAISE = ["Super!", "Richtig!", "Klasse!", "Toll gemacht!", "Spitze!", "Genau!", "Prima!", "Stark gerechnet!"];
+
+  function check() {
+    const r = state.round, t = r.tasks[r.i];
+    if (!r.input) { say("Tippe zuerst deine Antwort ein.", "oops"); return; }
+    if (Number(r.input) === t.answer) {
+      r.results[r.i] = r.tries === 0 ? "first" : "second";
+      r.locked = true;
+      beep(SOUND_RIGHT);
+      say(r.tries === 0 ? pick(PRAISE) : "Richtig! Gut, dass du nochmal nachgedacht hast.", "ok");
+      renderTask("right");
+      renderMeadow(r.i);
+      setPadEnabled(false);
+      setTimeout(nextTask, 1100);
+      return;
+    }
+    r.tries++;
+    beep(SOUND_WRONG);
+    if (r.tries === 1) {
+      renderTask("wrong");
+      say("Fast! Schau nochmal genau hin.", "oops");
+      r.input = "";
+      setTimeout(() => { if (!r.locked && r.tasks[r.i] === t) renderTask(); }, 400);
+      return;
+    }
+    r.results[r.i] = "missed";
+    r.locked = true;
+    r.input = String(t.answer);
+    renderTask("right");
+    renderMeadow(r.i);
+    say(`Die Lösung ist ${fmt(t.answer)}. Beim nächsten Mal klappt's!`, "oops");
+    showHelp(true);
+    setPadEnabled(false);
+    $("helpBtn").hidden = true;
+    $("nextBtn").hidden = false;
+    $("nextBtn").focus();
+  }
+
+  function nextTask() {
+    const r = state.round;
+    if (!r || state.round !== r) return;
+    r.i++;
+    r.input = ""; r.tries = 0; r.locked = false;
+    if (r.i >= r.tasks.length) return finish();
+    resetTaskUi();
+    renderTask();
+  }
+
+  function setPadEnabled(on) {
+    for (const b of $("pad").querySelectorAll("button")) b.disabled = !on;
+  }
+
+  // ---------- Hilfe ----------
+  function zwanzigerfeld(t) {
+    // Rote Plättchen für die erste Zahl, blaue für die zweite (Plus) oder durchgestrichen (Minus)
+    const cells = [];
+    for (let i = 0; i < 20; i++) {
+      let dot = "";
+      if (t.op === "+") {
+        if (i < t.a) dot = '<span class="dot r"></span>';
+        else if (i < t.a + t.b) dot = '<span class="dot b"></span>';
+      } else if (i < t.a) {
+        dot = `<span class="dot r${i >= t.a - t.b ? " gone" : ""}"></span>`;
+      }
+      cells.push(`<span class="cell">${dot}</span>`);
+    }
+    return `<div class="field20" aria-hidden="true">${cells.join("")}</div>`;
+  }
+
+  function dotArray(rows, cols) {
+    let dots = "";
+    for (let i = 0; i < rows * cols; i++) dots += `<span class="dot ${Math.floor(i / cols) % 2 ? "b" : "r"}"></span>`;
+    return `<div class="array" style="grid-template-columns: repeat(${cols}, 16px)" aria-hidden="true">${dots}</div>`;
+  }
+
+  function tipFor(t) {
+    const { a, b, c, op, blank } = t;
+    if (blank === "a") {
+      if (op === "+") return `Rechne rückwärts: ${fmt(c)} − ${fmt(b)}.`;
+      if (op === "−") return `Rechne rückwärts: ${fmt(c)} + ${fmt(b)}.`;
+      if (op === "·") return `Welche Zahl mal ${fmt(b)} ergibt ${fmt(c)}? Rechne ${fmt(c)} : ${fmt(b)}.`;
+      return `Rechne rückwärts: ${fmt(c)} · ${fmt(b)}.`;
+    }
+    if (blank === "b") {
+      if (op === "+") return `Wie viel fehlt von ${fmt(a)} bis ${fmt(c)}? Rechne ${fmt(c)} − ${fmt(a)}.`;
+      if (op === "−") return `Wie viel musst du von ${fmt(a)} wegnehmen, um ${fmt(c)} zu bekommen? Rechne ${fmt(a)} − ${fmt(c)}.`;
+      if (op === "·") return `${fmt(a)} mal wie viel ist ${fmt(c)}? Rechne ${fmt(c)} : ${fmt(a)}.`;
+      return `Durch welche Zahl teilst du? Rechne ${fmt(a)} : ${fmt(c)}.`;
+    }
+    if (op === "+" || op === "−") {
+      if (a + (op === "+" ? b : 0) <= 20) {
+        const toTen = 10 - (a % 10);
+        if (op === "+" && a < 10 && a + b > 10) return `Erst bis zur 10: ${a} + ${toTen} = 10, dann noch ${b - toTen} dazu.`;
+        if (op === "−" && a > 10 && a - b < 10) return `Erst bis zur 10: ${a} − ${a - 10} = 10, dann noch ${b - (a - 10)} weg.`;
+        return op === "+" ? "Zähle die roten und blauen Plättchen zusammen." : "Zähle die Plättchen, die übrig bleiben.";
+      }
+      const big = b >= 1000 ? Math.floor(b / 1000) * 1000 : b >= 100 ? Math.floor(b / 100) * 100 : Math.floor(b / 10) * 10;
+      const rest = b - big;
+      if (big && rest) return `Zerlege ${fmt(b)} in ${fmt(big)} und ${fmt(rest)}: erst ${fmt(a)} ${op} ${fmt(big)} = ${fmt(op === "+" ? a + big : a - big)}, dann ${op} ${fmt(rest)}.`;
+      return `Rechne mit den Stellen: Tausender, Hunderter, Zehner, Einer.`;
+    }
+    if (op === "·") {
+      if (b === 10 || b === 100) return `Mal ${fmt(b)}: Hänge ${b === 10 ? "eine Null" : "zwei Nullen"} an ${fmt(a)}.`;
+      if (a >= 10 && a % 10 === 0) return `Rechne erst ${a / 10} · ${b} = ${a / 10 * b}, dann mal 10.`;
+      if (a > 10) return `Zerlege: ${Math.floor(a / 10) * 10} · ${b} = ${fmt(Math.floor(a / 10) * 10 * b)} und ${a % 10} · ${b} = ${a % 10 * b}. Dann addieren.`;
+      return `${a} Reihen mit je ${b} Punkten. Wie viele sind es zusammen?`;
+    }
+    if (a > 100 && c > 10) {
+      const tens = Math.floor(c / 10) * 10;
+      return `Zerlege ${fmt(a)} in ${fmt(tens * b)} und ${fmt(a - tens * b)}. Teile beide Teile durch ${b}.`;
+    }
+    return `Denk an die Malaufgabe: ? · ${b} = ${fmt(a)}.`;
+  }
+
+  function showHelp(afterMiss = false) {
+    const t = state.round.tasks[state.round.i];
+    let picture = "";
+    if (t.blank === "c" && (t.op === "+" || t.op === "−") && t.a <= 20 && (t.op === "−" || t.a + t.b <= 20)) picture = zwanzigerfeld(t);
+    else if (t.blank === "c" && t.op === "·" && t.a <= 10 && t.b <= 10) picture = dotArray(t.a, t.b);
+    else if (t.blank === "c" && t.op === ":" && t.a <= 60) picture = dotArray(t.c, t.b);
+    $("help").innerHTML = `${picture}<p>${afterMiss ? "So geht's: " : "Tipp: "}${tipFor(t)}</p>`;
+    $("help").hidden = false;
+  }
+
+  // ---------- Ergebnis ----------
+  function finish() {
+    const r = state.round;
+    const first = r.results.filter((x) => x === "first").length;
+    const second = r.results.filter((x) => x === "second").length;
+    const missed = r.results.filter((x) => x === "missed").length;
+    const stars = first >= 9 ? 3 : first + second >= 7 ? 2 : 1;
+
+    const key = `${state.grade}-${state.topic}`;
+    state.best[key] = Math.max(state.best[key] || 0, stars);
+    r.results.forEach((x, i) => {
+      if (x === "first") state.garden.push("f" + (i % 4));
+      else if (x === "second") state.garden.push("b" + (i % 4));
+    });
+    state.garden = state.garden.slice(-500);
+    store.set("rw-best", state.best);
+    store.set("rw-garden", state.garden);
+
+    $("resultTitle").textContent = stars === 3 ? "Fantastisch!" : stars === 2 ? "Gut gemacht!" : "Weiter so!";
+    $("bigStars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= stars ? "on grow" : "off"}">${STAR}</span>`).join("");
+    $("bigStars").setAttribute("aria-label", `${stars} von 3 Sternen`);
+    $("resultText").textContent = first === 10
+      ? "Alle 10 Aufgaben gleich beim ersten Versuch richtig."
+      : `${first + second} von 10 Aufgaben richtig, ${first} davon gleich beim ersten Versuch.`;
+    $("tally").innerHTML =
+      `<span>${flowerSVG("flower", "var(--petal-1)")} ${first} Blumen</span>` +
+      `<span>${flowerSVG("bud", "var(--petal-2)")} ${second} Knospen</span>` +
+      `<span>${flowerSVG("sprout")} ${missed} Sprösslinge</span>`;
+    beep(SOUND_DONE);
+    state.round = null;
+    renderHeader();
+    show("resultView");
+    $("againBtn").focus();
+  }
+
+  // ---------- Ereignisse ----------
+  $("pad").innerHTML = ["7", "8", "9", "4", "5", "6", "1", "2", "3", "del", "0", "ok"].map((k) =>
+    `<button class="key${k === "ok" ? " ok" : k === "del" ? " del" : ""}" type="button" data-key="${k}"
+       aria-label="${k === "ok" ? "Prüfen" : k === "del" ? "Löschen" : k}">${k === "ok" ? "OK" : k === "del" ? "⌫" : k}</button>`).join("");
+
+  $("pad").addEventListener("click", (e) => { const b = e.target.closest("[data-key]"); if (b) type(b.dataset.key); });
+  $("grades").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-grade]"); if (!b) return;
+    state.grade = Number(b.dataset.grade); store.set("rw-grade", state.grade); renderStart();
+  });
+  $("topics").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-topic]"); if (!b) return;
+    state.topic = b.dataset.topic; renderStart();
+  });
+  $("startBtn").addEventListener("click", startRound);
+  $("againBtn").addEventListener("click", startRound);
+  $("menuBtn").addEventListener("click", () => { renderStart(); show("startView"); });
+  $("backBtn").addEventListener("click", () => { state.round = null; resetTaskUi(); renderStart(); show("startView"); });
+  $("helpBtn").addEventListener("click", () => { if ($("help").hidden) showHelp(); else $("help").hidden = true; });
+  $("nextBtn").addEventListener("click", nextTask);
+  $("soundBtn").addEventListener("click", () => { state.sound = !state.sound; store.set("rw-sound", state.sound); renderHeader(); });
+
+  document.addEventListener("keydown", (e) => {
+    if ($("gameView").hidden || !state.round) return;
+    if (/^[0-9]$/.test(e.key)) { type(e.key); e.preventDefault(); }
+    else if (e.key === "Backspace") { type("del"); e.preventDefault(); }
+    else if (e.key === "Enter") {
+      if (!$("nextBtn").hidden) nextTask(); else type("ok");
+      e.preventDefault();
+    }
+  });
+
+  renderStart();
+  show("startView");
+})();
+</script>
+<!-- /body-ende -->
+</body>
+</html>
