@@ -139,6 +139,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .topic .name { font-weight: 700; line-height: 1.2; }
 .topic .stars { display: block; font-size: 14px; color: var(--sun); letter-spacing: 2px; min-height: 1em; }
 .topic .stars.none { color: var(--ink-soft); letter-spacing: 0; font-size: 13px; }
+.topic .sym.small { font-size: 16px; letter-spacing: -0.02em; }
 .topic[aria-pressed="true"] { border-color: var(--sun); background: var(--paper); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sun) 35%, transparent); }
 .topic.wide { grid-column: 1 / -1; }
 
@@ -165,7 +166,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 /* Spiel */
 .bar { display: flex; align-items: center; gap: 10px; }
 .back { border: 2px solid var(--line); background: var(--paper); border-radius: 12px; padding: 6px 12px; font-weight: 700; }
-.where { font-weight: 700; color: var(--ink-soft); flex: 1; min-width: 0; }
+.where { font-weight: 700; color: var(--ink-soft); flex: 1; min-width: 0; font-size: 15px; line-height: 1.25; }
 .count { font-variant-numeric: tabular-nums; font-weight: 700; }
 
 .task-card { text-align: center; padding: 26px 12px 18px; position: relative; }
@@ -183,6 +184,19 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .slot.right { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, var(--paper)); }
 .slot.wrong { border-color: var(--oops); animation: shake .35s; }
 @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.task.is-text { display: grid; justify-items: center; gap: 14px; font-family: var(--body); font-weight: 700; font-size: 22px; line-height: 1.35; }
+.task .story { margin: 0; max-width: 30ch; text-wrap: balance; }
+.task .answer { display: flex; align-items: center; gap: .3em; font-family: var(--display); font-size: clamp(36px, 9vw, 52px); font-weight: 800; }
+.task .unit { font-family: var(--body); font-size: 20px; color: var(--ink-soft); }
+.task .pic { max-width: 100%; overflow-x: auto; }
+.dienes { display: block; height: 80px; max-width: 100%; }
+.tafel { border-collapse: collapse; font-variant-numeric: tabular-nums; margin: 0 auto; }
+.tafel th, .tafel td { border: 2px solid var(--line); padding: 4px 10px; text-align: center; }
+.tafel th { background: var(--key); font-family: var(--body); font-size: 15px; color: var(--ink-soft); }
+.tafel td { font-family: var(--display); font-size: 30px; font-weight: 800; line-height: 1.2; min-width: 1.6em; }
+.streak { background: var(--sun); color: var(--sun-ink); border-radius: 999px; padding: 2px 10px; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.streak.pop { animation: grow .5s cubic-bezier(.3,1.6,.5,1); }
+#fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
 .say { min-height: 1.5em; margin: 14px 0 0; font-weight: 700; font-size: 20px; }
 .say.ok { color: var(--ok); }
 .say.oops { color: var(--oops); }
@@ -294,6 +308,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     <div class="bar">
       <button class="back" id="backBtn" type="button">← Zurück</button>
       <span class="where" id="where"></span>
+      <span class="streak" id="streak" hidden></span>
       <span class="count" id="count"></span>
     </div>
     <section class="sheet task-card">
@@ -323,8 +338,9 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     </section>
   </main>
 
-  <p class="foot">Pro Runde 10 Aufgaben. Jede richtige Antwort lässt eine Blume wachsen.</p>
+  <p class="foot">Pro Runde 10 Aufgaben. Jede richtige Antwort lässt eine Blume wachsen. Alles richtig? Dann gibt es ein Feuerwerk und eine Goldblume!</p>
 </div>
+<canvas id="fx" aria-hidden="true"></canvas>
 
 <script>
 (() => {
@@ -348,7 +364,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
   // ---------- Blumen ----------
   const PETALS = ["var(--petal-1)", "var(--petal-2)", "var(--petal-3)", "var(--petal-4)"];
-  function flowerSVG(kind, color) {
+  function flowerSVG(kind, color, center = "var(--sun)") {
+    if (kind === "gold") { color = "var(--sun)"; center = "var(--petal-3)"; }
     const stem = '<path d="M20 58V26" stroke="var(--stem)" stroke-width="3" stroke-linecap="round" fill="none"/>' +
       '<path d="M20 46c-7-1-11-6-11-11 7 0 11 4 11 9z" fill="var(--grass-deep)"/>';
     if (kind === "sprout") {
@@ -364,7 +381,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       const a = (i / 6) * Math.PI * 2;
       petals += `<circle cx="${(20 + Math.cos(a) * 8).toFixed(1)}" cy="${(20 + Math.sin(a) * 8).toFixed(1)}" r="6.5" fill="${color}"/>`;
     }
-    return `<svg viewBox="0 0 40 60" aria-hidden="true">${stem}${petals}<circle cx="20" cy="20" r="5.5" fill="var(--sun)"/></svg>`;
+    return `<svg viewBox="0 0 40 60" aria-hidden="true">${stem}${petals}<circle cx="20" cy="20" r="5.5" fill="${center}"/></svg>`;
   }
   const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
 
@@ -374,17 +391,24 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     minus:   { name: "Minus",           sym: "−" },
     mal:     { name: "Mal",             sym: "·" },
     geteilt: { name: "Geteilt",         sym: ":" },
+    stellen: { name: "Zehner & Einer",  sym: "ZE", small: true },
+    text:    { name: "Textaufgaben",    sym: "Abc", small: true },
     luecke:  { name: "Lückenaufgaben",  sym: "□" },
     mix:     { name: "Bunt gemischt",   sym: "?" },
   };
 
   // Jede Klasse bietet mehrere Zahlenräume an, je nachdem wie weit die Klasse im Schuljahr ist.
   const GRADES = {
-    1: { ranges: [10, 20, 100],                       start: 20,    topics: ["plus", "minus", "luecke", "mix"] },
-    2: { ranges: [20, 50, 100],                       start: 100,   topics: ["plus", "minus", "mal", "geteilt", "luecke", "mix"] },
-    3: { ranges: [100, 500, 1000],                    start: 1000,  topics: ["plus", "minus", "mal", "geteilt", "luecke", "mix"] },
-    4: { ranges: [1000, 10000, 100000, 1000000],      start: 10000, topics: ["plus", "minus", "mal", "geteilt", "luecke", "mix"] },
+    1: { ranges: [10, 20, 100],                       start: 20,    topics: ["plus", "minus", "stellen", "text", "luecke", "mix"] },
+    2: { ranges: [20, 50, 100],                       start: 100,   topics: ["plus", "minus", "mal", "geteilt", "stellen", "text", "luecke", "mix"] },
+    3: { ranges: [100, 500, 1000],                    start: 1000,  topics: ["plus", "minus", "mal", "geteilt", "stellen", "text", "luecke", "mix"] },
+    4: { ranges: [1000, 10000, 100000, 1000000],      start: 10000, topics: ["plus", "minus", "mal", "geteilt", "stellen", "text", "luecke", "mix"] },
   };
+
+  // Zehner & Einer braucht mindestens zweistellige Zahlen
+  const topicsFor = (grade, N) => GRADES[grade].topics.filter((t) => !(t === "stellen" && N < 20));
+  const topicName = (t, N) => (t === "stellen" && N > 100 ? "Stellenwerte" : TOPICS[t].name);
+  const topicSym = (t, N) => (t === "stellen" && N > 100 ? "HZE" : TOPICS[t].sym);
 
   const RANGE_NOTES = {
     10: "Kleine Zahlen bis 10. Gut für den Anfang.",
@@ -451,9 +475,144 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
   const MAKERS = { plus: plusTask, minus: minusTask, mal: malTask, geteilt: geteiltTask };
 
+  // ---------- Zehner & Einer / Stellenwerte ----------
+  const PLACES = [["E", "Einer"], ["Z", "Zehner"], ["H", "Hunderter"], ["T", "Tausender"], ["ZT", "Zehntausender"], ["HT", "Hunderttausender"]];
+
+  // Zehnersystem-Material: Hunderterplatten, Zehnerstangen, Einerwürfel
+  function dienes(n) {
+    const h = Math.floor(n / 100), z = Math.floor(n / 10) % 10, e = n % 10;
+    const grid = (w, ht, cols, rows) => {
+      let d = "";
+      for (let i = 1; i < cols; i++) d += `M${i * 5} 0v${ht}`;
+      for (let j = 1; j < rows; j++) d += `M0 ${j * 5}h${w}`;
+      return d;
+    };
+    let x = 0, out = "";
+    for (let i = 0; i < h; i++) {
+      out += `<g transform="translate(${x} 0)"><rect width="50" height="50" rx="1" fill="var(--petal-2)"/><path d="${grid(50, 50, 10, 10)}" stroke="var(--paper)" stroke-width=".6"/></g>`;
+      x += 56;
+    }
+    if (h) x += 6;
+    for (let i = 0; i < z; i++) {
+      out += `<g transform="translate(${x} 0)"><rect width="5" height="50" rx="1" fill="var(--blue)"/><path d="${grid(5, 50, 1, 10)}" stroke="var(--paper)" stroke-width=".6"/></g>`;
+      x += 9;
+    }
+    if (z) x += 8;
+    for (let i = 0; i < e; i++) {
+      out += `<rect x="${x + Math.floor(i / 5) * 9}" y="${45 - (i % 5) * 9}" width="5" height="5" rx="1" fill="var(--red)"/>`;
+    }
+    if (e) x += Math.ceil(e / 5) * 9;
+    return `<svg class="dienes" viewBox="-2 -2 ${x + 4} 54" aria-hidden="true">${out}</svg>`;
+  }
+
+  function tafel(n, k) {
+    const heads = PLACES.slice(0, k).reverse();
+    const digits = String(n).padStart(k, "0").split("");
+    return `<table class="tafel"><tr>${heads.map((p) => `<th title="${p[1]}">${p[0]}</th>`).join("")}</tr>` +
+      `<tr>${digits.map((d) => `<td>${d}</td>`).join("")}</tr></table>`;
+  }
+
+  function placeTask(N) {
+    const k = String(N - 1).length;            // Anzahl der Stellen im Zahlenraum
+    const n = R(10 ** (k - 1), N - 1);
+    const digits = String(n).split("").map(Number);
+    const heads = PLACES.slice(0, k).reverse();
+    const values = digits.map((d, i) => d * 10 ** (k - 1 - i));
+    const variants = ["tafel", "ziffer", "zerlegen"];
+    if (N <= 1000) variants.push("bild", "bild");
+    if (N <= 100) variants.push("ze", "ze");
+    let v = pick(variants);
+    const nonZero = values.map((_, i) => i).filter((i) => values[i] > 0);
+    if (v === "zerlegen" && nonZero.length < 2) v = "tafel";
+
+    if (v === "bild") {
+      return { kind: "text", key: "b" + n, pic: dienes(n), text: "Welche Zahl ist das?", answer: n, helpPic: tafel(n, k),
+        tip: n >= 100 ? "Eine Platte sind 100, eine Stange sind 10, ein Würfel ist 1. Zähle erst die Hunderter, dann die Zehner, dann die Einer."
+                      : "Eine Stange sind 10 Einer, also 1 Zehner. Zähle erst die Stangen, dann die Würfel." };
+    }
+    if (v === "tafel") {
+      return { kind: "text", key: "t" + n, pic: tafel(n, k), text: "Welche Zahl steht in der Stellenwerttafel?", answer: n,
+        tip: "Lies die Ziffern von links nach rechts. Eine 0 bleibt als Platzhalter stehen." };
+    }
+    if (v === "ze") {
+      const [z, e] = digits;
+      return { kind: "parts", key: "ze" + n, parts: [`${z} Z`, "+", `${e} E`, "=", "§"], answer: n, helpPic: dienes(n),
+        tip: `${z} Zehner sind ${z * 10}. Dazu kommen ${e} Einer.` };
+    }
+    if (v === "ziffer") {
+      const i = R(0, k - 1);
+      const text = k === 2 ? `Wie viele ${heads[i][1]} hat die Zahl ${fmt(n)}?`
+                           : `Welche Ziffer steht in der Zahl ${fmt(n)} an der ${heads[i][1]}stelle?`;
+      return { kind: "text", key: "z" + n + i, text, answer: digits[i], helpPic: N <= 100 ? dienes(n) : tafel(n, k),
+        tip: k === 2 ? `${fmt(n)} sind ${digits[0]} Zehner und ${digits[1]} Einer.` : "Die Stellen von rechts nach links: Einer, Zehner, Hunderter, Tausender …" };
+    }
+    // zerlegen: 47 = 40 + ?
+    const miss = pick(nonZero);
+    const parts = [fmt(n), "="];
+    values.forEach((x, i) => {
+      if (!x) return;
+      if (parts.length > 2) parts.push("+");
+      parts.push(i === miss ? "§" : fmt(x));
+    });
+    return { kind: "parts", key: "x" + n + miss, parts, answer: values[miss], helpPic: tafel(n, k),
+      tip: "Zerlege die Zahl in ihre Stellen. Die Stellenwerttafel hilft dir." };
+  }
+
+  // ---------- Textaufgaben ----------
+  const NAMES = ["Mia", "Ben", "Lena", "Emil", "Noah", "Emma", "Paul", "Lina", "Ali", "Sofia", "Finn", "Ella"];
+  const ITEMS = [
+    { w: "Murmeln", give: "verschenkt {n}" }, { w: "Äpfel", give: "verkauft {n}" }, { w: "Aufkleber", give: "verschenkt {n}" },
+    { w: "Bonbons", give: "isst {n}" }, { w: "Muscheln", give: "verliert {n}" },
+  ];
+  const BIG_ITEMS = [{ w: "Punkte", give: "verliert {n} Punkte" }, { w: "Euro", give: "gibt {n} Euro aus" }];
+
+  // Jede Vorlage bekommt eine passende Rechnung t (a op b = c) und die Umgebung s.
+  const STORIES = {
+    plus: [
+      (t) => ({ text: `Wenn du zu meiner Zahl ${fmt(t.b)} dazuzählst, kommt ${fmt(t.c)} heraus. Welche Zahl bin ich?`, answer: t.a, tip: `Rechne rückwärts: ${fmt(t.c)} − ${fmt(t.b)}.` }),
+      (t) => ({ text: `Ich bin um ${fmt(t.b)} größer als ${fmt(t.a)}. Welche Zahl bin ich?`, answer: t.c, tip: `Größer heißt plus: ${fmt(t.a)} + ${fmt(t.b)}.` }),
+      (t, s) => ({ text: `${s.name} hat ${fmt(t.a)} ${s.item.w} und bekommt ${fmt(t.b)} dazu. Wie viele ${s.item.w} hat ${s.name} jetzt?`, answer: t.c, unit: s.item.w, tip: `Dazubekommen heißt plus: ${fmt(t.a)} + ${fmt(t.b)}.` }),
+    ],
+    minus: [
+      (t) => ({ text: `Wenn du von meiner Zahl ${fmt(t.b)} wegnimmst, bleiben ${fmt(t.a)} übrig. Welche Zahl bin ich?`, answer: t.c, tip: `Rechne rückwärts: ${fmt(t.a)} + ${fmt(t.b)}.` }),
+      (t) => ({ text: `Ich bin um ${fmt(t.b)} kleiner als ${fmt(t.c)}. Welche Zahl bin ich?`, answer: t.a, tip: `Kleiner heißt minus: ${fmt(t.c)} − ${fmt(t.b)}.` }),
+      (t, s) => ({ text: `${s.name} hat ${fmt(t.c)} ${s.item.w} und ${s.item.give.replace("{n}", fmt(t.b))}. Wie viele ${s.item.w} hat ${s.name} noch?`, answer: t.a, unit: s.item.w, tip: `Weggeben heißt minus: ${fmt(t.c)} − ${fmt(t.b)}.` }),
+      (t, s) => ({ text: `${s.name} hat ${fmt(t.a)} ${s.item.w} und möchte ${fmt(t.c)} haben. Wie viele fehlen noch?`, answer: t.b, unit: s.item.w, tip: `Wie viel fehlt von ${fmt(t.a)} bis ${fmt(t.c)}? Rechne ${fmt(t.c)} − ${fmt(t.a)}.` }),
+    ],
+    mal: [
+      (t) => ({ text: `Wenn du meine Zahl mal ${fmt(t.b)} nimmst, kommt ${fmt(t.c)} heraus. Welche Zahl bin ich?`, answer: t.a, tip: `Rechne rückwärts: ${fmt(t.c)} : ${fmt(t.b)}.` }),
+      (t, s) => (s.small && t.a <= 10 && t.b <= 10
+        ? { text: `In jeder Tüte sind ${t.b} ${s.item.w}. ${s.name} hat ${t.a} Tüten. Wie viele ${s.item.w} sind das zusammen?`, answer: t.c, unit: s.item.w, tip: `${t.a} Tüten mit je ${t.b}: Rechne ${t.a} · ${t.b}.` }
+        : null),
+      (t, s) => (2 * t.c <= s.N ? { text: `Ich bin das Doppelte von ${fmt(t.c)}. Welche Zahl bin ich?`, answer: 2 * t.c, tip: `Das Doppelte heißt mal 2: ${fmt(t.c)} + ${fmt(t.c)}.` } : null),
+      (t) => (t.c % 2 === 0 ? { text: `Ich bin die Hälfte von ${fmt(t.c)}. Welche Zahl bin ich?`, answer: t.c / 2, tip: `Die Hälfte heißt geteilt durch 2: ${fmt(t.c)} : 2.` } : null),
+    ],
+    geteilt: [
+      (t) => ({ text: `Wenn du meine Zahl durch ${fmt(t.b)} teilst, kommt ${fmt(t.a)} heraus. Welche Zahl bin ich?`, answer: t.c, tip: `Rechne rückwärts: ${fmt(t.a)} · ${fmt(t.b)}.` }),
+      (t, s) => (s.small && t.b >= 2 && t.b <= 10
+        ? { text: `${fmt(t.c)} ${s.item.w} werden gerecht an ${t.b} Kinder verteilt. Wie viele ${s.item.w} bekommt jedes Kind?`, answer: t.a, unit: s.item.w, tip: `Gerecht verteilen heißt teilen: ${fmt(t.c)} : ${t.b}.` }
+        : null),
+    ],
+  };
+
+  function textTask(grade, N) {
+    const ops = GRADES[grade].topics.filter((t) => STORIES[t]);
+    for (;;) {
+      const op = pick(ops);
+      const t = (op === "minus" ? plusTask : op === "geteilt" ? malTask : MAKERS[op])(N);
+      const s = { N, small: N <= 100, name: pick(NAMES), item: pick(N <= 100 ? ITEMS : BIG_ITEMS) };
+      const made = pick(STORIES[op])(t, s);
+      if (!made || made.answer < 1 || made.answer > N) continue;
+      if (made.unit && Math.min(t.a, t.b, t.c) < 2) continue;   // "1 Murmeln" vermeiden
+      return { kind: "text", key: made.text, ...made };
+    }
+  }
+
   function generate(grade, topic, N) {
-    const basic = GRADES[grade].topics.filter((t) => t !== "mix" && t !== "luecke");
-    if (topic === "mix") return MAKERS[pick(basic)](N);
+    const basic = GRADES[grade].topics.filter((t) => MAKERS[t]);
+    if (topic === "mix") topic = pick(topicsFor(grade, N).filter((t) => t !== "mix" && t !== "luecke"));
+    if (topic === "stellen") return placeTask(N);
+    if (topic === "text") return textTask(grade, N);
     if (topic !== "luecke") return MAKERS[topic](N);
     // Lückenaufgabe: eine bekannte Aufgabe nehmen und eine Zahl verstecken
     const t = MAKERS[pick(basic)](N);
@@ -468,7 +627,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     let guard = 0;
     while (list.length < 10 && guard++ < 500) {
       const t = generate(grade, topic, N);
-      const key = `${t.a}${t.op}${t.b}${t.blank}`;
+      const key = t.key || `${t.a}${t.op}${t.b}${t.blank}`;
       if (seen.has(key)) continue;
       seen.add(key);
       list.push(t);
@@ -514,6 +673,66 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   const SOUND_RIGHT = [[660, .12], [880, .18]];
   const SOUND_WRONG = [[330, .2]];
   const SOUND_DONE = [[523, .14], [659, .14], [784, .14], [1047, .3]];
+  const SOUND_STREAK = [[784, .1], [988, .1], [1175, .22]];
+  const SOUND_PERFECT = [[523, .12], [659, .12], [784, .12], [1047, .2], [784, .12], [1047, .4]];
+
+  // ---------- Feuerwerk ----------
+  const fx = (() => {
+    const cv = $("fx"), ctx = cv.getContext("2d");
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let sparks = [], rockets = [], running = false, until = 0, nextShot = 0;
+    const palette = () => {
+      const cs = getComputedStyle(document.documentElement);
+      return ["--petal-1", "--petal-2", "--petal-3", "--petal-4", "--sun"].map((v) => cs.getPropertyValue(v).trim() || "#f4b329");
+    };
+    function fit() {
+      const d = window.devicePixelRatio || 1;
+      cv.width = innerWidth * d; cv.height = innerHeight * d;
+      ctx.setTransform(d, 0, 0, d, 0, 0);
+    }
+    function burst(x, y, count = 70) {
+      const cols = palette(), main = pick(cols);
+      for (let i = 0; i < count; i++) {
+        const a = Math.random() * Math.PI * 2, v = 1.5 + Math.random() * 4.5;
+        sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, fade: 0.008 + Math.random() * 0.01, c: Math.random() < 0.25 ? pick(cols) : main });
+      }
+    }
+    function launch() {
+      rockets.push({ x: innerWidth * (0.15 + Math.random() * 0.7), y: innerHeight, vy: -(8 + Math.random() * 4), top: innerHeight * (0.12 + Math.random() * 0.3), c: pick(palette()) });
+    }
+    function frame(now) {
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      if (now < until && now > nextShot) { launch(); nextShot = now + 280 + Math.random() * 380; }
+      rockets = rockets.filter((r) => {
+        r.y += r.vy; r.vy += 0.12;
+        ctx.globalAlpha = 1; ctx.fillStyle = r.c; ctx.fillRect(r.x - 1.5, r.y, 3, 10);
+        if (r.y <= r.top || r.vy >= -1) { burst(r.x, r.y); return false; }
+        return true;
+      });
+      sparks = sparks.filter((p) => {
+        p.vx *= 0.985; p.vy = p.vy * 0.985 + 0.05; p.x += p.vx; p.y += p.vy; p.life -= p.fade;
+        if (p.life <= 0) return false;
+        ctx.globalAlpha = p.life; ctx.fillStyle = p.c;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2); ctx.fill();
+        return true;
+      });
+      ctx.globalAlpha = 1;
+      if (sparks.length || rockets.length || now < until) requestAnimationFrame(frame);
+      else { running = false; ctx.clearRect(0, 0, innerWidth, innerHeight); }
+    }
+    function run() { if (!running) { running = true; fit(); requestAnimationFrame(frame); } }
+    return {
+      // Großes Feuerwerk über den ganzen Bildschirm
+      show(seconds) { if (still) return; until = performance.now() + seconds * 1000; nextShot = 0; run(); },
+      // Kleine Explosionen über einem Element, z. B. bei einer Serie
+      pop(el, count = 2) {
+        if (still) return;
+        const b = el.getBoundingClientRect();
+        for (let i = 0; i < count; i++) burst(b.left + b.width * (i + 0.5) / count, b.top + b.height * 0.35, 45);
+        run();
+      },
+    };
+  })();
 
   // ---------- Ansichten ----------
   function show(view) {
@@ -523,7 +742,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
   function renderHeader() {
     $("flowerIcon").innerHTML = flowerSVG("flower", "var(--petal-1)");
-    $("flowerCount").textContent = fmt(state.garden.filter((f) => f[0] === "f").length);
+    $("flowerCount").textContent = fmt(state.garden.filter((f) => f[0] === "f" || f[0] === "g").length);
     $("soundBtn").setAttribute("aria-pressed", String(state.sound));
     $("soundBtn").setAttribute("aria-label", state.sound ? "Ton ausschalten" : "Ton einschalten");
     $("soundBtn").textContent = state.sound ? "Ton" : "Aus";
@@ -531,13 +750,14 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
   function renderStart() {
     const g = GRADES[state.grade];
-    if (!g.topics.includes(state.topic)) state.topic = g.topics[0];
+    const N = rangeOf(state.grade);
+    const topics = topicsFor(state.grade, N);
+    if (!topics.includes(state.topic)) state.topic = topics[0];
 
     $("grades").innerHTML = Object.keys(GRADES).map((n) =>
       `<button class="grade" type="button" data-grade="${n}" aria-pressed="${Number(n) === state.grade}">
          <b>${n}</b><small>Klasse</small></button>`).join("");
 
-    const N = rangeOf(state.grade);
     $("ranges").style.setProperty("--n", g.ranges.length);
     $("ranges").classList.toggle("four", g.ranges.length === 4);
     $("ranges").innerHTML = g.ranges.map((r) =>
@@ -545,18 +765,18 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
          <small>bis</small><b>${rangeLabel(r)}</b></button>`).join("");
     $("rangeNote").textContent = RANGE_NOTES[N];
 
-    $("topics").innerHTML = g.topics.map((t) => {
+    $("topics").innerHTML = topics.map((t) => {
       const best = state.best[`${state.grade}-${N}-${t}`] || 0;
       const stars = best ? `<span class="stars" aria-label="${best} von 3 Sternen">${"★".repeat(best)}${"☆".repeat(3 - best)}</span>`
                          : `<span class="stars none">neu</span>`;
-      const wide = g.topics.length % 2 === 1 && t === "mix" ? " wide" : "";
+      const wide = topics.length % 2 === 1 && t === "mix" ? " wide" : "";
       return `<button class="topic${wide}" type="button" data-topic="${t}" aria-pressed="${t === state.topic}">
-        <span class="sym">${TOPICS[t].sym}</span><span><span class="name">${TOPICS[t].name}</span>${stars}</span></button>`;
+        <span class="sym${TOPICS[t].small ? " small" : ""}">${topicSym(t, N)}</span><span><span class="name">${topicName(t, N)}</span>${stars}</span></button>`;
     }).join("");
 
     const flowers = state.garden.slice(-60);
     $("garden").innerHTML = flowers.length
-      ? flowers.map((f) => flowerSVG(f[0] === "f" ? "flower" : "bud", PETALS[Number(f[1]) % 4])).join("")
+      ? flowers.map((f) => flowerSVG(f[0] === "g" ? "gold" : f[0] === "f" ? "flower" : "bud", PETALS[Number(f[1]) % 4])).join("")
       : `<p class="empty">Noch leer. Rechne eine Runde und pflanze deine ersten Blumen!</p>` +
         flowerSVG("sprout") + flowerSVG("sprout") + flowerSVG("sprout");
     renderHeader();
@@ -565,8 +785,10 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   // ---------- Spiel ----------
   function startRound() {
     const N = rangeOf(state.grade);
-    state.round = { tasks: makeRound(state.grade, state.topic, N), N, i: 0, input: "", tries: 0, results: [], locked: false };
-    $("where").textContent = `Klasse ${state.grade} · bis ${rangeLabel(N)} · ${TOPICS[state.topic].name}`;
+    state.round = { tasks: makeRound(state.grade, state.topic, N), N, i: 0, input: "", tries: 0, results: [], locked: false, streak: 0 };
+    $("where").textContent = `Klasse ${state.grade} · bis ${rangeLabel(N)} · ${topicName(state.topic, N)}`;
+    renderStreak();
+    resetTaskUi();
     show("gameView");
     renderTask();
   }
@@ -577,11 +799,32 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     const r = state.round, t = r.tasks[r.i];
     const slotText = r.input ? fmt(Number(r.input)) : "?";
     const slotCls = `slot${r.input ? " filled" : ""}${mark ? " " + mark : ""}`;
-    const part = (k) => (t.blank === k ? `<span class="${slotCls}" id="slot">${slotText}</span>` : num(t[k]));
+    const slot = `<span class="${slotCls}" id="slot">${slotText}</span>`;
+    $("task").classList.toggle("is-text", t.kind === "text");
+    $("count").textContent = `${r.i + 1} / ${r.tasks.length}`;
+    if (t.kind === "text") {
+      $("task").innerHTML = `${t.pic ? `<div class="pic">${t.pic}</div>` : ""}<p class="story">${t.text}</p>` +
+        `<div class="answer">${slot}${t.unit ? `<span class="unit">${t.unit}</span>` : ""}</div>`;
+      $("task").setAttribute("aria-label", t.text);
+      return renderMeadow();
+    }
+    if (t.kind === "parts") {
+      $("task").innerHTML = t.parts.map((p) => (p === "§" ? slot : /^[+=−·:]$/.test(p) ? `<span class="op">${p}</span>` : `<span>${p}</span>`)).join("");
+      $("task").setAttribute("aria-label", t.parts.map((p) => (p === "§" ? "Lücke" : p)).join(" "));
+      return renderMeadow();
+    }
+    const part = (k) => (t.blank === k ? slot : num(t[k]));
     $("task").innerHTML = `${part("a")}<span class="op">${t.op}</span>${part("b")}<span class="op">=</span>${part("c")}`;
     $("task").setAttribute("aria-label", `${t.blank === "a" ? "Lücke" : t.a} ${t.op === "·" ? "mal" : t.op === ":" ? "geteilt durch" : t.op === "+" ? "plus" : "minus"} ${t.blank === "b" ? "Lücke" : t.b} gleich ${t.blank === "c" ? "?" : t.c}`);
-    $("count").textContent = `${r.i + 1} / ${r.tasks.length}`;
     renderMeadow();
+  }
+
+  function renderStreak(pop = false) {
+    const n = state.round ? state.round.streak : 0;
+    $("streak").hidden = n < 2;
+    $("streak").textContent = `Serie: ${n}`;
+    $("streak").classList.remove("pop");
+    if (pop) { void $("streak").offsetWidth; $("streak").classList.add("pop"); }
   }
 
   function renderMeadow(growIndex = -1) {
@@ -630,15 +873,26 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     if (Number(r.input) === t.answer) {
       r.results[r.i] = r.tries === 0 ? "first" : "second";
       r.locked = true;
-      beep(SOUND_RIGHT);
-      say(r.tries === 0 ? pick(PRAISE) : "Richtig! Gut, dass du nochmal nachgedacht hast.", "ok");
+      r.streak = r.tries === 0 ? r.streak + 1 : 0;
+      const party = r.streak >= 3 && r.streak % 3 === 0;   // bei 3, 6 und 9 richtig hintereinander
+      if (party) {
+        beep(SOUND_STREAK);
+        say(`${r.streak} richtig hintereinander! Super-Serie!`, "ok");
+      } else {
+        beep(SOUND_RIGHT);
+        say(r.tries === 0 ? pick(PRAISE) : "Richtig! Gut, dass du nochmal nachgedacht hast.", "ok");
+      }
       renderTask("right");
       renderMeadow(r.i);
+      renderStreak(party);
+      if (party) fx.pop($("task"), r.streak >= 6 ? 3 : 2);
       setPadEnabled(false);
-      setTimeout(nextTask, 1100);
+      setTimeout(nextTask, party ? 1700 : 1100);
       return;
     }
     r.tries++;
+    r.streak = 0;
+    renderStreak();
     beep(SOUND_WRONG);
     if (r.tries === 1) {
       renderTask("wrong");
@@ -753,6 +1007,11 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
   function showHelp(afterMiss = false) {
     const t = state.round.tasks[state.round.i];
+    if (t.kind) {
+      $("help").innerHTML = `${t.helpPic || ""}<p>${afterMiss ? "So geht's: " : "Tipp: "}${t.tip}</p>`;
+      $("help").hidden = false;
+      return;
+    }
     let picture = "";
     if (t.blank === "c" && (t.op === "+" || t.op === "−") && t.a <= 20 && (t.op === "−" || t.a + t.b <= 20)) picture = zwanzigerfeld(t);
     else if (t.blank === "c" && t.op === "·" && t.a <= 10 && t.b <= 10) picture = dotArray(t.a, t.b);
@@ -768,6 +1027,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     const second = r.results.filter((x) => x === "second").length;
     const missed = r.results.filter((x) => x === "missed").length;
     const stars = first >= 9 ? 3 : first + second >= 7 ? 2 : 1;
+    const perfect = first === 10;
 
     const key = `${state.grade}-${r.N}-${state.topic}`;
     state.best[key] = Math.max(state.best[key] || 0, stars);
@@ -775,11 +1035,12 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       if (x === "first") state.garden.push("f" + (i % 4));
       else if (x === "second") state.garden.push("b" + (i % 4));
     });
+    if (perfect) state.garden.push("g0");
     state.garden = state.garden.slice(-500);
     store.set("rw-best", state.best);
     store.set("rw-garden", state.garden);
 
-    $("resultTitle").textContent = stars === 3 ? "Fantastisch!" : stars === 2 ? "Gut gemacht!" : "Weiter so!";
+    $("resultTitle").textContent = perfect ? "Perfekt! Alles richtig!" : stars === 3 ? "Fantastisch!" : stars === 2 ? "Gut gemacht!" : "Weiter so!";
     $("bigStars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= stars ? "on grow" : "off"}">${STAR}</span>`).join("");
     $("bigStars").setAttribute("aria-label", `${stars} von 3 Sternen`);
     $("resultText").textContent = first === 10
@@ -788,11 +1049,16 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     $("tally").innerHTML =
       `<span>${flowerSVG("flower", "var(--petal-1)")} ${first} Blumen</span>` +
       `<span>${flowerSVG("bud", "var(--petal-2)")} ${second} Knospen</span>` +
-      `<span>${flowerSVG("sprout")} ${missed} Sprösslinge</span>`;
-    beep(SOUND_DONE);
+      `<span>${flowerSVG("sprout")} ${missed} Sprösslinge</span>` +
+      (perfect ? `<span>${flowerSVG("gold")} 1 Goldblume</span>` : "");
     state.round = null;
     renderHeader();
     show("resultView");
+    // Besondere Leistung, besondere Belohnung
+    if (perfect) { beep(SOUND_PERFECT); fx.show(7); }
+    else if (stars === 3) { beep(SOUND_DONE); fx.show(4); }
+    else if (stars === 2) { beep(SOUND_DONE); fx.pop($("bigStars"), 2); }
+    else beep(SOUND_DONE);
     $("againBtn").focus();
   }
 

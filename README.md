@@ -37,8 +37,19 @@ die App zum Anfang wie zum Ende des Schuljahres:
 | 3 | bis 100, 500, 1.000 | Plus, Minus, Mal, Geteilt |
 | 4 | bis 1.000, 10.000, 100.000, 1 Million | Plus, Minus, Mal, Geteilt |
 
-Lückenaufgaben und „Bunt gemischt“ gibt es in jeder Klasse. Die Hilfe zeigt im Zahlenraum
-bis 20 das Zwanzigerfeld, sonst passende Rechentipps.
+Außerdem gibt es in jeder Klasse:
+
+- **Zehner & Einer** (ab dem Zahlenraum bis 1.000 „Stellenwerte“): Zahlen aus Zehnerstangen
+  und Einerwürfeln erkennen, Stellenwerttafel lesen, „4 Z + 7 E = ?“, „47 = 40 + ?“
+- **Textaufgaben**: Rätsel wie „Wenn du zu meiner Zahl 9 dazuzählst, kommt 19 heraus.
+  Welche Zahl bin ich?“ und kleine Sachaufgaben
+- **Lückenaufgaben** und **Bunt gemischt**
+
+Die Hilfe zeigt im Zahlenraum bis 20 das Zwanzigerfeld, sonst passende Rechentipps.
+
+**Belohnungen:** 3 Aufgaben in Folge beim ersten Versuch richtig gibt einen kleinen Funkenregen
+(bei 3, 6 und 9). Eine Runde mit 3 Sternen startet ein Feuerwerk. Sind alle 10 Aufgaben beim
+ersten Versuch richtig, gibt es ein großes Feuerwerk und eine Goldblume für den Garten.
 
 Jede Runde hat 10 Aufgaben. Richtig beim ersten Versuch lässt eine Blume wachsen, beim
 zweiten Versuch eine Knospe. Nach der Runde gibt es bis zu 3 Sterne, und alle Blumen
