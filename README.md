@@ -27,17 +27,14 @@ Im Ordner `lernapp/` liegt **Rechenwiese**, eine kleine Lern-App, mit der Kinder
 Klassen 1 bis 4 spielerisch rechnen üben. Einfach `lernapp/index.html` im Browser öffnen,
 es wird nichts installiert.
 
-Zuerst wählt das Kind seine Klasse und dann, **bis zu welcher Zahl** es rechnet. So passt
-die App zum Anfang wie zum Ende des Schuljahres:
+Vor dem Start beantwortet das Kind drei Fragen:
 
-| Klasse | Zahlenräume zur Auswahl | Themen |
-|---|---|---|
-| 1 | bis 10, 20, 100 | Plus, Minus |
-| 2 | bis 20, 50, 100 | Plus, Minus, Mal, Geteilt |
-| 3 | bis 100, 500, 1.000 | Plus, Minus, Mal, Geteilt |
-| 4 | bis 1.000, 10.000, 100.000, 1 Million | Plus, Minus, Mal, Geteilt |
+1. **In welche Klasse gehst du?** (1 bis 4)
+2. **Bis zu welcher Zahl rechnest du?** Die Zahl wird frei eingetippt (10 bis 1.000.000),
+   z. B. 20 am Anfang von Klasse 1 oder 75 mitten in Klasse 2.
+3. **Rechnest du schon Mal und Geteilt?** Nur bei „Ja“ kommen Mal- und Geteiltaufgaben vor.
 
-Außerdem gibt es in jeder Klasse:
+Danach wird ein Thema gewählt: Plus, Minus, Mal und Geteilt (wenn freigeschaltet) sowie
 
 - **Zehner & Einer** (ab dem Zahlenraum bis 1.000 „Stellenwerte“): Zahlen aus Zehnerstangen
   und Einerwürfeln erkennen, Stellenwerttafel lesen, „4 Z + 7 E = ?“, „47 = 40 + ?“
@@ -46,6 +43,14 @@ Außerdem gibt es in jeder Klasse:
 - **Lückenaufgaben** und **Bunt gemischt**
 
 Die Hilfe zeigt im Zahlenraum bis 20 das Zwanzigerfeld, sonst passende Rechentipps.
+
+**Ballonjagd:** Das Mathe-Spiel zur gleichen Auswahl. Ballons mit Antworten steigen auf, das
+Kind tippt den richtigen an, bevor er davonfliegt. 3 Leben, Punkte (früh getroffen gibt
+Extrapunkte), alle 5 Treffer ein neues Level mit schnelleren Ballons und ein gespeicherter Rekord.
+
+**Rechentricks:** Eine eigene Seite erklärt kindgerecht, wie man am besten rechnet
+(z. B. „Erst bis zur 10“, Tauschaufgabe, Signalwörter in Textaufgaben). Die Hilfe in
+jeder Aufgabe verlinkt direkt auf den passenden Trick.
 
 **Belohnungen:** 3 Aufgaben in Folge beim ersten Versuch richtig gibt einen kleinen Funkenregen
 (bei 3, 6 und 9). Eine Runde mit 3 Sternen startet ein Feuerwerk. Sind alle 10 Aufgaben beim

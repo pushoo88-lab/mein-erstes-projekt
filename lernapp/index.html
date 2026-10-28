@@ -13,6 +13,7 @@
 /* Layout: eine schmale Spalte wie ein Arbeitsblatt, unten wächst die Wiese mit jeder richtigen Aufgabe */
 :root {
   --sky: #e6f2f6;
+  --sky-top: #cfe7f1;
   --paper: #ffffff;
   --ink: #1d3a3c;
   --ink-soft: #557073;
@@ -38,7 +39,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --sky: #0f2228; --paper: #18323a; --ink: #e4f1ee; --ink-soft: #9db8b8; --line: #2c4a52;
+    --sky: #0f2228; --sky-top: #17323d; --paper: #18323a; --ink: #e4f1ee; --ink-soft: #9db8b8; --line: #2c4a52;
     --grass: #4a9542; --grass-deep: #3a7e36; --stem: #5aa651; --sun: #f6c24a; --sun-ink: #2a1d00;
     --petal-1: #f483ad; --petal-2: #a68cf0; --petal-3: #f59a55; --petal-4: #5ab8e3;
     --red: #f06a60; --blue: #6c9cf0; --ok: #6fcf6a; --oops: #f0915f;
@@ -47,7 +48,7 @@
   }
 }
 :root[data-theme="dark"] {
-  --sky: #0f2228; --paper: #18323a; --ink: #e4f1ee; --ink-soft: #9db8b8; --line: #2c4a52;
+  --sky: #0f2228; --sky-top: #17323d; --paper: #18323a; --ink: #e4f1ee; --ink-soft: #9db8b8; --line: #2c4a52;
   --grass: #4a9542; --grass-deep: #3a7e36; --stem: #5aa651; --sun: #f6c24a; --sun-ink: #2a1d00;
   --petal-1: #f483ad; --petal-2: #a68cf0; --petal-3: #f59a55; --petal-4: #5ab8e3;
   --red: #f06a60; --blue: #6c9cf0; --ok: #6fcf6a; --oops: #f0915f;
@@ -118,15 +119,6 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .grade:active { transform: scale(.96); }
 .grade-note { margin: 12px 0 0; color: var(--ink-soft); font-size: 16px; }
 
-.ranges { display: grid; grid-template-columns: repeat(var(--n, 3), 1fr); gap: 10px; }
-.range {
-  min-width: 0; border: 3px solid var(--line); background: var(--key); border-radius: 16px;
-  padding: 10px 8px 8px; display: flex; flex-direction: column; align-items: center; line-height: 1.1;
-}
-.range small { font-size: 13px; color: var(--ink-soft); }
-.range b { font-family: var(--display); font-size: 26px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.range[aria-pressed="true"] { border-color: var(--blue); background: var(--paper); box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 30%, transparent); }
-
 .topics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .topic {
   border: 3px solid var(--line); background: var(--key); border-radius: 16px;
@@ -152,6 +144,64 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 }
 .go:active { transform: translateY(4px); box-shadow: 0 1px 0 color-mix(in srgb, var(--sun) 55%, #000); }
 .go.secondary { background: var(--key); color: var(--ink); box-shadow: 0 5px 0 var(--line); border: 2px solid var(--line); font-size: 22px; }
+
+/* Startseite: Zahlenraum eintippen, Mal/Geteilt */
+.range-input { display: flex; align-items: center; gap: 12px; font-family: var(--display); font-weight: 800; font-size: 26px; }
+.range-input input {
+  flex: 1; min-width: 0; font: inherit; font-size: 34px; padding: 4px 14px;
+  border: 3px solid var(--line); border-radius: 16px; background: var(--key); color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.range-input input::placeholder { color: var(--ink-soft); opacity: .6; font-size: 26px; }
+.range-input input:focus { outline: none; border-color: var(--blue); background: var(--paper); }
+.range-input input.bad { border-color: var(--oops); }
+.grade-note.bad { color: var(--oops); font-weight: 700; }
+.yesno { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.choice { border: 3px solid var(--line); background: var(--key); border-radius: 16px; padding: 12px; font-family: var(--display); font-weight: 800; font-size: 22px; line-height: 1.1; }
+.choice[aria-pressed="true"] { border-color: var(--grass-deep); background: var(--grass); color: #fff; }
+.start-msg { margin: 0; text-align: center; color: var(--oops); font-weight: 700; }
+.play-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.play-buttons .go { font-size: 22px; padding: 14px 8px; line-height: 1.1; }
+.go.play { background: var(--blue); color: var(--paper); box-shadow: 0 5px 0 color-mix(in srgb, var(--blue) 55%, #000); }
+.go.play:active { box-shadow: 0 1px 0 color-mix(in srgb, var(--blue) 55%, #000); }
+.tricks-link { border: 2px dashed var(--line); background: transparent; border-radius: 16px; padding: 12px; font-weight: 700; }
+
+/* Rechentricks */
+.trick-nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.trick-nav button { border: 2px solid var(--line); background: var(--paper); border-radius: 999px; padding: 4px 12px; font-weight: 700; font-size: 15px; }
+.trick-group { display: grid; gap: 12px; scroll-margin-top: 12px; }
+.trick { display: grid; gap: 10px; }
+.trick h3 { font-family: var(--display); font-weight: 800; font-size: 21px; margin: 0; line-height: 1.15; text-wrap: balance; }
+.trick p { margin: 0; }
+.trick ol { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }
+.trick .pic { justify-self: center; max-width: 100%; overflow-x: auto; }
+.example { font-family: var(--display); font-weight: 600; font-size: 21px; line-height: 1.3; background: var(--sky); border-radius: 12px; padding: 8px 14px; display: grid; gap: 2px; font-variant-numeric: tabular-nums; }
+.signal { display: grid; grid-template-columns: 2.2em 1fr; gap: 6px 10px; align-items: center; }
+.signal b { font-family: var(--display); font-size: 26px; color: var(--grass-deep); text-align: center; line-height: 1; }
+.more-tricks { border: 0; background: none; padding: 0; color: var(--blue); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Ballonjagd */
+.hearts { color: var(--red); font-size: 20px; letter-spacing: 2px; white-space: nowrap; }
+.hearts .lost { color: var(--line); }
+.bj-task { padding: 14px 12px 10px; }
+.bj-task .task { font-size: clamp(32px, 9vw, 52px); }
+.bj-task .task.is-text { font-size: 19px; }
+.bj-task .say { margin-top: 6px; font-size: 18px; }
+.sky {
+  position: relative; height: clamp(300px, 50vh, 520px); border-radius: 22px; overflow: hidden; border: 2px solid var(--line);
+  background: linear-gradient(to bottom, var(--sky-top) 0%, var(--paper) 93%, var(--grass) 93%);
+}
+.balloon { position: absolute; left: 0; top: 0; border: 0; background: none; padding: 0; aspect-ratio: 2 / 3; will-change: transform; }
+.balloon svg { width: 100%; height: 100%; display: block; }
+.balloon span {
+  position: absolute; left: 0; right: 0; top: 22%; text-align: center; pointer-events: none;
+  font-family: var(--display); font-weight: 800; font-size: 26px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.5);
+  font-variant-numeric: tabular-nums;
+}
+.balloon.popped { animation: popout .3s forwards; pointer-events: none; }
+@keyframes popout { to { scale: 1.6; opacity: 0; } }
+.balloon.wrong { filter: grayscale(1); opacity: .45; pointer-events: none; }
+.level-up { position: absolute; inset: 38% 0 auto; text-align: center; font-family: var(--display); font-weight: 800; font-size: 34px; pointer-events: none; animation: grow .5s cubic-bezier(.3,1.6,.5,1); }
 
 /* Garten */
 .garden {
@@ -255,7 +305,6 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .foot { margin-top: auto; text-align: center; font-size: 14px; color: var(--ink-soft); }
 
 @media (max-width: 420px) {
-  .ranges.four { --n: 2 !important; }
   .grade b { font-size: 34px; }
   .grade small { font-size: 11px; }
   .topic { grid-template-columns: 38px 1fr; padding: 8px 10px; }
@@ -288,15 +337,28 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       <div class="grades" id="grades" role="group" aria-label="Klasse"></div>
     </section>
     <section class="sheet">
-      <p class="label">2. Bis zu welcher Zahl rechnest du?</p>
-      <div class="ranges" id="ranges" role="group" aria-label="Zahlenraum"></div>
-      <p class="grade-note" id="rangeNote"></p>
+      <p class="label"><label for="rangeInput">2. Bis zu welcher Zahl rechnest du?</label></p>
+      <div class="range-input"><span>bis</span>
+        <input id="rangeInput" type="text" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="z. B. 20" aria-describedby="rangeNote"></div>
+      <p class="grade-note" id="rangeNote">Tippe die größte Zahl ein, mit der du rechnest.</p>
     </section>
     <section class="sheet">
-      <p class="label">3. Was möchtest du üben?</p>
+      <p class="label">3. Rechnest du schon Mal und Geteilt?</p>
+      <div class="yesno" id="malChoice" role="group" aria-label="Mal und Geteilt">
+        <button class="choice" type="button" data-mal="1" aria-pressed="false">Ja</button>
+        <button class="choice" type="button" data-mal="0" aria-pressed="false">Noch nicht</button>
+      </div>
+    </section>
+    <section class="sheet">
+      <p class="label">4. Was möchtest du üben?</p>
       <div class="topics" id="topics" role="group" aria-label="Thema"></div>
     </section>
-    <button class="go" id="startBtn" type="button">Los geht's!</button>
+    <p class="start-msg" id="startMsg" role="alert" hidden></p>
+    <div class="play-buttons">
+      <button class="go" id="startBtn" type="button">Aufgaben üben</button>
+      <button class="go play" id="balloonBtn" type="button">Ballonjagd spielen</button>
+    </div>
+    <button class="tricks-link" id="tricksBtn" type="button">Rechentricks: So rechnest du am besten →</button>
     <section>
       <p class="label">Dein Garten</p>
       <div class="garden" id="garden"></div>
@@ -334,6 +396,43 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       <div class="actions">
         <button class="go" id="againBtn" type="button">Nochmal spielen</button>
         <button class="go secondary" id="menuBtn" type="button">Anderes Thema</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Rechentricks -->
+  <main id="tricksView" hidden style="display:grid; gap:16px;">
+    <div class="bar">
+      <button class="back" id="tricksBack" type="button">← Zurück</button>
+      <span class="where">Rechentricks</span>
+    </div>
+    <section class="sheet">
+      <h2>So rechnest du am besten</h2>
+      <p class="muted" style="margin-top:8px">Hier findest du Tricks, mit denen Rechnen leichter geht. Such dir ein Thema aus.</p>
+      <div class="trick-nav" id="trickNav" style="margin-top:12px"></div>
+    </section>
+    <div id="tricks" style="display:grid; gap:22px;"></div>
+  </main>
+
+  <!-- Ballonjagd -->
+  <main id="balloonView" hidden style="display:grid; gap:12px;">
+    <div class="bar">
+      <button class="back" id="bjBack" type="button">← Zurück</button>
+      <span class="where"></span>
+      <span class="hearts" id="bjHearts" aria-label="Leben"></span>
+      <span class="count" id="bjScore"></span>
+    </div>
+    <section class="sheet task-card bj-task" id="bjTaskCard">
+      <div class="task" id="bjTask"></div>
+      <p class="say" id="bjSay" aria-live="assertive">Tippe auf den Ballon mit der richtigen Lösung!</p>
+    </section>
+    <div class="sky" id="bjSky" aria-label="Ballons"></div>
+    <section class="sheet result" id="bjOver" hidden>
+      <h2 id="bjOverTitle">Spiel vorbei!</h2>
+      <p class="muted" id="bjOverText"></p>
+      <div class="actions">
+        <button class="go" id="bjAgain" type="button">Nochmal spielen</button>
+        <button class="go secondary" id="bjMenu" type="button">Zurück zum Start</button>
       </div>
     </section>
   </main>
@@ -397,30 +496,29 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     mix:     { name: "Bunt gemischt",   sym: "?" },
   };
 
-  // Jede Klasse bietet mehrere Zahlenräume an, je nachdem wie weit die Klasse im Schuljahr ist.
+  // Die Klasse gibt nur Beispiele vor. Zahlenraum und Mal/Geteilt wählt das Kind selbst.
   const GRADES = {
-    1: { ranges: [10, 20, 100],                       start: 20,    topics: ["plus", "minus", "stellen", "text", "luecke", "mix"] },
-    2: { ranges: [20, 50, 100],                       start: 100,   topics: ["plus", "minus", "mal", "geteilt", "stellen", "text", "luecke", "mix"] },
-    3: { ranges: [100, 500, 1000],                    start: 1000,  topics: ["plus", "minus", "mal", "geteilt", "stellen", "text", "luecke", "mix"] },
-    4: { ranges: [1000, 10000, 100000, 1000000],      start: 10000, topics: ["plus", "minus", "mal", "geteilt", "stellen", "text", "luecke", "mix"] },
+    1: { example: "z. B. 20" },
+    2: { example: "z. B. 100" },
+    3: { example: "z. B. 1000" },
+    4: { example: "z. B. 1000000" },
   };
+  const MIN_N = 10, MAX_N = 1000000;
 
-  // Zehner & Einer braucht mindestens zweistellige Zahlen
-  const topicsFor = (grade, N) => GRADES[grade].topics.filter((t) => !(t === "stellen" && N < 20));
+  // cfg = { N: größte Zahl, mal: Mal und Geteilt schon gelernt? }
+  const opsFor = (cfg) => (cfg.mal ? ["plus", "minus", "mal", "geteilt"] : ["plus", "minus"]);
+  const topicsFor = (cfg) => [...opsFor(cfg), ...(cfg.N >= 20 ? ["stellen"] : []), "text", "luecke", "mix"];
   const topicName = (t, N) => (t === "stellen" && N > 100 ? "Stellenwerte" : TOPICS[t].name);
   const topicSym = (t, N) => (t === "stellen" && N > 100 ? "HZE" : TOPICS[t].sym);
 
-  const RANGE_NOTES = {
-    10: "Kleine Zahlen bis 10. Gut für den Anfang.",
-    20: "Rechnen im Zwanzigerraum. Die Hilfe zeigt das Zwanzigerfeld.",
-    50: "Zahlen bis 50, auch mit Zehnerübergang.",
-    100: "Der ganze Hunderterraum und das kleine Einmaleins.",
-    500: "Zahlen bis 500, oft mit Zehnern und Hundertern.",
-    1000: "Der Tausenderraum mit Zehnereinmaleins.",
-    10000: "Zahlen bis 10.000. Malnehmen und Teilen mit mehrstelligen Zahlen.",
-    100000: "Große Zahlen bis 100.000.",
-    1000000: "Riesige Zahlen bis zu einer Million.",
-  };
+  function noteFor(N) {
+    const lead = `Wir rechnen bis ${fmt(N)}. `;
+    if (N <= 10) return lead + "Kleine Zahlen, gut für den Anfang.";
+    if (N <= 20) return lead + "Die Hilfe zeigt dir das Zwanzigerfeld.";
+    if (N <= 100) return lead + "Mit Zehnern und Einern.";
+    if (N <= 1000) return lead + "Mit Hundertern, Zehnern und Einern.";
+    return lead + "Große Zahlen! Runde Zahlen kannst du gut im Kopf rechnen.";
+  }
 
   // Eine Aufgabe: a op b = c. "blank" sagt, welche Zahl gesucht ist.
   const mk = (a, op, b, c, blank = "c") => ({ a, op, b, c, blank, answer: { a, b, c }[blank] });
@@ -595,8 +693,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     ],
   };
 
-  function textTask(grade, N) {
-    const ops = GRADES[grade].topics.filter((t) => STORIES[t]);
+  function textTask(cfg) {
+    const N = cfg.N, ops = opsFor(cfg);
     for (;;) {
       const op = pick(ops);
       const t = (op === "minus" ? plusTask : op === "geteilt" ? malTask : MAKERS[op])(N);
@@ -604,29 +702,30 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
       const made = pick(STORIES[op])(t, s);
       if (!made || made.answer < 1 || made.answer > N) continue;
       if (made.unit && Math.min(t.a, t.b, t.c) < 2) continue;   // "1 Murmeln" vermeiden
-      return { kind: "text", key: made.text, ...made };
+      return { kind: "text", key: made.text, ...made, topic: "text" };
     }
   }
 
-  function generate(grade, topic, N) {
-    const basic = GRADES[grade].topics.filter((t) => MAKERS[t]);
-    if (topic === "mix") topic = pick(topicsFor(grade, N).filter((t) => t !== "mix" && t !== "luecke"));
-    if (topic === "stellen") return placeTask(N);
-    if (topic === "text") return textTask(grade, N);
-    if (topic !== "luecke") return MAKERS[topic](N);
+  function generate(cfg, topic) {
+    const N = cfg.N, basic = opsFor(cfg);
+    if (topic === "mix") topic = pick(topicsFor(cfg).filter((t) => t !== "mix" && t !== "luecke"));
+    if (topic === "stellen") return { ...placeTask(N), topic };
+    if (topic === "text") return textTask(cfg);
+    if (topic !== "luecke") return { ...MAKERS[topic](N), topic };
     // Lückenaufgabe: eine bekannte Aufgabe nehmen und eine Zahl verstecken
     const t = MAKERS[pick(basic)](N);
+    t.topic = "luecke";
     t.blank = pick(["a", "b"]);
     t.answer = t[t.blank];
     return t;
   }
 
-  function makeRound(grade, topic, N) {
+  function makeRound(cfg, topic) {
     const seen = new Set();
     const list = [];
     let guard = 0;
     while (list.length < 10 && guard++ < 500) {
-      const t = generate(grade, topic, N);
+      const t = generate(cfg, topic);
       const key = t.key || `${t.a}${t.op}${t.b}${t.blank}`;
       if (seen.has(key)) continue;
       seen.add(key);
@@ -639,17 +738,15 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   const state = {
     grade: store.get("rw-grade", 1),
     topic: "plus",
-    ranges: store.get("rw-ranges", {}),   // gewählter Zahlenraum je Klasse, z. B. { "2": 50 }
+    N: null,                              // wird jedes Mal neu eingetippt
+    mal: null,                            // wird jedes Mal neu gefragt
     best: store.get("rw-best", {}),       // "2-100-plus": 3
     garden: store.get("rw-garden", []),   // ["f2", "b0", ...]
     sound: store.get("rw-sound", true),
     round: null,
   };
   if (!GRADES[state.grade]) state.grade = 1;
-  const rangeOf = (grade) => {
-    const r = state.ranges[grade];
-    return GRADES[grade].ranges.includes(r) ? r : GRADES[grade].start;
-  };
+  const config = () => ({ N: state.N, mal: state.mal === true });
 
   // ---------- Ton ----------
   let audio;
@@ -736,7 +833,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
   // ---------- Ansichten ----------
   function show(view) {
-    for (const id of ["startView", "gameView", "resultView"]) $(id).hidden = id !== view;
+    for (const id of ["startView", "gameView", "resultView", "tricksView", "balloonView"]) $(id).hidden = id !== view;
+    if (view !== "balloonView") stopBalloons();
     window.scrollTo(0, 0);
   }
 
@@ -749,29 +847,26 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   }
 
   function renderStart() {
-    const g = GRADES[state.grade];
-    const N = rangeOf(state.grade);
-    const topics = topicsFor(state.grade, N);
+    const N = state.N;
+    const topics = topicsFor({ N: N || 100, mal: state.mal === true });
     if (!topics.includes(state.topic)) state.topic = topics[0];
 
     $("grades").innerHTML = Object.keys(GRADES).map((n) =>
       `<button class="grade" type="button" data-grade="${n}" aria-pressed="${Number(n) === state.grade}">
          <b>${n}</b><small>Klasse</small></button>`).join("");
 
-    $("ranges").style.setProperty("--n", g.ranges.length);
-    $("ranges").classList.toggle("four", g.ranges.length === 4);
-    $("ranges").innerHTML = g.ranges.map((r) =>
-      `<button class="range" type="button" data-range="${r}" aria-pressed="${r === N}">
-         <small>bis</small><b>${rangeLabel(r)}</b></button>`).join("");
-    $("rangeNote").textContent = RANGE_NOTES[N];
+    $("rangeInput").placeholder = GRADES[state.grade].example;
+    for (const b of $("malChoice").querySelectorAll("[data-mal]")) {
+      b.setAttribute("aria-pressed", String(state.mal !== null && (b.dataset.mal === "1") === state.mal));
+    }
 
     $("topics").innerHTML = topics.map((t) => {
-      const best = state.best[`${state.grade}-${N}-${t}`] || 0;
+      const best = N ? state.best[`${state.grade}-${N}-${t}`] || 0 : 0;
       const stars = best ? `<span class="stars" aria-label="${best} von 3 Sternen">${"★".repeat(best)}${"☆".repeat(3 - best)}</span>`
                          : `<span class="stars none">neu</span>`;
       const wide = topics.length % 2 === 1 && t === "mix" ? " wide" : "";
       return `<button class="topic${wide}" type="button" data-topic="${t}" aria-pressed="${t === state.topic}">
-        <span class="sym${TOPICS[t].small ? " small" : ""}">${topicSym(t, N)}</span><span><span class="name">${topicName(t, N)}</span>${stars}</span></button>`;
+        <span class="sym${TOPICS[t].small ? " small" : ""}">${topicSym(t, N || 100)}</span><span><span class="name">${topicName(t, N || 100)}</span>${stars}</span></button>`;
     }).join("");
 
     const flowers = state.garden.slice(-60);
@@ -782,10 +877,38 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     renderHeader();
   }
 
+  // Zahlenraum aus dem Eingabefeld lesen
+  function readRange() {
+    const digits = $("rangeInput").value.replace(/\D/g, "");
+    const N = Number(digits);
+    let msg = "Tippe die größte Zahl ein, mit der du rechnest.", bad = false;
+    state.N = null;
+    if (digits) {
+      if (N < MIN_N) { msg = `Bitte mindestens ${MIN_N} eingeben.`; bad = true; }
+      else if (N > MAX_N) { msg = `Höchstens ${fmt(MAX_N)}. Das ist eine Million!`; bad = true; }
+      else { state.N = N; msg = noteFor(N); }
+    }
+    $("rangeNote").textContent = msg;
+    $("rangeNote").classList.toggle("bad", bad);
+    $("rangeInput").classList.toggle("bad", bad);
+  }
+
+  // Erst loslegen, wenn alle Fragen beantwortet sind
+  function ready() {
+    let msg = "";
+    if (!state.N) msg = "Tippe zuerst ein, bis zu welcher Zahl du rechnest.";
+    else if (state.mal === null) msg = "Sag noch, ob du schon Mal und Geteilt rechnest.";
+    $("startMsg").textContent = msg;
+    $("startMsg").hidden = !msg;
+    if (!state.N) $("rangeInput").focus();
+    return !msg;
+  }
+
   // ---------- Spiel ----------
   function startRound() {
-    const N = rangeOf(state.grade);
-    state.round = { tasks: makeRound(state.grade, state.topic, N), N, i: 0, input: "", tries: 0, results: [], locked: false, streak: 0 };
+    if (!ready()) return;
+    const N = state.N;
+    state.round = { tasks: makeRound(config(), state.topic), N, i: 0, input: "", tries: 0, results: [], locked: false, streak: 0 };
     $("where").textContent = `Klasse ${state.grade} · bis ${rangeLabel(N)} · ${topicName(state.topic, N)}`;
     renderStreak();
     resetTaskUi();
@@ -800,23 +923,26 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     const slotText = r.input ? fmt(Number(r.input)) : "?";
     const slotCls = `slot${r.input ? " filled" : ""}${mark ? " " + mark : ""}`;
     const slot = `<span class="${slotCls}" id="slot">${slotText}</span>`;
-    $("task").classList.toggle("is-text", t.kind === "text");
     $("count").textContent = `${r.i + 1} / ${r.tasks.length}`;
-    if (t.kind === "text") {
-      $("task").innerHTML = `${t.pic ? `<div class="pic">${t.pic}</div>` : ""}<p class="story">${t.text}</p>` +
-        `<div class="answer">${slot}${t.unit ? `<span class="unit">${t.unit}</span>` : ""}</div>`;
-      $("task").setAttribute("aria-label", t.text);
-      return renderMeadow();
-    }
-    if (t.kind === "parts") {
-      $("task").innerHTML = t.parts.map((p) => (p === "§" ? slot : /^[+=−·:]$/.test(p) ? `<span class="op">${p}</span>` : `<span>${p}</span>`)).join("");
-      $("task").setAttribute("aria-label", t.parts.map((p) => (p === "§" ? "Lücke" : p)).join(" "));
-      return renderMeadow();
-    }
-    const part = (k) => (t.blank === k ? slot : num(t[k]));
-    $("task").innerHTML = `${part("a")}<span class="op">${t.op}</span>${part("b")}<span class="op">=</span>${part("c")}`;
-    $("task").setAttribute("aria-label", `${t.blank === "a" ? "Lücke" : t.a} ${t.op === "·" ? "mal" : t.op === ":" ? "geteilt durch" : t.op === "+" ? "plus" : "minus"} ${t.blank === "b" ? "Lücke" : t.b} gleich ${t.blank === "c" ? "?" : t.c}`);
+    drawTask($("task"), t, slot);
     renderMeadow();
+  }
+
+  // Zeichnet eine Aufgabe in ein Element; slot ist das Antwortfeld
+  function drawTask(el, t, slot) {
+    el.classList.toggle("is-text", t.kind === "text");
+    if (t.kind === "text") {
+      el.innerHTML = `${t.pic ? `<div class="pic">${t.pic}</div>` : ""}<p class="story">${t.text}</p>` +
+        `<div class="answer">${slot}${t.unit ? `<span class="unit">${t.unit}</span>` : ""}</div>`;
+      el.setAttribute("aria-label", t.text);
+    } else if (t.kind === "parts") {
+      el.innerHTML = t.parts.map((p) => (p === "§" ? slot : /^[+=−·:]$/.test(p) ? `<span class="op">${p}</span>` : `<span>${p}</span>`)).join("");
+      el.setAttribute("aria-label", t.parts.map((p) => (p === "§" ? "Lücke" : p)).join(" "));
+    } else {
+      const part = (k) => (t.blank === k ? slot : num(t[k]));
+      el.innerHTML = `${part("a")}<span class="op">${t.op}</span>${part("b")}<span class="op">=</span>${part("c")}`;
+      el.setAttribute("aria-label", `${t.blank === "a" ? "Lücke" : t.a} ${t.op === "·" ? "mal" : t.op === ":" ? "geteilt durch" : t.op === "+" ? "plus" : "minus"} ${t.blank === "b" ? "Lücke" : t.b} gleich ${t.blank === "c" ? "?" : t.c}`);
+    }
   }
 
   function renderStreak(pop = false) {
@@ -1007,8 +1133,9 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 
   function showHelp(afterMiss = false) {
     const t = state.round.tasks[state.round.i];
+    const more = `<button class="more-tricks" type="button" data-tricks="${t.topic}">Mehr Rechentricks dazu</button>`;
     if (t.kind) {
-      $("help").innerHTML = `${t.helpPic || ""}<p>${afterMiss ? "So geht's: " : "Tipp: "}${t.tip}</p>`;
+      $("help").innerHTML = `${t.helpPic || ""}<p>${afterMiss ? "So geht's: " : "Tipp: "}${t.tip}</p>${more}`;
       $("help").hidden = false;
       return;
     }
@@ -1016,8 +1143,255 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     if (t.blank === "c" && (t.op === "+" || t.op === "−") && t.a <= 20 && (t.op === "−" || t.a + t.b <= 20)) picture = zwanzigerfeld(t);
     else if (t.blank === "c" && t.op === "·" && t.a <= 10 && t.b <= 10) picture = dotArray(t.a, t.b);
     else if (t.blank === "c" && t.op === ":" && t.a <= 60) picture = dotArray(t.c, t.b);
-    $("help").innerHTML = `${picture}<p>${afterMiss ? "So geht's: " : "Tipp: "}${tipFor(t)}</p>`;
+    $("help").innerHTML = `${picture}<p>${afterMiss ? "So geht's: " : "Tipp: "}${tipFor(t)}</p>${more}`;
     $("help").hidden = false;
+  }
+
+  // ---------- Rechentricks ----------
+  const ex = (...lines) => `<div class="example">${lines.map((l) => `<span>${l}</span>`).join("")}</div>`;
+  const TRICKS = [
+    { id: "plus", title: "Plus", cards: [
+      { h: "Erst bis zur 10, dann weiter", p: "Wenn du über die 10 rechnen musst, mach zwei kleine Schritte.",
+        ex: ex("8 + 5 = ?", "8 + 2 = 10", "10 + 3 = 13"), pic: () => zwanzigerfeld({ a: 8, b: 5, op: "+" }) },
+      { h: "Verdoppeln hilft", p: "Verdoppeln kannst du dir gut merken. Fast-Verdoppeln geht dann ganz schnell.",
+        ex: ex("6 + 7 = ?", "6 + 6 = 12", "12 + 1 = 13") },
+      { h: "Erst die Zehner, dann die Einer", p: "Zerlege die zweite Zahl in Zehner und Einer.",
+        ex: ex("47 + 25 = ?", "47 + 20 = 67", "67 + 5 = 72") },
+      { h: "Große runde Zahlen", p: "Denk dir die Nullen weg, rechne mit den kleinen Zahlen und hänge die Nullen wieder an.",
+        ex: ex("3.000 + 4.000 = ?", "3 + 4 = 7", "also 7.000") },
+    ] },
+    { id: "minus", title: "Minus", cards: [
+      { h: "Erst zurück bis zur 10", p: "Nimm erst so viel weg, dass du bei 10 landest. Dann nimm den Rest weg.",
+        ex: ex("13 − 5 = ?", "13 − 3 = 10", "10 − 2 = 8"), pic: () => zwanzigerfeld({ a: 13, b: 5, op: "−" }) },
+      { h: "Erst die Zehner, dann die Einer weg", p: "Zerlege die Zahl, die du wegnimmst.",
+        ex: ex("64 − 27 = ?", "64 − 20 = 44", "44 − 7 = 37") },
+      { h: "Ergänzen", p: "Liegen die Zahlen nah beieinander, zähle einfach von der kleinen zur großen Zahl.",
+        ex: ex("52 − 48 = ?", "Von 48 bis 52 sind es 4.", "also 4") },
+      { h: "Probe mit Plus", p: "Prüfe dein Ergebnis mit der Plusaufgabe.",
+        ex: ex("64 − 27 = 37", "Probe: 37 + 27 = 64. Stimmt!") },
+    ] },
+    { id: "stellen", title: "Zehner & Einer", cards: [
+      { h: "Zehner und Einer", p: "Eine Stange sind 10 Einer, also 1 Zehner. Zähle erst die Stangen, dann die Würfel.",
+        ex: ex("4 Stangen = 4 Zehner = 40", "7 Würfel = 7 Einer = 7", "zusammen 47"), pic: () => dienes(47) },
+      { h: "Die Stellenwerttafel", p: "Jede Stelle ist 10-mal so viel wie die Stelle rechts daneben. Eine 0 hält den Platz frei.",
+        ex: ex("3.405 = 3 T + 4 H + 0 Z + 5 E"), pic: () => tafel(3405, 4) },
+    ] },
+    { id: "mal", title: "Mal", cards: [
+      { h: "Mal heißt: gleich große Gruppen", p: "3 · 4 bedeutet 3 Reihen mit je 4 Punkten.",
+        ex: ex("3 · 4 = 4 + 4 + 4 = 12"), pic: () => dotArray(3, 4) },
+      { h: "Tauschaufgabe", p: "Du darfst die Zahlen tauschen. Nimm die Aufgabe, die dir leichter fällt.",
+        ex: ex("3 · 8 = 8 · 3 = 24") },
+      { h: "Kernaufgaben und Nachbarn", p: "Mal 1, mal 2, mal 5 und mal 10 kannst du dir gut merken. Von dort gehst du einen Schritt weiter.",
+        ex: ex("6 · 7 = ?", "5 · 7 = 35", "35 + 7 = 42") },
+      { h: "Mal 10 und mal 100", p: "Mal 10 hängt eine Null an, mal 100 zwei Nullen.",
+        ex: ex("34 · 10 = 340", "34 · 100 = 3.400", "40 · 6: erst 4 · 6 = 24, also 240") },
+    ] },
+    { id: "geteilt", title: "Geteilt", cards: [
+      { h: "Geteilt heißt gerecht verteilen", p: "12 : 3 bedeutet: 12 Punkte auf 3 Reihen verteilen. Jede Reihe bekommt gleich viel.",
+        ex: ex("12 : 3 = 4"), pic: () => dotArray(3, 4) },
+      { h: "Denk an die Malaufgabe", p: "Frag dich: Welche Zahl mal 3 ergibt 12?",
+        ex: ex("12 : 3 = ?", "? · 3 = 12", "4 · 3 = 12, also 4") },
+      { h: "Die Hälfte", p: "Geteilt durch 2 ist die Hälfte. Das ist das Gegenteil vom Verdoppeln.",
+        ex: ex("18 : 2 = 9, weil 9 + 9 = 18") },
+    ] },
+    { id: "text", title: "Textaufgaben", cards: [
+      { h: "So löst du eine Textaufgabe", html: `<ol><li>Lies die Aufgabe zweimal.</li><li>Was wird gefragt?</li><li>Welche Zahlen brauchst du?</li><li>Welches Rechenzeichen passt?</li><li>Rechne und prüfe: Kann das stimmen?</li></ol>` },
+      { h: "Wörter, die dir das Rechenzeichen verraten", html: `<div class="signal">
+          <b>+</b><span>dazu, bekommt, mehr, größer als</span>
+          <b>−</b><span>weg, verschenkt, bleiben, weniger, kleiner als, fehlen</span>
+          <b>·</b><span>je, jede, das Doppelte</span>
+          <b>:</b><span>gerecht verteilen, die Hälfte</span></div>` },
+      { h: "Welche Zahl bin ich?", p: "Rechne rückwärts. Wurde etwas dazugezählt, nimmst du es wieder weg.",
+        ex: ex("Meine Zahl + 9 = 19", "19 − 9 = 10", "Ich bin die 10.") },
+    ] },
+    { id: "luecke", title: "Lückenaufgaben", cards: [
+      { h: "Rückwärts rechnen", p: "Bei einer Lücke hilft die Umkehraufgabe. Aus Plus wird Minus, aus Mal wird Geteilt.",
+        ex: ex("7 + ? = 12", "12 − 7 = 5", "Probe: 7 + 5 = 12. Stimmt!") },
+    ] },
+  ];
+
+  function renderTricks() {
+    $("trickNav").innerHTML = TRICKS.map((g) => `<button type="button" data-jump="${g.id}">${g.title}</button>`).join("");
+    $("tricks").innerHTML = TRICKS.map((g) => `<section class="trick-group" id="trick-${g.id}"><h2>${g.title}</h2>` +
+      g.cards.map((c) => `<article class="sheet trick"><h3>${c.h}</h3>${c.p ? `<p>${c.p}</p>` : ""}${c.html || ""}` +
+        `${c.ex || ""}${c.pic ? `<div class="pic">${c.pic()}</div>` : ""}</article>`).join("") + "</section>").join("");
+  }
+
+  let tricksFrom = "startView";
+  function openTricks(topic) {
+    tricksFrom = ["gameView", "resultView"].find((id) => !$(id).hidden) || "startView";
+    show("tricksView");
+    const target = $(`trick-${topic}`);
+    if (target) target.scrollIntoView({ block: "start" });
+  }
+
+  // ---------- Ballonjagd ----------
+  const shuffle = (arr) => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+
+  // Drei falsche Antworten, die nah an der richtigen liegen
+  function choices(ans, N) {
+    const set = new Set([ans]);
+    const steps = ans >= 1000 ? [1000, 100, 10] : ans >= 100 ? [100, 10, 1] : ans >= 20 ? [10, 1, 2] : [1, 2, 3];
+    const near = [];
+    for (const st of steps) near.push(ans + st, ans - st);
+    const d = String(ans);
+    if (d.length >= 2 && d.at(-1) !== d.at(-2)) near.push(Number(d.slice(0, -2) + d.at(-1) + d.at(-2)));  // Zahlendreher
+    for (const c of shuffle(near)) if (set.size < 4 && c >= 0 && c <= Math.max(N, ans + 10)) set.add(c);
+    while (set.size < 4) set.add(Math.max(0, ans + R(-9, 9)));
+    return shuffle([...set]);
+  }
+
+  function balloonSVG(color) {
+    return `<svg viewBox="0 0 80 120" aria-hidden="true"><path d="M40 93q-7 12 2 26" stroke="var(--ink-soft)" stroke-width="1.5" fill="none"/>` +
+      `<ellipse cx="40" cy="45" rx="35" ry="43" fill="${color}"/><path d="M34 87h12l-6 7z" fill="${color}"/>` +
+      `<ellipse cx="27" cy="27" rx="7" ry="12" fill="#fff" opacity=".35"/></svg>`;
+  }
+
+  const bj = { running: false, raf: 0 };
+
+  function startBalloons() {
+    if (!ready()) return;
+    bj.gen = (bj.gen || 0) + 1;
+    Object.assign(bj, { cfg: config(), topic: state.topic, score: 0, lives: 3, hits: 0, wave: null, running: true, last: performance.now() });
+    $("bjOver").hidden = true;
+    $("bjSky").hidden = false;
+    $("bjTaskCard").hidden = false;
+    show("balloonView");
+    sayBj("Tippe auf den Ballon mit der richtigen Lösung!");
+    renderBjBar();
+    nextWave();
+    cancelAnimationFrame(bj.raf);
+    bj.raf = requestAnimationFrame(bjFrame);
+  }
+
+  // Verzögert die nächste Welle, aber nur wenn noch dasselbe Spiel läuft
+  function later(fn, ms) { const gen = bj.gen; setTimeout(() => { if (bj.gen === gen) fn(); }, ms); }
+
+  function stopBalloons() {
+    bj.running = false;
+    cancelAnimationFrame(bj.raf);
+  }
+
+  function sayBj(text, cls = "") { $("bjSay").textContent = text; $("bjSay").className = "say " + cls; }
+
+  function renderBjBar() {
+    $("bjHearts").innerHTML = [0, 1, 2].map((i) => `<span class="${i < bj.lives ? "" : "lost"}">♥</span>`).join("");
+    $("bjHearts").setAttribute("aria-label", `${bj.lives} Leben`);
+    $("bjScore").textContent = `${fmt(bj.score)} Punkte`;
+  }
+
+  function nextWave() {
+    if (!bj.running) return;
+    const t = generate(bj.cfg, bj.topic);
+    drawTask($("bjTask"), t, '<span class="slot">?</span>');
+    const sky = $("bjSky");
+    sky.querySelectorAll(".balloon, .level-up").forEach((n) => n.remove());
+    const W = sky.clientWidth, H = sky.clientHeight, lane = W / 4, size = Math.min(lane - 8, 96);
+    const balloons = choices(t.answer, bj.cfg.N).map((v, i) => {
+      const el = document.createElement("button");
+      el.type = "button";
+      el.className = "balloon";
+      el.style.width = `${size}px`;
+      const label = fmt(v);
+      el.innerHTML = `${balloonSVG(PETALS[(i + bj.hits) % 4])}<span style="font-size:${label.length > 7 ? 15 : label.length > 5 ? 18 : label.length > 3 ? 22 : 26}px">${label}</span>`;
+      el.setAttribute("aria-label", `Ballon ${label}`);
+      sky.append(el);
+      const b = { el, v, x: i * lane + (lane - size) / 2, y: H + R(0, 70), phase: Math.random() * 6, h: size * 1.5, out: false };
+      el.addEventListener("click", () => hitBalloon(b));
+      return b;
+    });
+    bj.wave = { t, balloons, done: false };
+  }
+
+  function bjSpeed() {
+    const H = $("bjSky").clientHeight;
+    return Math.min(H / 6.5 * (1 + 0.07 * bj.hits), H / 2.6);   // Pixel pro Sekunde, wird mit jedem Treffer schneller
+  }
+
+  function bjFrame(now) {
+    if (!bj.running) return;
+    const dt = Math.min(0.05, (now - bj.last) / 1000);
+    bj.last = now;
+    const w = bj.wave;
+    if (w) {
+      const v = bjSpeed();
+      for (const b of w.balloons) {
+        if (b.out) continue;
+        b.y -= v * dt;
+        const wobble = Math.sin(now / 500 + b.phase) * 5;
+        b.el.style.transform = `translate(${b.x + wobble}px, ${b.y}px)`;
+        if (b.y < -b.h) {
+          b.out = true;
+          if (!w.done && b.v === w.t.answer) missWave(`Weggeflogen! Die Lösung war ${fmt(w.t.answer)}.`);
+        }
+      }
+    }
+    bj.raf = requestAnimationFrame(bjFrame);
+  }
+
+  function hitBalloon(b) {
+    const w = bj.wave;
+    if (!bj.running || !w || w.done || b.out) return;
+    if (b.v === w.t.answer) {
+      w.done = true;
+      b.out = true;
+      b.el.classList.add("popped");
+      const H = $("bjSky").clientHeight;
+      const bonus = Math.max(0, Math.round(10 * b.y / H));   // früh getroffen gibt Extrapunkte
+      bj.score += 10 + bonus;
+      bj.hits++;
+      fx.pop(b.el, 1);
+      if (bj.hits % 5 === 0) {
+        beep(SOUND_STREAK);
+        sayBj(`${bj.hits} Treffer! Jetzt wird es schneller!`, "ok");
+        $("bjSky").insertAdjacentHTML("beforeend", `<div class="level-up">Level ${bj.hits / 5 + 1}!</div>`);
+      } else {
+        beep(SOUND_RIGHT);
+        sayBj(`${pick(PRAISE)} +${10 + bonus} Punkte`, "ok");
+      }
+      renderBjBar();
+      later(nextWave, bj.hits % 5 === 0 ? 1200 : 650);
+      return;
+    }
+    b.out = true;
+    b.el.classList.add("wrong");
+    beep(SOUND_WRONG);
+    bj.lives--;
+    renderBjBar();
+    if (bj.lives <= 0) { w.done = true; return gameOver(`Die Lösung war ${fmt(w.t.answer)}.`); }
+    sayBj(`${fmt(b.v)} stimmt nicht. Versuch einen anderen Ballon!`, "oops");
+  }
+
+  function missWave(text) {
+    const w = bj.wave;
+    w.done = true;
+    beep(SOUND_WRONG);
+    bj.lives--;
+    renderBjBar();
+    if (bj.lives <= 0) return gameOver(text);
+    sayBj(text, "oops");
+    later(nextWave, 1500);
+  }
+
+  function gameOver(lastText) {
+    stopBalloons();
+    const best = store.get("rw-bj-best", 0);
+    const record = bj.score > best;
+    if (record) store.set("rw-bj-best", bj.score);
+    const flowers = Math.floor(bj.hits / 3);
+    for (let i = 0; i < flowers; i++) state.garden.push("f" + (i % 4));
+    state.garden = state.garden.slice(-500);
+    store.set("rw-garden", state.garden);
+    renderHeader();
+    $("bjSky").hidden = true;
+    $("bjTaskCard").hidden = true;
+    $("bjOver").hidden = false;
+    $("bjOverTitle").textContent = record && bj.score > 0 ? "Neuer Rekord!" : "Spiel vorbei!";
+    $("bjOverText").textContent = `${lastText} Du hast ${bj.hits} Ballons richtig getroffen und ${fmt(bj.score)} Punkte geholt.` +
+      (record && bj.score > 0 ? "" : ` Dein Rekord: ${fmt(Math.max(best, bj.score))} Punkte.`) +
+      (flowers ? ` ${flowers} ${flowers === 1 ? "Blume wächst" : "Blumen wachsen"} in deinem Garten.` : "");
+    if (record && bj.score > 0) { beep(SOUND_PERFECT); fx.show(5); } else beep(SOUND_DONE);
+    $("bjAgain").focus();
   }
 
   // ---------- Ergebnis ----------
@@ -1072,10 +1446,23 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     const b = e.target.closest("[data-grade]"); if (!b) return;
     state.grade = Number(b.dataset.grade); store.set("rw-grade", state.grade); renderStart();
   });
-  $("ranges").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-range]"); if (!b) return;
-    state.ranges[state.grade] = Number(b.dataset.range); store.set("rw-ranges", state.ranges); renderStart();
+  $("rangeInput").addEventListener("input", () => { readRange(); $("startMsg").hidden = true; renderStart(); });
+  $("rangeInput").addEventListener("change", () => { if (state.N) $("rangeInput").value = fmt(state.N); });
+  $("rangeInput").addEventListener("keydown", (e) => { if (e.key === "Enter") $("rangeInput").blur(); });
+  $("malChoice").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-mal]"); if (!b) return;
+    state.mal = b.dataset.mal === "1"; $("startMsg").hidden = true; renderStart();
   });
+  $("balloonBtn").addEventListener("click", startBalloons);
+  $("bjAgain").addEventListener("click", startBalloons);
+  $("bjBack").addEventListener("click", () => { stopBalloons(); renderStart(); show("startView"); });
+  $("bjMenu").addEventListener("click", () => { renderStart(); show("startView"); });
+  $("tricksBtn").addEventListener("click", () => openTricks(""));
+  $("tricksBack").addEventListener("click", () => { show(tricksFrom); });
+  $("trickNav").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-jump]"); if (b) $(`trick-${b.dataset.jump}`).scrollIntoView({ block: "start", behavior: "smooth" });
+  });
+  $("help").addEventListener("click", (e) => { const b = e.target.closest("[data-tricks]"); if (b) openTricks(b.dataset.tricks); });
   $("topics").addEventListener("click", (e) => {
     const b = e.target.closest("[data-topic]"); if (!b) return;
     state.topic = b.dataset.topic; renderStart();
@@ -1098,6 +1485,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
     }
   });
 
+  renderTricks();
   renderStart();
   show("startView");
 })();
