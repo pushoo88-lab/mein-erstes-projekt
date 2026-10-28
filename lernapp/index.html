@@ -636,6 +636,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   const $ = (id) => document.getElementById(id);
   const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  // Wie pick, aber nie zweimal hintereinander derselbe Satz (für Summis Lob)
+  const lastPicked = new Map();
+  const pickFresh = (arr) => {
+    let v;
+    do v = pick(arr); while (arr.length > 1 && v === lastPicked.get(arr));
+    lastPicked.set(arr, v);
+    return v;
+  };
   const fmt = (n) => n.toLocaleString("de-DE");
   const rangeLabel = (n) => (n === 1000000 ? "1 Mio." : fmt(n));
 
@@ -1086,24 +1094,41 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   let interacted = false;
   document.addEventListener("pointerdown", () => { interacted = true; }, { once: true, capture: true });
   document.addEventListener("keydown", () => { interacted = true; }, { once: true, capture: true });
-  function autoRead(text) { if (state.sound && interacted) speak(text); }
+  function autoRead(text, queue = false) { if (state.sound && interacted) speak(text, queue); }
 
   function stopSpeaking() {
     if (nativeTTS) nativeTTS.stop().catch(() => {});
     else if (window.speechSynthesis) speechSynthesis.cancel();
   }
-  function speak(text) {
+  // Summis Stimme: etwas höher und lebendig, damit sie fröhlich und motivierend klingt
+  const VOICE = { rate: 0.95, pitch: 1.25 };
+  let nativeChain = Promise.resolve(), deVoice = null;
+
+  // Im Browser möglichst eine weibliche deutsche Stimme nehmen
+  function germanVoice() {
+    if (deVoice) return deVoice;
+    const voices = speechSynthesis.getVoices().filter((v) => /^de/i.test(v.lang));
+    deVoice = voices.find((v) => /anna|petra|katja|vicki|marlene|helena|hedda|female|weiblich/i.test(v.name))
+      || voices.find((v) => /google/i.test(v.name)) || voices[0] || null;
+    return deVoice;
+  }
+
+  // queue = true: erst ausreden lassen (z. B. Lob), dann den neuen Text sprechen
+  function speak(text, queue = false) {
     if (!canSpeak || !text) return;
     if (nativeTTS) {   // Sprachausgabe von Android
-      nativeTTS.stop().catch(() => {}).finally(() =>
-        nativeTTS.speak({ text, lang: "de-DE", rate: 0.9 }).catch(() => {}));
+      const go = () => nativeTTS.speak({ text, lang: "de-DE", rate: VOICE.rate, pitch: VOICE.pitch }).catch(() => {});
+      nativeChain = queue ? nativeChain.then(go) : nativeTTS.stop().catch(() => {}).then(go);
       return;
     }
     try {
-      speechSynthesis.cancel();
+      if (!queue) speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "de-DE";
-      u.rate = 0.9;
+      u.rate = VOICE.rate;
+      u.pitch = VOICE.pitch;
+      const v = germanVoice();
+      if (v) u.voice = v;
       speechSynthesis.speak(u);
     } catch { /* Vorlesen nicht möglich */ }
   }
@@ -1218,6 +1243,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     }
     setupDone = true;
     goHome("Super! Jetzt kann es losgehen. Möchtest du spielen oder Blumen sammeln?");
+    autoRead($("homeSay").textContent);
   }
 
   // ---------- Startseite ----------
@@ -1318,7 +1344,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // Textaufgaben liest Summi gleich vor, damit langsames Lesen nicht bremst
   function announceTask() {
     const t = state.round.tasks[state.round.i];
-    if (t.kind === "text") autoRead(spokenTask(t));
+    if (t.kind === "text") autoRead(spokenTask(t), true);
   }
 
   function resetTaskUi() {
@@ -1340,7 +1366,15 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderTask();
   }
 
-  const PRAISE = ["Super!", "Richtig!", "Klasse!", "Toll gemacht!", "Spitze!", "Genau!", "Prima!", "Stark gerechnet!"];
+  const PRAISE = ["Super!", "Richtig! Toll gemacht!", "Klasse, das stimmt!", "Wow, du bist ein Rechenprofi!", "Spitze! Weiter so!",
+    "Ja, genau richtig!", "Prima gerechnet!", "Du wirst immer besser!", "Stark! Das hast du super gemacht!"];
+  const TRY_AGAIN = ["Fast! Versuch es nochmal, du schaffst das!", "Nicht schlimm! Schau nochmal genau hin.",
+    "Hmm, noch nicht ganz. Probier es nochmal!", "Kein Problem! Denk nochmal in Ruhe nach."];
+  const HIT_WORDS = ["Treffer!", "Super!", "Klasse!", "Toll!", "Jawohl!", "Spitze!"];
+  const SECOND_TRY = ["Richtig! Super, dass du nicht aufgegeben hast!", "Jetzt stimmt es! Gut nachgedacht!"];
+
+  // Rückmeldung zeigen und von Summi sprechen lassen
+  function cheer(text, cls) { say(text, cls); autoRead(text); }
 
   function check() {
     const r = state.round, t = r.tasks[r.i];
@@ -1352,10 +1386,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       const party = r.streak >= 3 && r.streak % 3 === 0;   // bei 3, 6 und 9 richtig hintereinander
       if (party) {
         beep(SOUND_STREAK);
-        say(`${r.streak} richtig hintereinander! Super-Serie!`, "ok");
+        cheer(`${r.streak} richtig hintereinander! Super-Serie! Du bist großartig!`, "ok");
       } else {
         beep(SOUND_RIGHT);
-        say(r.tries === 0 ? pick(PRAISE) : "Richtig! Gut, dass du nochmal nachgedacht hast.", "ok");
+        cheer(r.tries === 0 ? pickFresh(PRAISE) : pickFresh(SECOND_TRY), "ok");
       }
       renderTask("right");
       renderMeadow(r.i);
@@ -1371,7 +1405,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     beep(SOUND_WRONG);
     if (r.tries === 1) {
       renderTask("wrong");
-      say("Fast! Schau nochmal genau hin.", "oops");
+      cheer(pickFresh(TRY_AGAIN), "oops");
       r.input = "";
       setTimeout(() => { if (!r.locked && r.tasks[r.i] === t) renderTask(); }, 400);
       return;
@@ -1381,7 +1415,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     r.input = String(t.answer);
     renderTask("right");
     renderMeadow(r.i);
-    say(`Die Lösung ist ${fmt(t.answer)}. Beim nächsten Mal klappt's!`, "oops");
+    cheer(`Die Lösung ist ${fmt(t.answer)}. Fehler sind zum Lernen da. Beim nächsten Mal klappt's!`, "oops");
     showHelp(true);
     setPadEnabled(false);
     $("helpBtn").hidden = true;
@@ -1691,7 +1725,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const t = generate(bj.cfg, pick(bj.sel), bj.sel);
     drawTask($("bjTask"), t, '<span class="slot">?</span>');
     fitSky();   // nach dem Anzeigen der Aufgabe, denn deren Höhe ändert sich
-    if (t.kind === "text") autoRead(spokenTask(t));
+    if (t.kind === "text") autoRead(spokenTask(t), true);
     const sky = $("bjSky");
     sky.querySelectorAll(".balloon, .level-up").forEach((n) => n.remove());
     const W = sky.clientWidth, H = sky.clientHeight, lane = W / 4, size = Math.min(lane - 8, 96);
@@ -1766,11 +1800,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       fx.pop(b.el, 1);
       if (bj.hits % 5 === 0) {
         beep(SOUND_STREAK);
-        sayBj(`${bj.hits} Treffer! Jetzt wird es schneller!`, "ok");
+        sayBj(`${bj.hits} Treffer! Du bist super! Jetzt wird es schneller!`, "ok");
+        autoRead(`${bj.hits} Treffer! Du bist super!`);
         $("bjSky").insertAdjacentHTML("beforeend", `<div class="level-up">Stufe ${bj.hits / 5 + 1}!</div>`);
       } else {
         beep(SOUND_RIGHT);
-        sayBj(`${pick(PRAISE)} +${10 + bonus} Punkte`, "ok");
+        const hitWord = pickFresh(HIT_WORDS);
+        sayBj(`${hitWord} +${10 + bonus} Punkte`, "ok");
+        autoRead(hitWord);
       }
       renderBjBar();
       later(nextWave, bj.hits % 5 === 0 ? 1200 : 650);
@@ -1783,6 +1820,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderBjBar();
     if (bj.lives <= 0) { w.done = true; return gameOver(`Die Lösung war ${fmt(w.t.answer)}.`); }
     sayBj(`${fmt(b.v)} stimmt nicht. Versuch einen anderen Ballon!`, "oops");
+    autoRead("Oh, das war nicht der richtige. Versuch einen anderen!");
   }
 
   function missWave(text) {
@@ -1793,6 +1831,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderBjBar();
     if (bj.lives <= 0) return gameOver(text);
     sayBj(text, "oops");
+    autoRead(`${text} Weiter geht's!`);
     later(nextWave, 1500);
   }
 
@@ -1814,6 +1853,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       (bj.target || (record && bj.score > 0) ? "" : ` Dein Rekord: ${fmt(Math.max(best, bj.score))} Punkte.`) +
       (flowers ? ` ${flowers} ${flowers === 1 ? "Blume wächst" : "Blumen wachsen"} in deinem Garten.` : "") +
       (state.level ? " " + completeLevel(bj.lives, won) : "");
+    autoRead(won ? "Juhu, Level geschafft! Du bist toll!"
+      : record && bj.score > 0 ? "Neuer Rekord! Wahnsinn, wie gut du rechnest!"
+      : "Gut gespielt! Beim nächsten Mal schaffst du noch mehr!");
     if (won || (record && bj.score > 0)) { beep(SOUND_PERFECT); fx.show(5); } else beep(SOUND_DONE);
     $("bjAgain").focus();
   }
@@ -2005,6 +2047,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     store.set("rw-owned", state.owned);
     store.set("rw-spent", state.spent);
     renderGarden(`Juhu! ${it.art} ${it.name} ist jetzt in deinem Garten.`);
+    autoRead($("gardenSay").textContent);
     beep(SOUND_PERFECT);
     fx.pop($("scene"), 3);
     beeMood("gardenBee", "happy");
@@ -2087,7 +2130,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       mem.found++;
       beep(SOUND_RIGHT);
       fx.pop(el, 1);
-      $("memSay").textContent = `${pick(PRAISE)} ${a.ans ? b.text : a.text} = ${a.ans ? a.text : b.text}`;
+      $("memSay").textContent = `${pickFresh(PRAISE)} ${a.ans ? b.text : a.text} = ${a.ans ? a.text : b.text}`;
+      if (mem.found < mem.cards.length / 2) autoRead(pick(["Super, ein Paar!", "Toll, das passt!", "Klasse gefunden!"]));
       beeMood("memBee", "happy");
       if (mem.found === mem.cards.length / 2) setTimeout(memoryWon, 700);
       return;
@@ -2120,6 +2164,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       (record ? "So wenige Züge hattest du noch nie!" : `Dein Rekord: ${best} Züge.`) + " 3 Blumen wachsen in deinem Garten." +
       (state.level ? " " + completeLevel(mem.moves <= 8 ? 3 : mem.moves <= 12 ? 2 : 1, true) : "");
     $("memSay").textContent = "Super gemacht!";
+    autoRead(record ? "Neuer Rekord! Du hast ein tolles Gedächtnis!" : "Geschafft! Alle Paare gefunden. Super gemacht!");
     beeMood("memBee", "happy");
     if (record || mem.moves <= 9) { beep(SOUND_PERFECT); fx.show(4); } else beep(SOUND_DONE);
     $("memAgain").focus();
@@ -2146,6 +2191,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     store.set("rw-garden", state.garden);
 
     $("resultTitle").textContent = perfect ? "Perfekt! Alles richtig!" : stars === 3 ? "Fantastisch!" : stars === 2 ? "Gut gemacht!" : "Weiter so!";
+    const levelMsg = state.level ? (first + second >= (LEVELS[state.level.i].boss ? 8 : 7) ? " Und das Level hast du geschafft!" : " Probier das Level gleich nochmal, du schaffst das!") : "";
+    const resultVoice = (perfect ? "Perfekt! Alles richtig! Du bist ein echter Rechenprofi!"
+      : stars === 3 ? "Fantastisch! Du hast super gerechnet!"
+      : stars === 2 ? "Gut gemacht! Du wirst immer besser!"
+      : "Weiter so! Mit jeder Runde lernst du dazu!") + levelMsg;
     $("bigStars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= stars ? "on grow" : "off"}">${STAR}</span>`).join("");
     $("bigStars").setAttribute("aria-label", `${stars} von 3 Sternen`);
     $("resultText").textContent = first === 10
@@ -2161,6 +2211,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderHeader();
     show("resultView");
     // Besondere Leistung, besondere Belohnung
+    autoRead(resultVoice);
     if (perfect) { beep(SOUND_PERFECT); fx.show(7); }
     else if (stars === 3) { beep(SOUND_DONE); fx.show(4); }
     else if (stars === 2) { beep(SOUND_DONE); fx.pop($("bigStars"), 2); }

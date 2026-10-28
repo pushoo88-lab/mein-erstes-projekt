@@ -31,6 +31,9 @@ spielerisch rechnen. Einfach `lernapp/index.html` im Browser öffnen, es wird ni
 **Summi, die Rechenbiene,** begleitet das Kind durch die App. Sie spricht in Sprechblasen,
 freut sich über richtige Antworten und überlegt mit, wenn etwas nicht klappt. Alle Texte,
 Aufgaben und Tipps lassen sich **vorlesen** – wichtig für Kinder, die noch nicht flüssig lesen.
+Ist der Ton an, spricht Summi mit einer fröhlichen Stimme: Sie liest ihre Fragen und die
+Textaufgaben von selbst vor, lobt richtige Antworten, macht bei Fehlern Mut
+(„Nicht schlimm! Versuch es nochmal, du schaffst das!“) und jubelt bei Serien, Rekorden und Leveln.
 
 **1. Summi fragt nach – eine Frage pro Bildschirm**
 
