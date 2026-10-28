@@ -275,6 +275,20 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .shop-item small { color: var(--ink-soft); font-size: 13px; }
 .have { color: var(--ok); font-weight: 700; }
 
+/* Für Eltern */
+.skill-list { display: grid; gap: 10px; }
+.skill { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
+.skill b { font-weight: 700; }
+.skill .tag { font-size: 13px; font-weight: 700; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+.skill .tag.good { background: color-mix(in srgb, var(--ok) 18%, var(--paper)); color: var(--ok); }
+.skill .tag.mid { background: color-mix(in srgb, var(--sun) 22%, var(--paper)); color: var(--sun-ink); }
+.skill .tag.low { background: color-mix(in srgb, var(--oops) 15%, var(--paper)); color: var(--oops); }
+.skill .meter { grid-column: 1 / -1; height: 10px; border-radius: 5px; background: var(--key); overflow: hidden; }
+.skill .meter i { display: block; height: 100%; border-radius: 5px; background: var(--grass); }
+.skill small { grid-column: 1 / -1; color: var(--ink-soft); font-size: 13px; }
+.parent-tips ul { margin: 8px 0 0; padding-left: 1.2em; display: grid; gap: 8px; }
+.parent-tips li { line-height: 1.4; }
+
 /* Zahlen-Memory */
 .memory { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 @media (min-width: 520px) { .memory { grid-template-columns: repeat(4, 1fr); } }
@@ -381,6 +395,22 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 .streak { background: var(--sun); color: var(--sun-ink); border-radius: 999px; padding: 2px 10px; font-weight: 700; font-size: 15px; white-space: nowrap; }
 .streak.pop { animation: grow .5s cubic-bezier(.3,1.6,.5,1); }
 #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+.task.is-wall { font-size: clamp(22px, 6.5vw, 34px); }
+.wall { display: grid; justify-items: center; gap: 4px; }
+.wall.big { font-size: 17px; }
+.wall-row { display: flex; gap: 4px; }
+.brick {
+  min-width: 3em; padding: 6px 6px; text-align: center; border-radius: 6px; font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, var(--petal-3) 22%, var(--paper)); border: 2px solid color-mix(in srgb, var(--petal-3) 60%, var(--line));
+}
+.brick .slot { min-width: 1.6em; border-width: 3px; padding: 0 .1em; }
+.numline { display: block; width: min(100%, 340px); height: auto; }
+.clock { display: block; width: 170px; height: 170px; }
+.money { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: center; max-width: 320px; }
+.money svg { height: 58px; width: auto; }
+.bj-task .clock { width: 92px; height: 92px; }
+.bj-task .numline { width: min(100%, 280px); }
+.bj-task .money svg { height: 42px; }
 .say { min-height: 1.5em; margin: 14px 0 0; font-weight: 700; font-size: 20px; }
 .say.ok { color: var(--ok); }
 .say.oops { color: var(--oops); }
@@ -528,6 +558,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       <button class="mode garden-tile wide" id="gardenBtn" type="button"><span class="tag">Belohnung</span><span id="iconGarden"></span><b>Mein Garten</b><small id="gardenInfo"></small></button>
     </div>
     <button class="settings-chip" id="settingsChip" type="button"><span id="settingsText"></span><b>Ändern</b></button>
+    <button class="settings-chip" id="parentBtn" type="button"><span>Für Eltern: Lernstand und Tipps</span><b>Ansehen</b></button>
   </main>
 
   <!-- Abenteuer-Pfad -->
@@ -558,6 +589,34 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     <div class="scene" id="scene" aria-label="Dein Garten"></div>
     <p class="label" style="margin:6px 0 0">Gartenladen: Bezahle mit deinen Blumen</p>
     <div class="shop" id="shop"></div>
+  </main>
+
+  <!-- Für Eltern -->
+  <main id="parentView" hidden style="display:grid; gap:14px;">
+    <div class="bar">
+      <button class="back" id="parentBack" type="button">← Zurück</button>
+      <span class="where">Für Eltern</span>
+    </div>
+    <section class="sheet" style="display:grid; gap:8px;">
+      <h2>Lernstand</h2>
+      <p class="muted">Die App passt die Schwierigkeit in jedem Thema von selbst an. Ziel ist, dass etwa 8 bis 9 von 10 Aufgaben gelingen: Dann ist es fordernd, aber nicht frustrierend. Aufgaben, die nicht geklappt haben, kommen später und an den nächsten Tagen wieder.</p>
+    </section>
+    <div class="today" id="parentStats"></div>
+    <section class="sheet" style="display:grid; gap:10px;">
+      <h2 style="font-size:21px">Themen</h2>
+      <div class="skill-list" id="skillList"></div>
+    </section>
+    <section class="sheet parent-tips">
+      <h2 style="font-size:21px">So helfen Sie beim Lernen</h2>
+      <ul>
+        <li><b>Den Lernweg loben, nicht die Begabung.</b> „Du hast nicht aufgegeben“ wirkt besser als „Du bist so schlau“. Kinder, die für ihre Anstrengung gelobt werden, trauen sich eher an schwere Aufgaben.</li>
+        <li><b>Kurz und regelmäßig.</b> Lieber jeden Tag 10 Minuten als einmal in der Woche eine Stunde. Das Tagesziel (3 Spiele) ist bewusst klein.</li>
+        <li><b>Fehler sind willkommen.</b> Sagen Sie „noch nicht“ statt „falsch“. Fehler zeigen, was als Nächstes geübt wird.</li>
+        <li><b>Kein Zeitdruck.</b> Druck kann schon in Klasse 1 und 2 Angst vor Mathe auslösen. Die App misst darum keine Zeit, und in der Ballonjagd kostet Nachdenken nie ein Leben.</li>
+        <li><b>Nicht abzählen lassen.</b> In Klasse 2 sollen Kinder vom Abzählen wegkommen: mit der Kraft der Fünf, Verdoppeln und Kernaufgaben wie 2 mal, 5 mal und 10 mal. Die Tipps in der App zeigen genau diese Rechenwege.</li>
+        <li><b>Gemeinsam spielen.</b> Fragen Sie ab und zu: „Wie hast du das gerechnet?“ Erklären festigt das Wissen.</li>
+      </ul>
+    </section>
   </main>
 
   <!-- Zahlen-Memory -->
@@ -709,9 +768,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     minus:   { name: "Minus",           sym: "−" },
     mal:     { name: "Mal",             sym: "·" },
     geteilt: { name: "Geteilt",         sym: ":" },
+    verdoppeln: { name: "Verdoppeln & Halbieren", sym: "2×", small: true },
     stellen: { name: "Zehner & Einer",  sym: "ZE", small: true },
+    nachbar: { name: "Nachbar\u00ADzahlen", sym: "±1", small: true },
+    mauer:   { name: "Zahlen\u00ADmauer",  sym: "▦" },
     text:    { name: "Text\u00ADaufgaben",    sym: "Abc", small: true },
     luecke:  { name: "Lücken\u00ADaufgaben",  sym: "□" },
+    geld:    { name: "Geld",            sym: "€" },
+    uhr:     { name: "Uhr\u00ADzeit",     sym: "Uhr", small: true },
     all:     { name: "Alles mischen",   sym: "★" },
   };
 
@@ -726,7 +790,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // cfg = { N: größte Zahl, mal: Mal und Geteilt schon gelernt? }
   const opsFor = (cfg) => (cfg.mal ? ["plus", "minus", "mal", "geteilt"] : ["plus", "minus"]);
-  const topicsFor = (cfg) => [...opsFor(cfg), ...(cfg.N >= 20 ? ["stellen"] : []), "text", "luecke"];
+  // Themen nach den Lehrplänen der Grundschule (Zahl und Operation, Muster, Größen)
+  const topicsFor = (cfg) => [...opsFor(cfg), "verdoppeln", ...(cfg.N >= 20 ? ["stellen"] : []), "nachbar", "mauer", "text", "luecke", "geld", "uhr"];
   // Name einer Auswahl, z. B. "Plus" oder "Mix: Plus, Minus, Mal"
   const selectionName = (sel, N) => (sel.length === 1 ? topicName(sel[0], N)
     : sel.length === 2 ? sel.map((t) => topicName(t, N)).join(" + ") : "Bunt gemischt");
@@ -773,8 +838,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
 
   // Mal: das größere Ergebnis bleibt im Zahlenraum. b ist der kleine Faktor.
-  function malTask(N) {
-    const tiers = [() => [R(1, 10), R(1, 10)]];
+  // cfg.kern: erst die Kernaufgaben (mal 1, 2, 5, 10), aus denen Kinder die anderen ableiten
+  function malTask(N, cfg = {}) {
+    const tiers = [cfg.kern ? () => [R(1, 10), pick([1, 2, 5, 10, 2, 5, 10])] : () => [R(1, 10), R(1, 10)]];
     if (N >= 500) tiers.push(() => [R(2, 9) * 10, R(2, 9)], () => [R(11, 99), R(2, 9)]);
     if (N >= 10000) tiers.push(() => [R(101, 999), R(2, 9)], () => [R(2, 99), pick([10, 100])], () => [R(2, 9) * 100, R(2, 9)]);
     if (N >= 100000) tiers.push(() => [R(1001, 9999), R(2, 9)], () => [R(2, 99) * 100, pick([10, 100])], () => [R(2, 9) * 1000, R(2, 9)]);
@@ -788,8 +854,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
 
   // Geteilt ist die Umkehrung einer Malaufgabe: c : b = a
-  function geteiltTask(N) {
-    const t = malTask(N);
+  function geteiltTask(N, cfg = {}) {
+    const t = malTask(N, cfg);
     if (t.b === 1 && t.a > 1) return mk(t.c, ":", t.a, t.b);
     return mk(t.c, ":", t.b, t.a);
   }
@@ -920,7 +986,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const N = cfg.N;
     for (;;) {
       const op = pick(ops);
-      const t = (op === "minus" ? plusTask : op === "geteilt" ? malTask : MAKERS[op])(N);
+      const t = (op === "minus" ? plusTask : op === "geteilt" ? malTask : MAKERS[op])(N, cfg);
       const s = { N, small: N <= 100, name: pick(NAMES), item: pick(N <= 100 ? ITEMS : BIG_ITEMS) };
       const made = pick(STORIES[op])(t, s);
       if (!made || made.answer < 1 || made.answer > N) continue;
@@ -929,16 +995,233 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     }
   }
 
+  // ---------- Neue Themen aus dem Lehrplan ----------
+  // Runde Zahlen in großen Zahlenräumen, damit man sie im Kopf rechnen kann
+  const roundFor = (x, N) => { const st = N <= 100 ? 1 : pick(N <= 1000 ? [1, 10] : [10, 100, 1000].filter((v) => v * 10 <= N)); return Math.max(st, Math.round(x / st) * st); };
+
+  // Verdoppeln und Halbieren
+  function doubleTask(N) {
+    const max = Math.floor(N / 2);
+    if (Math.random() < 0.5) {
+      const x = Math.min(max, roundFor(R(1, max), N));
+      const tens = x >= 10 ? x - (x % 10 ** (String(x).length - 1)) : 0, rest = x - tens;
+      return { kind: "text", key: "d" + x, text: `Verdopple ${fmt(x)}.`, answer: 2 * x,
+        tip: tens && rest ? `Verdopple die Teile einzeln: ${fmt(tens)} + ${fmt(tens)} und ${fmt(rest)} + ${fmt(rest)}.` : `Das Doppelte heißt: ${fmt(x)} + ${fmt(x)}.` };
+    }
+    const y = 2 * Math.min(max, roundFor(R(1, max), N));
+    const p = 10 ** (String(y).length - 1), a = Math.floor(y / (2 * p)) * 2 * p, b = y - a;
+    return { kind: "text", key: "h" + y, text: `Halbiere ${fmt(y)}.`, answer: y / 2,
+      tip: a && b ? `Zerlege ${fmt(y)} in ${fmt(a)} und ${fmt(b)}. Halbiere beide Teile.` : `Welche Zahl plus sich selbst ergibt ${fmt(y)}?` };
+  }
+
+  // Zahlenstrahl: 11 Striche, der lange Strich in der Mitte hilft (Kraft der Fünf)
+  function numberLine(start, step, mark) {
+    const x0 = 16, dx = 28;
+    let marks = "";
+    for (let k = 0; k <= 10; k++) {
+      const x = x0 + k * dx, big = k % 5 === 0;
+      marks += `<line x1="${x}" y1="${big ? 28 : 33}" x2="${x}" y2="${big ? 52 : 47}" stroke="var(--ink)" stroke-width="${big ? 3 : 1.6}"/>`;
+      if (big) marks += `<text x="${x}" y="72" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)" font-family="Andika, sans-serif">${fmt(start + k * step)}</text>`;
+    }
+    const mx = x0 + mark * dx;
+    return `<svg class="numline" viewBox="0 0 312 78" aria-hidden="true"><line x1="4" y1="40" x2="308" y2="40" stroke="var(--ink)" stroke-width="2.5"/>${marks}` +
+      `<path d="M${mx} 24l-8-16h16z" fill="var(--red)"/></svg>`;
+  }
+
+  // Nachbarzahlen, Nachbarzehner und Zahlenstrahl
+  function neighborTask(N) {
+    const v = pick(N >= 20 ? ["nach", "vor", "zehner", "strahl", "strahl"] : ["nach", "vor", "strahl"]);
+    if (v === "strahl") {
+      const steps = (N <= 20 ? [1] : N <= 100 ? [1, 1, 2, 5] : N <= 1000 ? [1, 5, 10, 10] : [10, 100, 1000]).filter((st) => st * 10 <= N);
+      const st = pick(steps), start = st * 10 * R(0, Math.floor(N / (10 * st)) - 1), mark = pick([1, 2, 3, 4, 6, 7, 8, 9]);
+      return { kind: "text", key: `s${start}-${st}-${mark}`, pic: numberLine(start, st, mark), text: "Welche Zahl zeigt der Pfeil?", answer: start + mark * st,
+        tip: `Der lange Strich in der Mitte ist ${fmt(start + 5 * st)}. Von Strich zu Strich sind es immer ${fmt(st)}.` };
+    }
+    if (v === "zehner") {
+      const unit = N > 200 && Math.random() < 0.5 ? 100 : 10, word = unit === 100 ? "Hunderter" : "Zehner";
+      let n; do n = R(unit + 1, N - 1); while (n % unit === 0);
+      const after = Math.random() < 0.5 && Math.ceil(n / unit) * unit <= N, ans = after ? Math.ceil(n / unit) * unit : Math.floor(n / unit) * unit;
+      return { kind: "text", key: `z${n}${after}`, text: `Welcher ${word} kommt ${after ? "nach" : "vor"} ${fmt(n)}?`, answer: ans,
+        tip: `Schau auf die ${word}stelle von ${fmt(n)}. Der ${word} ${after ? "danach ist der nächstgrößere" : "davor ist der nächstkleinere"}.` };
+    }
+    // Vorgänger und Nachfolger, oft an spannenden Stellen wie 39 oder 70
+    let n = R(2, N - 1);
+    if (N >= 20 && Math.random() < 0.4) n = Math.max(2, Math.min(N - 1, R(1, Math.floor(N / 10)) * 10 - (v === "nach" ? 1 : 0)));
+    return { kind: "text", key: `n${n}${v}`, text: `Welche Zahl kommt direkt ${v} ${fmt(n)}?`, answer: v === "nach" ? n + 1 : n - 1,
+      tip: v === "nach" ? "Die Zahl danach ist immer genau 1 mehr." : "Die Zahl davor ist immer genau 1 weniger." };
+  }
+
+  // Zahlenmauer: zwei Steine nebeneinander ergeben zusammen den Stein darüber
+  function wallTask(N) {
+    let rows;
+    if (N < 20) {
+      const a = R(1, N - 1), b = R(1, N - a);
+      rows = [[a + b], [a, b]];
+    } else {
+      const st = N <= 100 ? 1 : N <= 1000 ? 10 : N <= 10000 ? 100 : 1000, lim = Math.max(1, Math.floor(N / 4 / st));
+      const [a, b, c] = [R(1, lim) * st, R(1, lim) * st, R(1, lim) * st];
+      rows = [[a + 2 * b + c], [a + b, b + c], [a, b, c]];
+    }
+    const r = pick(rows.length === 2 ? [0, 0, 1] : [0, 1, 1, 2]), c = R(0, rows[r].length - 1);
+    return { kind: "wall", rows, miss: [r, c], answer: rows[r][c], key: `w${rows.flat().join(",")}-${r}${c}`,
+      tip: r < rows.length - 1 ? "Rechne die beiden Steine direkt darunter zusammen." : "Rechne rückwärts: der Stein darüber minus der Nachbarstein." };
+  }
+
+  // Geld: Münzen und Scheine
+  function coinSVG(v) {
+    if (v >= 500) {
+      const col = { 500: "#9aa59a", 1000: "#d98a7d", 2000: "#7f9de0", 5000: "#e6a85a" }[v];
+      return `<svg viewBox="0 0 84 46" aria-hidden="true"><rect x="2" y="2" width="80" height="42" rx="5" fill="${col}" stroke="#3b2f14" stroke-opacity=".35" stroke-width="2"/>` +
+        `<text x="42" y="31" text-anchor="middle" font-size="19" font-weight="800" fill="#2b2410" font-family="Baloo 2, sans-serif">${v / 100} €</text></svg>`;
+    }
+    const r = { 1: 15, 2: 17, 5: 19, 10: 18, 20: 20, 50: 22, 100: 21, 200: 23 }[v];
+    const copper = "#c8763a", gold = "#dcb33f", silver = "#c9ccd1";
+    const ring = v >= 100 ? (v === 100 ? gold : silver) : null, face = v < 10 ? copper : v < 100 ? gold : v === 100 ? silver : gold;
+    const label = v >= 100 ? `${v / 100}€` : `${v}`;
+    return `<svg viewBox="0 0 50 50" width="${r * 2 + 4}" aria-hidden="true">${ring ? `<circle cx="25" cy="25" r="${r}" fill="${ring}"/>` : ""}` +
+      `<circle cx="25" cy="25" r="${ring ? r - 5 : r}" fill="${face}" stroke="#3b2f14" stroke-opacity=".3" stroke-width="1.5"/>` +
+      `<text x="25" y="${v >= 100 ? 29 : 28}" text-anchor="middle" font-size="${v >= 100 ? 10 : label.length > 1 ? 12 : 13}" font-weight="800" fill="#2b2410" font-family="Baloo 2, sans-serif">${label}</text>` +
+      (v < 100 ? `<text x="25" y="37" text-anchor="middle" font-size="6.5" font-weight="700" fill="#2b2410" font-family="Andika, sans-serif">CENT</text>` : "") + "</svg>";
+  }
+  const moneyPic = (items) => `<div class="money">${items.map(coinSVG).join("")}</div>`;
+  const GOODS = ["Das Eis", "Der Apfel", "Das Heft", "Der Stift", "Die Brezel", "Der Ball", "Die Banane", "Das Pausenbrot"];
+  const BIG_GOODS = ["Das Spiel", "Das Buch", "Der Rucksack", "Die Puppe", "Das Puzzle", "Der Fußball"];
+
+  function moneyTask(N) {
+    const coinsFor = (limit, units) => {
+      for (;;) {
+        const items = Array.from({ length: R(2, 5) }, () => pick(units)).sort((x, y) => y - x);
+        const sum = items.reduce((x, y) => x + y, 0);
+        if (sum <= limit && new Set(items).size > 1) return { items, sum };
+      }
+    };
+    if (N <= 100 || Math.random() < 0.4) {   // Cent bis 1 Euro, wie in Klasse 2
+      const v = N >= 100 ? pick(["zaehlen", "zaehlen", "ergaenzen", "rueckgeld"]) : "zaehlen";
+      if (v === "zaehlen") {
+        const { items, sum } = coinsFor(Math.min(N, 100), [1, 2, 5, 10, 20, 50]);
+        return { kind: "text", key: "c" + items.join(","), pic: moneyPic(items), text: "Wie viel Cent sind das?", answer: sum, unit: "Cent",
+          tip: "Fang mit der größten Münze an und rechne die anderen dazu." };
+      }
+      const price = R(1, 19) * 5;
+      if (v === "ergaenzen") {
+        return { kind: "text", key: "e" + price, text: `Du hast ${price} Cent. Wie viel fehlt bis 1 Euro?`, answer: 100 - price, unit: "Cent",
+          tip: "1 Euro sind 100 Cent. Ergänze erst bis zum nächsten Zehner, dann bis 100." };
+      }
+      return { kind: "text", key: "r" + price, pic: moneyPic([100]), text: `Du bezahlst mit 1 Euro. ${pick(GOODS)} kostet ${price} Cent. Wie viel Rückgeld bekommst du?`,
+        answer: 100 - price, unit: "Cent", tip: "1 Euro sind 100 Cent. Wie viel fehlt vom Preis bis 100?" };
+    }
+    const limit = Math.min(N, 200);   // Euro
+    if (Math.random() < 0.5) {
+      const { items, sum } = coinsFor(limit * 100, [100, 200, 500, 1000, 2000, 5000].filter((x) => x <= limit * 100));
+      return { kind: "text", key: "E" + items.join(","), pic: moneyPic(items), text: "Wie viel Euro sind das?", answer: sum / 100, unit: "Euro",
+        tip: "Fang mit dem größten Schein an und rechne die anderen dazu." };
+    }
+    const pay = pick([10, 20, 50].filter((x) => x <= limit)), price = R(1, pay - 1);
+    return { kind: "text", key: `R${pay}-${price}`, pic: moneyPic([pay * 100]), text: `Du bezahlst mit ${pay} Euro. ${pick(BIG_GOODS)} kostet ${price} Euro. Wie viel Rückgeld bekommst du?`,
+      answer: pay - price, unit: "Euro", tip: `Wie viel fehlt von ${price} bis ${pay}? Ergänze erst bis zum nächsten Zehner.` };
+  }
+
+  // Uhrzeit: analoge Uhr mit Zeigern
+  function clockSVG(h, m) {
+    let face = "";
+    for (let k = 0; k < 60; k++) {
+      const big = k % 5 === 0, a = k * 6 * Math.PI / 180, r1 = big ? 41 : 44;
+      face += `<line x1="${(50 + Math.sin(a) * r1).toFixed(1)}" y1="${(50 - Math.cos(a) * r1).toFixed(1)}" x2="${(50 + Math.sin(a) * 46).toFixed(1)}" y2="${(50 - Math.cos(a) * 46).toFixed(1)}" stroke="var(--ink)" stroke-width="${big ? 2.2 : 0.8}"/>`;
+    }
+    for (let k = 1; k <= 12; k++) {
+      const a = k * 30 * Math.PI / 180;
+      face += `<text x="${(50 + Math.sin(a) * 31).toFixed(1)}" y="${(50 - Math.cos(a) * 31 + 4).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="var(--ink)" font-family="Baloo 2, sans-serif">${k}</text>`;
+    }
+    const hand = (deg, len, w, col) => { const a = deg * Math.PI / 180; return `<line x1="50" y1="50" x2="${(50 + Math.sin(a) * len).toFixed(1)}" y2="${(50 - Math.cos(a) * len).toFixed(1)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`; };
+    return `<svg class="clock" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="var(--paper)" stroke="var(--ink)" stroke-width="3"/>${face}` +
+      hand(((h % 12) + m / 60) * 30, 22, 5, "var(--red)") + hand(m * 6, 37, 3, "var(--blue)") + `<circle cx="50" cy="50" r="3.5" fill="var(--ink)"/></svg>`;
+  }
+  const EVENTS = ["Der Film", "Das Fußballspiel", "Die Geburtstagsfeier", "Der Ausflug", "Das Theaterstück"];
+
+  function clockTask(grade) {
+    const h = R(1, 12);
+    const v = grade <= 1 ? "stunde" : pick(grade === 2 ? ["stunde", "minuten", "minuten", "spanne"] : ["minuten", "minuten", "spanne", "bus"]);
+    const handTip = "Der kurze rote Zeiger zeigt die Stunde, der lange blaue Zeiger die Minuten.";
+    if (v === "stunde") {
+      return { kind: "text", key: `u${h}`, pic: clockSVG(h, 0), text: "Wie spät ist es?", answer: h, unit: "Uhr", tip: `${handTip} Der lange Zeiger steht auf der 12.` };
+    }
+    if (v === "minuten") {
+      const m = grade === 2 ? pick([15, 30, 45, 5 * R(1, 11)]) : 5 * R(1, 11);
+      return { kind: "text", key: `m${h}-${m}`, pic: clockSVG(h, m), text: `Es ist ${h} Uhr und wie viele Minuten?`, answer: m, unit: "Minuten",
+        tip: `${handTip} Von einer Zahl zur nächsten sind es 5 Minuten.` };
+    }
+    if (v === "spanne") {
+      const start = R(1, 9), dur = R(1, 12 - start > 3 ? 3 : 12 - start);
+      return { kind: "text", key: `p${start}-${dur}`, text: `${pick(EVENTS)} beginnt um ${start} Uhr und dauert ${dur} ${dur === 1 ? "Stunde" : "Stunden"}. Um wie viel Uhr ist es zu Ende?`,
+        answer: start + dur, unit: "Uhr", tip: `Gehe von ${start} Uhr ${dur} ${dur === 1 ? "Stunde" : "Stunden"} weiter.` };
+    }
+    const m = 5 * R(0, 6), d = 5 * R(1, (55 - m) / 5);
+    return { kind: "text", key: `b${h}-${m}-${d}`, pic: clockSVG(h, m), text: `Die Uhr zeigt, wie spät es jetzt ist. In ${d} Minuten fährt der Bus. Um ${h} Uhr und wie viele Minuten fährt er?`,
+      answer: m + d, unit: "Minuten", tip: `Lies erst die Minuten ab und rechne dann ${d} Minuten dazu.` };
+  }
+
+  // ---------- Lernstand: passt die Schwierigkeit an und wiederholt, was schwer war ----------
+  // Ziel nach der Lernforschung: etwa 85 von 100 Aufgaben gelingen. Richtig macht es ein kleines
+  // Stück schwerer, ein Fehler deutlich leichter. So bleibt es fordernd, aber nie frustrierend.
+  const skills = store.get("rw-skill", {});   // { plus: { d: 0.3, hist: [1, 1, 0.5, …], at: Zeitpunkt } }
+  const skill = (topic) => (skills[topic] ||= { d: 0.3, hist: [] });
+  function recordResult(topic, result) {   // 1 = gleich richtig, 0.5 = im zweiten Versuch, 0 = nicht geschafft
+    const sk = skill(topic);
+    sk.d = Math.min(1, Math.max(0, sk.d + (result === 1 ? 0.03 : result === 0.5 ? -0.05 : -0.17)));
+    sk.hist = [...sk.hist, result].slice(-30);
+    sk.at = Date.now();
+    store.set("rw-skill", skills);
+  }
+  // Zahlenraum für ein Thema: am Anfang ein Teil des eingetippten Zahlenraums, mit wachsendem Können mehr
+  function adaptN(topic, N) {
+    if (topic === "uhr") return N;
+    const d = skill(topic).d, min = topic === "stellen" ? 20 : MIN_N, x = N * (0.4 + 0.6 * d);
+    let n = Math.round(x);
+    if (N > 20) { const st = 10 ** Math.max(0, String(n).length - 2); n = Math.round(x / st) * st; }
+    return Math.max(min, Math.min(N, n));
+  }
+
+  // Wiederholung: Aufgaben, die nicht gleich geklappt haben, kommen später wieder (auch an anderen Tagen)
+  const review = store.get("rw-review", []);   // [{ t, due, box }]
+  const taskKey = (t) => t.key || `${t.a}${t.op}${t.b}${t.blank}`;
+  function rememberMistake(t) {
+    const { review: _r, again: _a, ...clean } = t;
+    const old = review.find((x) => taskKey(x.t) === taskKey(t));
+    if (old) { old.box = 0; old.due = Date.now() + 10 * 60e3; }
+    else review.push({ t: clean, due: Date.now() + 10 * 60e3, box: 0 });
+    while (review.length > 40) review.shift();
+    store.set("rw-review", review);
+  }
+  function reviewAnswered(t, firstTry) {
+    const k = review.findIndex((x) => taskKey(x.t) === taskKey(t));
+    if (k < 0) return;
+    if (!firstTry) { review[k].box = 0; review[k].due = Date.now() + 12 * 36e5; }
+    else if (++review[k].box >= 2) review.splice(k, 1);        // zweimal sicher gewusst: gelernt
+    else review[k].due = Date.now() + 24 * 36e5;              // morgen nochmal
+    store.set("rw-review", review);
+  }
+  function dueReviews(sel, N, max = 2) {
+    const len = Math.max(String(N).length, 2);
+    return shuffle(review.filter((x) => x.due <= Date.now() && sel.includes(x.t.topic) && String(x.t.answer).length <= len))
+      .slice(0, max).map((x) => ({ ...x.t, review: true }));
+  }
+
   // sel = alle gewählten Themen. Sind Rechenarten dabei, nutzen Text- und Lückenaufgaben nur diese.
   function generate(cfg, topic, sel = [topic]) {
+    if (cfg.adapt) cfg = { ...cfg, N: adaptN(topic, cfg.N), kern: skill(topic).d < 0.5, adapt: false };
     const N = cfg.N;
     const chosenOps = sel.filter((t) => opsFor(cfg).includes(t));
     const basic = chosenOps.length ? chosenOps : opsFor(cfg);
     if (topic === "stellen") return { ...placeTask(N), topic };
     if (topic === "text") return textTask(cfg, basic);
-    if (topic !== "luecke") return { ...MAKERS[topic](N), topic };
+    if (topic === "verdoppeln") return { ...doubleTask(N), topic };
+    if (topic === "nachbar") return { ...neighborTask(N), topic };
+    if (topic === "mauer") return { ...wallTask(N), topic };
+    if (topic === "geld") return { ...moneyTask(N), topic };
+    if (topic === "uhr") return { ...clockTask(cfg.grade || 2), topic };
+    if (topic !== "luecke") return { ...MAKERS[topic](N, cfg), topic };
     // Lückenaufgabe: eine bekannte Aufgabe nehmen und eine Zahl verstecken
-    const t = MAKERS[pick(basic)](N);
+    const t = MAKERS[pick(basic)](N, cfg);
     t.topic = "luecke";
     t.blank = pick(["a", "b"]);
     t.answer = t[t.blank];
@@ -947,7 +1230,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   function makeRound(cfg, sel) {
     const seen = new Set();
-    const list = [];
+    // Bis zu 2 fällige Wiederholungen von früher kommen mit in die Runde
+    const list = cfg.adapt ? dueReviews(sel, cfg.N) : [];
+    list.forEach((t) => seen.add(taskKey(t)));
     let guard = 0;
     while (list.length < 10 && guard++ < 500) {
       const t = generate(cfg, pick(sel), sel);
@@ -956,7 +1241,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       seen.add(key);
       list.push(t);
     }
-    return list;
+    return shuffle(list);
   }
 
   // ---------- Zustand ----------
@@ -981,7 +1266,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     round: null,
   };
   // Im Abenteuer-Pfad gibt das Level den Zahlenraum vor (frühe Level mit kleineren Zahlen)
-  const config = () => ({ N: state.level ? state.level.N : state.N, mal: state.mal === true });
+  const config = () => ({ N: state.level ? state.level.N : state.N, mal: state.mal === true, grade: state.grade || 2, adapt: !state.level });
 
   // ---------- Ton ----------
   let audio;
@@ -1069,7 +1354,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   })();
 
   // ---------- Ansichten ----------
-  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView", "pathView", "gardenView"];
+  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView", "pathView", "gardenView", "parentView"];
   function show(view) {
     for (const id of VIEWS) $(id).hidden = id !== view;
     fx.stop();
@@ -1166,6 +1451,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function spokenTask(t) {
     const word = { "+": "plus", "−": "minus", "·": "mal", ":": "geteilt durch", "=": "gleich" };
     if (t.kind === "text") return t.text;
+    if (t.kind === "wall") return "Zahlenmauer. Zwei Steine nebeneinander ergeben zusammen den Stein darüber. Welche Zahl fehlt?";
     if (t.kind === "parts") {
       return t.parts.map((p) => (p === "§" ? "wie viel" : word[p] || p.replace(/ Z$/, " Zehner").replace(/ E$/, " Einer"))).join(" ");
     }
@@ -1287,6 +1573,27 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     autoRead($("homeSay").textContent);
   }
 
+  // ---------- Für Eltern: Lernstand ----------
+  function openParent() {
+    const k = streakDays(), due = review.filter((x) => x.due <= Date.now()).length;
+    $("parentStats").innerHTML =
+      `<div><b>${fmt(state.solved)}</b><small>Aufgaben gelöst</small></div>` +
+      `<div><b>${k}</b><small>${k === 1 ? "Tag" : "Tage"} in Folge</small></div>` +
+      `<div><b>${review.length}</b><small>zum Wiederholen${due ? `, ${due} fällig` : ""}</small></div>`;
+    const practiced = Object.keys(TOPICS).filter((t) => skills[t] && skills[t].hist.length);
+    $("skillList").innerHTML = practiced.length ? practiced.map((t) => {
+      const sk = skills[t], last = sk.hist.slice(-20);
+      const rate = Math.round(100 * last.filter((x) => x === 1).length / last.length);
+      const [cls, word] = last.length < 5 ? ["mid", "gerade begonnen"] : rate >= 85 ? ["good", "sitzt gut"] : rate >= 65 ? ["mid", "wird sicherer"] : ["low", "braucht Übung"];
+      const level = 1 + Math.round(sk.d * 4);
+      const when = sk.at ? new Date(sk.at).toLocaleDateString("de-DE", { day: "numeric", month: "long" }) : "";
+      return `<div class="skill"><b>${topicName(t, state.N || 100)}</b><span class="tag ${cls}">${word}</span>` +
+        `<span class="meter" aria-hidden="true"><i style="width:${rate}%"></i></span>` +
+        `<small>${rate} % der letzten ${last.length} Aufgaben gleich richtig · Schwierigkeit ${level} von 5 · zuletzt geübt am ${when}</small></div>`;
+    }).join("") : `<p class="muted">Noch keine Aufgaben gelöst. Sobald Ihr Kind übt, sehen Sie hier, welche Themen schon sicher sind und wo es noch Übung braucht.</p>`;
+    show("parentView");
+  }
+
   // ---------- Startseite ----------
   const HOME_SAY = ["Was möchtest du jetzt machen?", "Lust auf ein Spiel?", "Wollen wir zusammen rechnen?", "Toll, dass du da bist! Was spielen wir?"];
   function homeGreeting() {
@@ -1354,6 +1661,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // Zeichnet eine Aufgabe in ein Element; slot ist das Antwortfeld
   function drawTask(el, t, slot) {
     el.classList.toggle("is-text", t.kind === "text");
+    el.classList.toggle("is-wall", t.kind === "wall");
+    if (t.kind === "wall") {
+      const big = Math.max(...t.rows.flat()) >= 100000;
+      el.innerHTML = `<div class="wall${big ? " big" : ""}">${t.rows.map((row, r) => `<div class="wall-row">${row.map((v, c) =>
+        `<span class="brick">${r === t.miss[0] && c === t.miss[1] ? slot : fmt(v)}</span>`).join("")}</div>`).join("")}</div>`;
+      el.setAttribute("aria-label", "Zahlenmauer. Welche Zahl fehlt?");
+      return;
+    }
     if (t.kind === "text") {
       el.innerHTML = `${t.pic ? `<div class="pic">${t.pic}</div>` : ""}<p class="story">${t.text}</p>` +
         `<div class="answer">${slot}${t.unit ? `<span class="unit">${t.unit}</span>` : ""}</div>`;
@@ -1399,7 +1714,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // Textaufgaben liest Summi gleich vor, damit langsames Lesen nicht bremst
   function announceTask() {
     const t = state.round.tasks[state.round.i];
-    if (t.kind === "text") autoRead(spokenTask(t), true);
+    if (t.again || t.review) {
+      const msg = t.again ? "Die kennst du schon von vorhin. Jetzt klappt sie bestimmt!" : "Diese Aufgabe hattest du schon mal. Zeig, was du gelernt hast!";
+      say(msg);
+      autoRead(msg, true);
+    }
+    if (t.kind === "text" || t.kind === "wall") autoRead(spokenTask(t), true);
   }
 
   function resetTaskUi() {
@@ -1445,6 +1765,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     geteilt: ["Toll! Du hast gerecht verteilt.", "Super, beim Teilen hast du gut nachgedacht!", "Klasse! Die Malaufgabe hat dir beim Teilen geholfen."],
     stellen: ["Klasse! Zehner und Einer hast du gut erkannt.", "Super, du kennst dich mit den Stellen aus!", "Toll! Jede Ziffer an der richtigen Stelle."],
     luecke: ["Super! Du hast die Lücke gefunden.", "Toll, rückwärts rechnen klappt!", "Klasse! Die fehlende Zahl hast du entdeckt."],
+    verdoppeln: ["Super verdoppelt!", "Klasse! Verdoppeln und Halbieren klappt richtig gut.", "Toll! Du hast die Zahl geschickt zerlegt."],
+    nachbar: ["Super! Du kennst dich auf dem Zahlenstrahl aus.", "Klasse! Die Nachbarn hast du gefunden.", "Toll! Du weißt genau, wo die Zahl wohnt."],
+    mauer: ["Super! Die Zahlenmauer steht.", "Klasse gebaut! Jeder Stein passt.", "Toll! Du hast den fehlenden Stein gefunden."],
+    geld: ["Super! Du kannst gut mit Geld rechnen.", "Klasse! Damit kannst du schon einkaufen.", "Toll! Das Geld hast du richtig gezählt."],
+    uhr: ["Super! Du kannst die Uhr lesen.", "Klasse! Die Zeiger hast du richtig gedeutet.", "Toll! Jetzt weißt du, wie spät es ist."],
   };
   const HELPED = ["Super, du hast die Hilfe genutzt und es geschafft!", "Toll! Mit dem Tipp hast du es selbst gerechnet.", "Klasse! Hilfe holen ist schlau, und jetzt stimmt es."];
   // Bei Fehlern: "noch nicht" statt "falsch" (Wachstumsdenken)
@@ -1480,6 +1805,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   const withName = (text) => (state.name && Math.random() < 0.25 ? `${text.replace(/[!.]$/, "")}, ${state.name}!` : text);
 
   function contextPraise(t) {
+    if (CONTEXT_PRAISE[t.topic] && !["text", "luecke", "stellen"].includes(t.topic)) return t.topic;
     if (t.kind === "text") return "text";
     if (t.topic === "stellen") return "stellen";
     if (t.topic === "luecke") return "luecke";
@@ -1551,6 +1877,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         cheer(praiseFor(t, r), "ok");
       }
       addSolved();
+      recordResult(t.topic, r.tries === 0 ? 1 : 0.5);
+      if (t.review || t.again) reviewAnswered(t, r.tries === 0);
+      if (r.tries > 0) rememberMistake(t);
       renderTask("right");
       renderMeadow(r.i);
       renderStreak(party);
@@ -1566,8 +1895,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (r.tries === 1) {
       renderTask("wrong");
       cheer(fromDeck("try", TRY_AGAIN), "oops");
+      showHelp(false, true);   // Tipp zum Rechenweg, nicht die Lösung
       r.input = "";
-      setTimeout(() => { if (!r.locked && r.tasks[r.i] === t) renderTask(); }, 400);
+      setTimeout(() => { if (state.round === r && !r.locked && r.tasks[r.i] === t) renderTask(); }, 400);
       return;
     }
     r.results[r.i] = "missed";
@@ -1576,6 +1906,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderTask("right");
     renderMeadow(r.i);
     cheer(fromDeck("missed", MISSED).replace("{x}", fmt(t.answer)), "oops");
+    recordResult(t.topic, 0);
+    rememberMistake(t);
+    // Dieselbe Aufgabe kommt 3 Aufgaben später nochmal: so übt das Gedächtnis
+    if (!t.again && r.i + 3 < r.tasks.length) r.tasks[r.i + 3] = { ...t, again: true };
     showHelp(true);
     setPadEnabled(false);
     $("helpBtn").hidden = true;
@@ -1624,6 +1958,23 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   const trailingZeros = (n) => { let z = 0; while (n && n % 10 === 0) { n /= 10; z++; } return z; };
   const zeros = (p) => { const z = trailingZeros(p); return z === 1 ? "eine Null" : `${["", "", "zwei", "drei", "vier", "fünf"][z]} Nullen`; };
 
+  // Einmaleins: von Kernaufgaben (mal 1, 2, 5, 10) ableiten statt zählen
+  function malTip(a, b) {
+    if (a === 1) return `1 mal ${b} ist einfach ${b}.`;
+    if (a === 2) return `2 mal ${b} heißt verdoppeln: ${b} + ${b}.`;
+    if (a === 10) return `10 mal ${b}: Hänge an die ${b} eine Null an.`;
+    if (a === 5) return `5 mal ${b} ist die Hälfte von 10 mal ${b}.`;
+    if ([1, 2, 5, 10].includes(b)) return `Tausche die Zahlen: ${b} mal ${a} ist leichter.`;
+    return {
+      3: `Rechne 2 mal ${b} und noch einmal ${b} dazu.`,
+      4: `Verdopple 2 mal ${b}.`,
+      6: `Rechne 5 mal ${b} und noch einmal ${b} dazu.`,
+      7: `Rechne 5 mal ${b} und 2 mal ${b}, dann beides zusammen.`,
+      8: `Rechne 10 mal ${b} und nimm 2 mal ${b} weg.`,
+      9: `Rechne 10 mal ${b} und nimm einmal ${b} weg.`,
+    }[a];
+  }
+
   function tipFor(t) {
     const { a, b, c, op, blank } = t;
     if (blank === "a") {
@@ -1649,12 +2000,17 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
           if (a < 10 && b >= 10) return `Tausche die Zahlen: ${b} + ${a} ist leichter.`;
           if (a < 10 && a + b > 10) return `Erst bis zur 10: ${a} + ${toTen} = 10, dann noch ${b - toTen} dazu.`;
           if (a >= 10 && a + b < 20) return `Rechne nur mit den Einern: ${a - 10} + ${b}. Die 10 bleibt.`;
-          return "Zähle die roten und blauen Plättchen zusammen.";
+          if (a === b) return `Verdoppeln: ${a} + ${a}. Das kennst du bestimmt!`;
+          if (Math.abs(a - b) === 1) return `Fast verdoppeln: ${Math.min(a, b)} + ${Math.min(a, b)} und noch 1 dazu.`;
+          if (a + b > 5 && a <= 5 && b <= 5) return `Denk an die Fünf: ${a} + ${5 - a} = 5, dann noch ${b - (5 - a)} dazu.`;
+          return "Schau auf die Fünfer im Feld. Du musst nicht jedes Plättchen einzeln zählen.";
         }
         if (a > 10 && b >= 10) return `Nimm erst die 10 weg: ${a} − 10 = ${a - 10}, dann noch ${b - 10} weg.`;
         if (a > 10 && a - b < 10) return `Erst bis zur 10: ${a} − ${a - 10} = 10, dann noch ${b - (a - 10)} weg.`;
         if (a > 10) return `Rechne nur mit den Einern: ${a - 10} − ${b}. Die 10 bleibt.`;
-        return "Zähle die Plättchen, die übrig bleiben.";
+        if (a === 2 * b) return `Halbieren: Die Hälfte von ${a} ist die Lösung.`;
+        if (a === 10) return `Denk an die Zerlegung der 10: ${b} und wie viel sind zusammen 10?`;
+        return "Schau auf die Fünfer im Feld: Wie viele bleiben übrig, ohne einzeln zu zählen?";
       }
       // Einstellige Zahl dazu oder weg: über den nächsten Zehner rechnen
       if (b < 10) {
@@ -1687,7 +2043,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         const p = 10 ** (String(a).length - 1), head = Math.floor(a / p) * p, rest = a - head;
         return `Zerlege: ${fmt(head)} · ${b} = ${fmt(head * b)} und ${fmt(rest)} · ${b} = ${fmt(rest * b)}. Dann addieren.`;
       }
-      return a === 1 ? `1 Reihe mit ${b} Punkten. Wie viele sind das?` : `${a} Reihen mit je ${b} Punkten. Wie viele sind es zusammen?`;
+      return malTip(a, b);
     }
     const zq = trailingZeros(c);
     if (zq && b < 10) return `Rechne erst ${fmt(a / 10 ** zq)} : ${b} = ${fmt(c / 10 ** zq)} und hänge ${zeros(10 ** zq)} an.`;
@@ -1699,13 +2055,15 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     return `Denk an die Malaufgabe: ? · ${b} = ${fmt(a)}.`;
   }
 
-  function showHelp(afterMiss = false) {
+  // auto = Tipp nach dem ersten Fehler: ohne Bilder, in denen die Lösung schon steht
+  function showHelp(afterMiss = false, auto = false) {
     const t = state.round.tasks[state.round.i];
     if (!afterMiss) state.round.helped = true;
     const more = `<button class="more-tricks" type="button" data-tricks="${t.topic}">Mehr Rechentricks dazu</button>`;
     const listen = (txt) => (canSpeak ? `<button class="speak" type="button" data-speak-text="${encodeURIComponent(txt)}">${SPEAKER}Tipp vorlesen</button>` : "");
     if (t.kind) {
-      $("help").innerHTML = `${t.helpPic || ""}<p>${afterMiss ? "So geht's: " : "Tipp: "}${t.tip}</p>${listen(t.tip)}${more}`;
+      const pic = auto && t.topic === "stellen" ? "" : t.helpPic || "";
+      $("help").innerHTML = `${pic}<p>${afterMiss ? "So geht's: " : "Tipp: "}${t.tip}</p>${listen(t.tip)}${more}`;
       revealHelp();
       return;
     }
@@ -1727,6 +2085,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   const ex = (...lines) => `<div class="example">${lines.map((l) => `<span>${l}</span>`).join("")}</div>`;
   const TRICKS = [
     { id: "plus", title: "Plus", cards: [
+      { h: "Die Kraft der Fünf", p: "Im Zwanzigerfeld liegen immer 5 Plättchen zusammen. So siehst du sofort, wie viele es sind, ohne einzeln zu zählen.",
+        ex: ex("7 = 5 + 2", "8 = 5 + 3"), pic: () => zwanzigerfeld({ a: 7, b: 0, op: "+" }) },
       { h: "Erst bis zur 10, dann weiter", p: "Wenn du über die 10 rechnen musst, mach zwei kleine Schritte.",
         ex: ex("8 + 5 = ?", "8 + 2 = 10", "10 + 3 = 13"), pic: () => zwanzigerfeld({ a: 8, b: 5, op: "+" }) },
       { h: "Verdoppeln hilft", p: "Verdoppeln kannst du dir gut merken. Fast-Verdoppeln geht dann ganz schnell.",
@@ -1783,6 +2143,35 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     { id: "luecke", title: "Lückenaufgaben", cards: [
       { h: "Rückwärts rechnen", p: "Bei einer Lücke hilft die Umkehraufgabe. Aus Plus wird Minus, aus Mal wird Geteilt.",
         ex: ex("7 + ? = 12", "12 − 7 = 5", "Probe: 7 + 5 = 12. Stimmt!") },
+    ] },
+    { id: "verdoppeln", title: "Verdoppeln & Halbieren", cards: [
+      { h: "Verdoppeln", p: "Verdoppeln heißt: die Zahl plus sich selbst. Bei großen Zahlen verdoppelst du Zehner und Einer einzeln.",
+        ex: ex("Verdopple 34", "30 + 30 = 60 und 4 + 4 = 8", "zusammen 68") },
+      { h: "Halbieren", p: "Halbieren heißt: gerecht in zwei gleiche Teile teilen. Zerlege die Zahl so, dass sich beide Teile leicht halbieren lassen.",
+        ex: ex("Halbiere 74", "74 = 60 + 14", "30 + 7 = 37") },
+    ] },
+    { id: "nachbar", title: "Nachbarzahlen & Zahlenstrahl", cards: [
+      { h: "Vorgänger und Nachfolger", p: "Die Zahl davor ist 1 weniger, die Zahl danach ist 1 mehr. Spannend wird es am Zehner.",
+        ex: ex("39, 40, 41", "Nach 39 kommt 40.") },
+      { h: "Der Zahlenstrahl", p: "Schau zuerst auf die langen Striche. Dann zählst du von dort aus nur noch wenige Schritte.",
+        ex: ex("Der Pfeil steht 2 Striche nach der 45.", "also 47"), pic: () => numberLine(40, 1, 7) },
+    ] },
+    { id: "mauer", title: "Zahlenmauer", cards: [
+      { h: "So funktioniert die Mauer", p: "Zwei Steine nebeneinander ergeben zusammen den Stein darüber.",
+        ex: ex("4 + 6 = 10", "Fehlt unten ein Stein, rechne rückwärts: 10 − 4 = 6."),
+        pic: () => `<div class="task is-wall"><div class="wall"><div class="wall-row"><span class="brick">10</span></div><div class="wall-row"><span class="brick">4</span><span class="brick">6</span></div></div></div>` },
+    ] },
+    { id: "geld", title: "Geld", cards: [
+      { h: "Münzen zusammenzählen", p: "Lege die Münzen nach der Größe: erst die großen, dann die kleinen. Rechne sie nacheinander dazu.",
+        ex: ex("50 + 20 + 5 + 2", "= 77 Cent"), pic: () => moneyPic([50, 20, 5, 2]) },
+      { h: "Rückgeld", p: "1 Euro sind 100 Cent. Rückgeld bekommst du, wenn du mehr bezahlst, als etwas kostet. Ergänze vom Preis bis zu dem, was du bezahlt hast.",
+        ex: ex("Preis 65 Cent, du zahlst 1 Euro", "65 + 5 = 70, 70 + 30 = 100", "Rückgeld: 35 Cent") },
+    ] },
+    { id: "uhr", title: "Uhrzeit", cards: [
+      { h: "Zwei Zeiger", p: "Der kurze Zeiger zeigt die Stunde. Der lange Zeiger zeigt die Minuten. Von einer Zahl zur nächsten sind es 5 Minuten.",
+        ex: ex("Kurzer Zeiger bei der 3, langer bei der 6", "3 Uhr und 30 Minuten, also halb vier"), pic: () => clockSVG(3, 30) },
+      { h: "Viertel und halb", p: "Steht der lange Zeiger auf der 3, ist es Viertel nach. Auf der 6 ist es halb. Auf der 9 ist es Viertel vor.",
+        ex: ex("15 Minuten = Viertel", "30 Minuten = halb", "45 Minuten = Dreiviertel") },
     ] },
   ];
 
@@ -1934,7 +2323,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         b.el.style.transform = `translate(${b.x + wobble}px, ${b.y}px)`;
         if (b.y < -b.h) {
           b.out = true;
-          if (!w.done && b.v === w.t.answer) missWave(`Weggeflogen! Die Lösung war ${fmt(w.t.answer)}.`);
+          if (!w.done && b.v === w.t.answer) missWave();
         }
       }
     }
@@ -1953,6 +2342,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       bj.score += 10 + bonus;
       bj.hits++;
       addSolved();
+      recordResult(w.t.topic, w.retried ? 0.5 : 1);
       if (bj.target && bj.hits >= bj.target) {   // Level-Ziel erreicht
         beep(SOUND_RIGHT);
         fx.pop(b.el, 1);
@@ -1978,6 +2368,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     b.out = true;
     b.el.classList.add("wrong");
     beep(SOUND_WRONG);
+    if (!w.missed) { w.missed = true; recordResult(w.t.topic, 0.5); rememberMistake(w.t); }
     bj.lives--;
     renderBjBar();
     if (bj.lives <= 0) { w.done = true; return gameOver(`Die Lösung war ${fmt(w.t.answer)}.`); }
@@ -1985,16 +2376,27 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     autoRead("Oh, das war nicht der richtige. Versuch einen anderen!");
   }
 
-  function missWave(text) {
+  // Kein Zeitdruck: Fliegt der richtige Ballon weg, kommen die Ballons langsamer nochmal.
+  // Leben kosten nur falsch angetippte Ballons, nie das Nachdenken.
+  function missWave() {
     const w = bj.wave;
+    if (!w.retried) {
+      w.retried = true;
+      w.dur *= 1.5;
+      const H = $("bjSky").clientHeight;
+      for (const b of w.balloons) if (!b.el.classList.contains("wrong")) { b.out = false; b.y = H + R(0, 60); }
+      const msg = "Die Ballons kommen nochmal. Lass dir ruhig Zeit!";
+      sayBj(msg);
+      autoRead(msg);
+      return;
+    }
     w.done = true;
-    beep(SOUND_WRONG);
-    bj.lives--;
-    renderBjBar();
-    if (bj.lives <= 0) return gameOver(text);
-    sayBj(text, "oops");
-    autoRead(`${text} Weiter geht's!`);
-    later(nextWave, 1500);
+    recordResult(w.t.topic, 0);
+    rememberMistake(w.t);
+    const msg = `Die Lösung war ${fmt(w.t.answer)}. Nicht schlimm, weiter geht's!`;
+    sayBj(msg, "oops");
+    autoRead(msg);
+    later(nextWave, 1800);
   }
 
   function gameOver(lastText, won = false) {
@@ -2034,7 +2436,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const target = 6 + Math.floor(i / 4) * 2;       // Ballons, die getroffen werden müssen
     const goal = boss ? "Großes Finale! Schaffe mindestens 8 von 10 Aufgaben."
       : type === "runde" ? "Schaffe mindestens 7 von 10 Aufgaben."
-      : type === "ballon" ? `Triff ${target} Ballons, bevor deine 3 Leben weg sind.`
+      : type === "ballon" ? `Triff ${target} richtige Ballons. Du hast 3 Leben für falsche Ballons.`
       : "Finde alle 6 Paare.";
     return { place, type, boss, target, goal, name: boss ? "Großes Finale" : TYPE_NAME[type] };
   });
@@ -2236,7 +2638,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     for (let guard = 0; pairs.length < 6 && guard < 800; guard++) {
       const strict = guard < 300;   // bei kleinen Zahlenräumen gibt es zu wenige Zahlen, dann lockerer
       const t = guard < 600 ? generate(cfg, pick(use), use) : { ...plusTask(cfg.N), topic: "plus" };
-      if (t.kind === "text") continue;
+      if (t.kind === "text" || t.kind === "wall") continue;
       if (t.topic === "stellen") {   // Stellenwert-Karte, z. B. "3 H + 4 Z + 7 E"
         const k = String(cfg.N - 1).length, n = R(10 ** (k - 1), cfg.N - 1);
         const heads = PLACES.slice(0, k).reverse();
@@ -2424,6 +2826,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     setupStep--; renderSetup();
   });
   $("settingsChip").addEventListener("click", () => openSetup(S_NAME));
+  $("parentBtn").addEventListener("click", openParent);
+  $("parentBack").addEventListener("click", () => goHome());
   $("nameOk").addEventListener("click", () => saveName(false));
   $("nameSkip").addEventListener("click", () => saveName(true));
   $("nameInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); saveName(false); } });
@@ -2530,7 +2934,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   if (isApp) {
     const appPlugin = cap.registerPlugin("App");
     const BACK = { setupView: "setupBack", gameView: "backBtn", resultView: "menuBtn", tricksView: "tricksBack",
-      balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack" };
+      balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack" };
     appPlugin.addListener("backButton", () => {
       const btn = $(BACK[VIEWS.find((id) => !$(id).hidden)] || "");
       if (btn && !btn.hidden) btn.click();

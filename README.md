@@ -68,9 +68,30 @@ Es ist nichts vorausgewählt. Über „Ändern“ auf der Startseite lässt sich
 | **Rechentricks** (Lernen) | Kindgerechte Erklärungen, wie man am besten rechnet, z. B. „Erst bis zur 10“, Tauschaufgabe, Signalwörter. |
 | **Mein Garten** (Belohnung) | Alle gesammelten Blumen wachsen in einem Garten-Bild. Im Gartenladen bezahlt das Kind mit Blumen und kauft Schnecke, Pilz, Schmetterling, Gartenzwerg, Teich, Bienenstock, Regenbogen und mehr (4 bis 30 Blumen). |
 
-**Themen:** Plus, Minus, Mal und Geteilt (wenn freigeschaltet), Zehner & Einer bzw. Stellenwerte
-(Zehnerstangen, Einerwürfel, Stellenwerttafel), Textaufgaben (Zahlenrätsel wie „Wenn du zu meiner
-Zahl 9 dazuzählst, kommt 19 heraus. Welche Zahl bin ich?“ und kleine Sachaufgaben) und Lückenaufgaben.
+**Themen** (nach den Lehrplänen und den KMK-Bildungsstandards für die Grundschule):
+
+| Bereich | Themen |
+|---|---|
+| Rechnen | Plus, Minus, Mal und Geteilt (wenn freigeschaltet), Lückenaufgaben |
+| Zahlen verstehen | Zehner & Einer bzw. Stellenwerte, Nachbarzahlen und Zahlenstrahl, Verdoppeln & Halbieren |
+| Muster | Zahlenmauern |
+| Sachrechnen | Textaufgaben (Zahlenrätsel und kleine Sachaufgaben) |
+| Größen | Geld (Münzen zählen, bis 1 Euro ergänzen, Rückgeld) und Uhrzeit (volle Stunden, Minuten, Zeitspannen) |
+
+**Lernen, das mitwächst:**
+
+- **Passende Schwierigkeit:** Für jedes Thema merkt sich die App, wie gut es klappt. Ist fast alles richtig,
+  wird der Zahlenraum größer; bei Fehlern wird es deutlich leichter. Ziel sind etwa 85 % richtige
+  Antworten – die Lernforschung zeigt, dass man so am meisten lernt.
+- **Einmaleins mit Kernaufgaben:** Zuerst kommen die Kernaufgaben mal 1, 2, 5 und 10, aus denen
+  Kinder die anderen Aufgaben ableiten.
+- **Wiederholung:** Was nicht gleich geklappt hat, kommt 3 Aufgaben später nochmal und an den
+  folgenden Tagen wieder, bis es zweimal sicher gewusst wurde.
+- **Tipp statt Lösung:** Nach dem ersten Fehler zeigt Summi einen Tipp zum Rechenweg.
+  Die Tipps vermeiden Abzählen und nutzen die Kraft der Fünf, Verdoppeln und Kernaufgaben.
+- **Kein Zeitdruck:** Es wird keine Zeit gemessen. In der Ballonjagd kommen die Ballons beim
+  Nachdenken einfach langsamer wieder; Leben kosten nur falsch angetippte Ballons.
+- **Für Eltern:** Eine eigene Seite zeigt je Thema, wie sicher das Kind ist, und gibt Tipps zum Begleiten.
 
 **Belohnungen:** Blumen für den eigenen Garten, Funken bei 3, 6 und 9 richtigen Antworten in Folge,
 Feuerwerk bei 3 Sternen oder einem neuen Rekord, eine Goldblume für eine fehlerfreie Blumen-Runde.
