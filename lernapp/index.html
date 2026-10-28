@@ -95,6 +95,7 @@ button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
   padding: 4px 12px 4px 6px; font-weight: 700; font-variant-numeric: tabular-nums;
 }
 .pill svg { width: 22px; height: 30px; }
+.icon-btn svg { width: 22px; height: 22px; }
 .icon-btn {
   width: 44px; height: 44px; border-radius: 50%;
   background: var(--paper); border: 2px solid var(--line);
@@ -1044,7 +1045,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("flowerCount").textContent = fmt(balance());
     $("soundBtn").setAttribute("aria-pressed", String(state.sound));
     $("soundBtn").setAttribute("aria-label", state.sound ? "Ton ausschalten" : "Ton einschalten");
-    $("soundBtn").textContent = state.sound ? "Ton" : "Aus";
+    $("soundBtn").innerHTML = state.sound ? SPEAKER : MUTED;
   }
 
   // ---------- Summi, die Rechenbiene ----------
@@ -1079,7 +1080,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // ---------- Vorlesen ----------
   const canSpeak = !!nativeTTS || ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window);
+  const MUTED = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   const SPEAKER = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+  // Automatisch vorlesen geht erst nach dem ersten Antippen (Browser-Regel) und nur mit Ton
+  let interacted = false;
+  document.addEventListener("pointerdown", () => { interacted = true; }, { once: true, capture: true });
+  document.addEventListener("keydown", () => { interacted = true; }, { once: true, capture: true });
+  function autoRead(text) { if (state.sound && interacted) speak(text); }
+
   function stopSpeaking() {
     if (nativeTTS) nativeTTS.stop().catch(() => {});
     else if (window.speechSynthesis) speechSynthesis.cancel();
@@ -1118,7 +1126,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     "Was möchtest du rechnen? Tippe alles an, was du üben magst.",
   ];
   const SETUP_STEPS = ["stepGrade", "stepRange", "stepMal", "stepTopics"];
-  let setupStep = 0, rangeDigits = "", setupDone = false;
+  let setupStep = 0, rangeDigits = "", setupDone = false, bigConfirmed = 0;
+  // Ab dieser Zahl fragt Summi nach, ob das Kind sich nicht vertippt hat
+  const BIG_FOR_GRADE = { 1: 100, 2: 1000, 3: 10000, 4: 1000000 };
 
   function openSetup(step = 0) {
     setupStep = step;
@@ -1168,6 +1178,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function setupNext() {
     setupStep++;
     renderSetup();
+    autoRead(SETUP_SAY[setupStep]);
     beeMood("setupBee", "happy");
     window.scrollTo(0, 0);
   }
@@ -1181,6 +1192,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       if (!rangeDigits) msg = "Tippe zuerst eine Zahl ein.";
       else if (N < MIN_N) msg = `Nimm mindestens ${MIN_N}.`;
       else if (N > MAX_N) msg = `Höchstens ${fmt(MAX_N)}. Das ist eine Million!`;
+      else if (N > BIG_FOR_GRADE[state.grade || 4] && bigConfirmed !== N) {
+        bigConfirmed = N;
+        msg = `Wow, bis ${fmt(N)}? Das ist eine riesige Zahl! Wenn du sicher bist, tippe nochmal auf Weiter.`;
+        autoRead(msg);
+      }
       $("rangeNote").textContent = msg;
       $("rangeNote").classList.toggle("bad", !!msg);
       if (msg) { beeMood("setupBee", "think"); beep(SOUND_WRONG); renderSetup(); return; }
@@ -1239,6 +1255,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     resetTaskUi();
     show("gameView");
     renderTask();
+    announceTask();
   }
 
   function num(n, cls = "") { return `<span class="${cls}">${fmt(n)}</span>`; }
@@ -1296,6 +1313,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("say").textContent = text;
     $("say").className = "say " + cls;
     if (text) beeMood("gameBee", cls === "ok" ? "happy" : cls === "oops" ? "think" : "");
+  }
+
+  // Textaufgaben liest Summi gleich vor, damit langsames Lesen nicht bremst
+  function announceTask() {
+    const t = state.round.tasks[state.round.i];
+    if (t.kind === "text") autoRead(spokenTask(t));
   }
 
   function resetTaskUi() {
@@ -1374,6 +1397,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (r.i >= r.tasks.length) return finish();
     resetTaskUi();
     renderTask();
+    announceTask();
   }
 
   function setPadEnabled(on) {
@@ -1415,7 +1439,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       return `Rechne rückwärts: ${fmt(c)} · ${fmt(b)}.`;
     }
     if (blank === "b") {
-      if (op === "+") return `Wie viel fehlt von ${fmt(a)} bis ${fmt(c)}? Rechne ${fmt(c)} − ${fmt(a)}.`;
+      if (op === "+") {
+        // Kleine Lücke: Weiterzählen ist für Kinder am leichtesten
+        if (b <= 5) return `Wie viel fehlt von ${fmt(a)} bis ${fmt(c)}? Zähle weiter: ${Array.from({ length: b }, (_, k) => fmt(a + k + 1)).join(", ")}.`;
+        return `Wie viel fehlt von ${fmt(a)} bis ${fmt(c)}? Rechne ${fmt(c)} − ${fmt(a)}.`;
+      }
       if (op === "−") return `Wie viel musst du von ${fmt(a)} wegnehmen, um ${fmt(c)} zu bekommen? Rechne ${fmt(a)} − ${fmt(c)}.`;
       if (op === "·") return `${fmt(a)} mal wie viel ist ${fmt(c)}? Rechne ${fmt(c)} : ${fmt(a)}.`;
       return `Durch welche Zahl teilst du? Rechne ${fmt(a)} : ${fmt(c)}.`;
@@ -1465,7 +1493,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         const p = 10 ** (String(a).length - 1), head = Math.floor(a / p) * p, rest = a - head;
         return `Zerlege: ${fmt(head)} · ${b} = ${fmt(head * b)} und ${fmt(rest)} · ${b} = ${fmt(rest * b)}. Dann addieren.`;
       }
-      return `${a} Reihen mit je ${b} Punkten. Wie viele sind es zusammen?`;
+      return a === 1 ? `1 Reihe mit ${b} Punkten. Wie viele sind das?` : `${a} Reihen mit je ${b} Punkten. Wie viele sind es zusammen?`;
     }
     const zq = trailingZeros(c);
     if (zq && b < 10) return `Rechne erst ${fmt(a / 10 ** zq)} : ${b} = ${fmt(c / 10 ** zq)} und hänge ${zeros(10 ** zq)} an.`;
@@ -1663,6 +1691,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const t = generate(bj.cfg, pick(bj.sel), bj.sel);
     drawTask($("bjTask"), t, '<span class="slot">?</span>');
     fitSky();   // nach dem Anzeigen der Aufgabe, denn deren Höhe ändert sich
+    if (t.kind === "text") autoRead(spokenTask(t));
     const sky = $("bjSky");
     sky.querySelectorAll(".balloon, .level-up").forEach((n) => n.remove());
     const W = sky.clientWidth, H = sky.clientHeight, lane = W / 4, size = Math.min(lane - 8, 96);
@@ -1821,6 +1850,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderPath();
     show("pathView");
     beeMood("pathBee", "happy");
+    autoRead($("pathSay").textContent);
   }
 
   function renderPath(msg) {
@@ -1884,6 +1914,15 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   function setLevelButtons() {
     for (const id of ["menuBtn", "bjMenu", "memMenu"]) $(id).textContent = state.level ? "Zum Pfad" : "Zum Start";
+  }
+
+  // Mitten im Spiel fragt Summi erst nach: zweimal Zurück tippen zum Aufhören
+  let leaveArmed = 0;
+  function reallyLeave(tell) {
+    if (Date.now() - leaveArmed < 4000) { leaveArmed = 0; return true; }
+    leaveArmed = Date.now();
+    tell("Willst du wirklich aufhören? Dann tippe nochmal auf Zurück.");
+    return false;
   }
 
   // Zurück aus einem Spiel: im Level zum Pfad, sonst zur Startseite
@@ -2130,12 +2169,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
 
   // ---------- Ereignisse ----------
-  $("pad").innerHTML = ["7", "8", "9", "4", "5", "6", "1", "2", "3", "del", "0", "ok"].map((k) =>
+  $("pad").innerHTML = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "del", "0", "ok"].map((k) =>
     `<button class="key${k === "ok" ? " ok" : k === "del" ? " del" : ""}" type="button" data-key="${k}"
        aria-label="${k === "ok" ? "Prüfen" : k === "del" ? "Löschen" : k}">${k === "ok" ? "OK" : k === "del" ? "⌫" : k}</button>`).join("");
 
   $("pad").addEventListener("click", (e) => { const b = e.target.closest("[data-key]"); if (b) type(b.dataset.key); });
-  $("rangePad").innerHTML = ["7", "8", "9", "4", "5", "6", "1", "2", "3", "del", "0", "ok"].map((k) =>
+  $("rangePad").innerHTML = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "del", "0", "ok"].map((k) =>
     `<button class="key${k === "ok" ? " ok" : k === "del" ? " del" : ""}" type="button" data-key="${k}"
        aria-label="${k === "ok" ? "Weiter" : k === "del" ? "Löschen" : k}">${k === "ok" ? "Weiter" : k === "del" ? "⌫" : k}</button>`).join("");
   $("rangePad").addEventListener("click", (e) => { const b = e.target.closest("[data-key]"); if (b) rangeKey(b.dataset.key); });
@@ -2177,7 +2216,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("gardenBack").addEventListener("click", () => goHome());
   $("shop").addEventListener("click", (e) => { const b = e.target.closest("[data-buy]"); if (b) buy(b.dataset.buy); });
   $("memAgain").addEventListener("click", startMemory);
-  $("memBack").addEventListener("click", leaveGame);
+  $("memBack").addEventListener("click", () => {
+    if (!$("memGrid").hidden && mem.moves > 0 && !reallyLeave((t) => { $("memSay").textContent = t; beeMood("memBee", "think"); })) return;
+    leaveGame();
+  });
   $("memMenu").addEventListener("click", leaveGame);
   $("memGrid").addEventListener("click", (e) => { const b = e.target.closest("[data-card]"); if (b) flipCard(Number(b.dataset.card)); });
 
@@ -2197,7 +2239,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   $("balloonBtn").addEventListener("click", () => { state.level = null; setLevelButtons(); startBalloons(); });
   $("bjAgain").addEventListener("click", startBalloons);
-  $("bjBack").addEventListener("click", () => { stopBalloons(); leaveGame(); });
+  $("bjBack").addEventListener("click", () => {
+    if (bj.running && bj.hits > 0 && !reallyLeave((t) => sayBj(t, "oops"))) return;
+    stopBalloons(); leaveGame();
+  });
   $("bjMenu").addEventListener("click", leaveGame);
   $("tricksBtn").addEventListener("click", () => openTricks(""));
   $("tricksBack").addEventListener("click", () => { if (tricksFrom === "startView") goHome(); else show(tricksFrom); });
@@ -2217,10 +2262,16 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("startBtn").addEventListener("click", () => { state.level = null; setLevelButtons(); startRound(); });
   $("againBtn").addEventListener("click", startRound);
   $("menuBtn").addEventListener("click", leaveGame);
-  $("backBtn").addEventListener("click", () => { state.round = null; resetTaskUi(); leaveGame(); });
+  $("backBtn").addEventListener("click", () => {
+    if (state.round && state.round.results.length && !reallyLeave((t) => say(t, "oops"))) return;
+    state.round = null; resetTaskUi(); leaveGame();
+  });
   $("helpBtn").addEventListener("click", () => { if ($("help").hidden) showHelp(); else $("help").hidden = true; });
   $("nextBtn").addEventListener("click", nextTask);
-  $("soundBtn").addEventListener("click", () => { state.sound = !state.sound; store.set("rw-sound", state.sound); renderHeader(); });
+  $("soundBtn").addEventListener("click", () => {
+    state.sound = !state.sound; store.set("rw-sound", state.sound); renderHeader();
+    if (!state.sound) stopSpeaking();
+  });
 
   document.addEventListener("keydown", (e) => {
     if (!$("setupView").hidden && setupStep === 1) {
