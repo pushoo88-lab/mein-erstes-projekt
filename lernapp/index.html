@@ -188,6 +188,24 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .hello.mini .bee { width: 52px; height: 48px; }
 .hello.mini .say { margin: 0; text-align: left; min-height: 0; font-size: 19px; }
 
+.name-input {
+  width: 100%; font: 800 30px var(--display); text-align: center; padding: 8px 16px;
+  border: 3px solid var(--line); border-radius: 16px; background: var(--key); color: var(--ink);
+}
+.name-input:focus { outline: none; border-color: var(--blue); background: var(--paper); }
+.name-input::placeholder { color: var(--ink-soft); opacity: .6; }
+
+/* Heute: Tagesziel, Tage in Folge, gelöste Aufgaben */
+.today { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 8px; }
+.today > div { background: var(--paper); border: 2px solid var(--line); border-radius: 16px; padding: 8px 6px; display: grid; justify-items: center; align-content: center; gap: 2px; text-align: center; min-width: 0; }
+.today b { font-family: var(--display); font-weight: 800; font-size: 24px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.today .goal b { font-size: 15px; }
+.today small { color: var(--ink-soft); font-size: 13px; line-height: 1.2; }
+.today .dots { display: flex; gap: 5px; }
+.today .dots i { width: 16px; height: 16px; border-radius: 50%; background: var(--line); }
+.today .dots i.on { background: var(--sun); box-shadow: 0 0 0 2px color-mix(in srgb, var(--sun) 40%, transparent); }
+.today .done { border-color: var(--sun); background: color-mix(in srgb, var(--sun) 15%, var(--paper)); }
+
 /* Startseite */
 .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .mode {
@@ -467,6 +485,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       <div class="bee" id="setupBee"></div>
       <div class="bubble"><p id="setupSay"></p><button class="speak" type="button" data-speak-el="setupSay">Vorlesen</button></div>
     </section>
+    <section class="sheet" id="stepName" hidden style="display:grid; gap:12px;">
+      <input id="nameInput" class="name-input" type="text" maxlength="14" autocomplete="off" autocapitalize="words" enterkeyhint="done" placeholder="Dein Name" aria-label="Dein Name">
+      <button class="go" id="nameOk" type="button">Weiter</button>
+      <button class="back" id="nameSkip" type="button" style="justify-self:center">Ohne Namen weiter</button>
+    </section>
     <section class="sheet" id="stepGrade">
       <div class="grades" id="grades" role="group" aria-label="Klasse"></div>
     </section>
@@ -495,6 +518,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       <div class="bee" id="homeBee"></div>
       <div class="bubble"><p id="homeSay"></p><button class="speak" type="button" data-speak-el="homeSay">Vorlesen</button></div>
     </section>
+    <section class="today" id="today" aria-label="Heute"></section>
     <div class="modes">
       <button class="mode adventure wide" id="pathBtn" type="button"><span class="tag">Abenteuer</span><span id="iconPath"></span><b>Abenteuer-Pfad</b><small id="pathInfo"></small></button>
       <button class="mode game" id="balloonBtn" type="button"><span class="tag">Spiel</span><span id="iconBalloon"></span><b>Ballonjagd</b><small>Tippe den richtigen Ballon an</small></button>
@@ -948,6 +972,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     spent: store.get("rw-spent", 0),      // ausgegebene Blumen
     path: store.get("rw-path", { done: 0, stars: [] }),
     level: null,                          // { i, N } während ein Level gespielt wird
+    name: store.get("rw-name", ""),       // freiwillig, damit Summi das Kind ansprechen kann
+    solved: store.get("rw-solved", 0),    // alle richtig gelösten Aufgaben
+    milestone: 0,                         // gerade erreichter Meilenstein, wird am Spielende gefeiert
+    daily: store.get("rw-daily", { date: "", done: 0, bonus: false }),
+    days: store.get("rw-days", { last: "", count: 0 }),   // Tage in Folge
+    lastScores: store.get("rw-last", {}),  // letztes Ergebnis je Auswahl, für "Du hast dich verbessert"
     round: null,
   };
   // Im Abenteuer-Pfad gibt das Level den Zahlenraum vor (frühe Level mit kleineren Zahlen)
@@ -1144,13 +1174,15 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
 
   // ---------- Einrichtung: eine Frage pro Bildschirm ----------
-  const SETUP_SAY = [
-    "Hallo! Ich bin Summi, die Rechenbiene. In welche Klasse gehst du?",
+  const SETUP_STEPS = ["stepName", "stepGrade", "stepRange", "stepMal", "stepTopics"];
+  const S_NAME = 0, S_GRADE = 1, S_RANGE = 2, S_MAL = 3, S_TOPICS = 4;
+  const setupSay = (step) => [
+    "Hallo! Ich bin Summi, die Rechenbiene. Wie heißt du?",
+    state.name ? `Hallo ${state.name}! Schön, dass du da bist. In welche Klasse gehst du?` : "Schön, dass du da bist! In welche Klasse gehst du?",
     "Bis zu welcher Zahl rechnest du schon? Tippe die Zahl ein.",
     "Kannst du schon Mal und Geteilt rechnen?",
     "Was möchtest du rechnen? Tippe alles an, was du üben magst.",
-  ];
-  const SETUP_STEPS = ["stepGrade", "stepRange", "stepMal", "stepTopics"];
+  ][step];
   let setupStep = 0, rangeDigits = "", setupDone = false, bigConfirmed = 0;
   // Ab dieser Zahl fragt Summi nach, ob das Kind sich nicht vertippt hat
   const BIG_FOR_GRADE = { 1: 100, 2: 1000, 3: 10000, 4: 1000000 };
@@ -1158,6 +1190,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function openSetup(step = 0) {
     setupStep = step;
     rangeDigits = state.N ? String(state.N) : "";
+    $("nameInput").value = state.name;
     $("rangeNote").textContent = "";
     $("rangeNote").classList.remove("bad");
     $("topicNote").textContent = "";
@@ -1169,7 +1202,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function renderSetup() {
     SETUP_STEPS.forEach((id, i) => { $(id).hidden = i !== setupStep; });
     $("steps").innerHTML = SETUP_STEPS.map((_, i) => `<span class="${i === setupStep ? "on" : ""}"></span>`).join("");
-    $("setupSay").textContent = SETUP_SAY[setupStep];
+    $("setupSay").textContent = setupSay(setupStep);
     $("setupBack").hidden = setupStep === 0 && !setupDone;
 
     $("grades").innerHTML = Object.keys(GRADES).map((n) =>
@@ -1203,7 +1236,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function setupNext() {
     setupStep++;
     renderSetup();
-    autoRead(SETUP_SAY[setupStep]);
+    autoRead(setupSay(setupStep));
     beeMood("setupBee", "happy");
     window.scrollTo(0, 0);
   }
@@ -1234,6 +1267,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderSetup();
   }
 
+  // Name übernehmen: nur Buchstaben, Leerzeichen und Bindestrich
+  function saveName(skip) {
+    state.name = skip ? "" : $("nameInput").value.replace(/[^\p{L} -]/gu, "").trim().slice(0, 14);
+    store.set("rw-name", state.name);
+    $("nameInput").blur();
+    setupNext();
+  }
+
   function finishSetup() {
     if (!state.topics.length) {
       $("topicNote").textContent = "Tippe mindestens ein Thema an.";
@@ -1242,20 +1283,34 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       return;
     }
     setupDone = true;
-    goHome("Super! Jetzt kann es losgehen. Möchtest du spielen oder Blumen sammeln?");
+    goHome(`Super${state.name ? ", " + state.name : ""}! Jetzt kann es losgehen. Möchtest du spielen oder Blumen sammeln?`);
     autoRead($("homeSay").textContent);
   }
 
   // ---------- Startseite ----------
   const HOME_SAY = ["Was möchtest du jetzt machen?", "Lust auf ein Spiel?", "Wollen wir zusammen rechnen?", "Toll, dass du da bist! Was spielen wir?"];
+  function homeGreeting() {
+    const name = state.name ? `, ${state.name}` : "";
+    if (playedToday() >= DAILY_GOAL) return `Dein Tagesziel hast du heute schon geschafft${name}! Du kannst trotzdem weiterspielen.`;
+    if (streakDays() >= 2) return `Schön, dass du da bist${name}! Du übst schon ${streakDays()} Tage hintereinander.`;
+    return pick(HOME_SAY).replace(/\?$/, name ? `${name}?` : "?").replace(/!$/, name ? `${name}!` : "!");
+  }
+
   function goHome(text) {
-    renderHome(text || pick(HOME_SAY));
+    renderHome(text || homeGreeting());
     show("startView");
     beeMood("homeBee", "happy");
   }
 
   function renderHome(text) {
     $("homeSay").textContent = text;
+    const d = playedToday(), k = streakDays();
+    $("today").innerHTML =
+      `<div class="goal${d >= DAILY_GOAL ? " done" : ""}"><b>Tagesziel</b><span class="dots" aria-hidden="true">${
+        Array.from({ length: DAILY_GOAL }, (_, n) => `<i class="${n < d ? "on" : ""}"></i>`).join("")}</span>` +
+      `<small>${d >= DAILY_GOAL ? "Geschafft!" : `${d} von ${DAILY_GOAL} Spielen`}</small></div>` +
+      `<div><b>${k}</b><small>${k === 1 ? "Tag" : "Tage"} in Folge</small></div>` +
+      `<div><b>${fmt(state.solved)}</b><small>Aufgaben gelöst</small></div>`;
     $("settingsText").textContent = `Klasse ${state.grade} · bis ${fmt(state.N)} · ${state.mal ? "mit" : "ohne"} Mal und Geteilt · ${state.topics.map((t) => topicName(t, state.N)).join(", ")}`;
     const done = state.path.done;
     $("pathInfo").textContent = done >= LEVELS.length ? "Alle Level geschafft!" : `Weiter mit Level ${done + 1} von ${LEVELS.length}: ${LEVELS[done].place}`;
@@ -1266,7 +1321,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // Alles gefragt? Sonst zurück zu Summis Fragen
   function ready() {
     if (state.grade && state.N && state.mal !== null && state.topics.length) return true;
-    openSetup(!state.grade ? 0 : !state.N ? 1 : state.mal === null ? 2 : 3);
+    openSetup(!state.grade ? S_GRADE : !state.N ? S_RANGE : state.mal === null ? S_MAL : S_TOPICS);
     return false;
   }
 
@@ -1366,12 +1421,116 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderTask();
   }
 
-  const PRAISE = ["Super!", "Richtig! Toll gemacht!", "Klasse, das stimmt!", "Wow, du bist ein Rechenprofi!", "Spitze! Weiter so!",
-    "Ja, genau richtig!", "Prima gerechnet!", "Du wirst immer besser!", "Stark! Das hast du super gemacht!"];
-  const TRY_AGAIN = ["Fast! Versuch es nochmal, du schaffst das!", "Nicht schlimm! Schau nochmal genau hin.",
-    "Hmm, noch nicht ganz. Probier es nochmal!", "Kein Problem! Denk nochmal in Ruhe nach."];
-  const HIT_WORDS = ["Treffer!", "Super!", "Klasse!", "Toll!", "Jawohl!", "Spitze!"];
-  const SECOND_TRY = ["Richtig! Super, dass du nicht aufgegeben hast!", "Jetzt stimmt es! Gut nachgedacht!"];
+  // Lob nach der Forschung: Anstrengung, Vorgehen und Fortschritt loben, nicht "du bist schlau".
+  const PRAISE = [
+    "Richtig! Gut gerechnet!", "Super, das stimmt!", "Klasse! Du hast genau hingeschaut.", "Richtig! Dein Üben lohnt sich.",
+    "Toll! Du rechnest immer sicherer.", "Prima! Das hast du dir gut überlegt.", "Ja, genau! Schritt für Schritt geschafft.",
+    "Stark! Du hast konzentriert gerechnet.", "Juhu, richtig! Weiter so!", "Spitze! Du bleibst dran.",
+    "Richtig! Man merkt, dass du übst.", "Super gemacht! Du wirst immer besser.", "Klasse! Das war gut nachgedacht.",
+    "Bravo! Genau so geht das.", "Toll! Das hast du ganz allein geschafft.", "Richtig! Dein Kopf hat super gearbeitet.",
+    "Wunderbar! Das hast du sorgfältig gerechnet.", "Hurra, das stimmt!", "Sehr gut! Du hast dir Mühe gegeben.",
+    "Richtig! Das war ein guter Rechenweg.", "Prima! Noch eine Blume für deinen Garten.", "Fantastisch! Du hast nicht geraten, sondern gerechnet.",
+    "Super! Diese Aufgabe hast du geknackt.", "Yippie, richtig!", "Toll! Du lernst richtig schnell dazu.",
+    "Klasse! Du hast die Zahlen gut im Blick.", "Richtig! Summi summt vor Freude.", "Ausgezeichnet! Weiter so!",
+    "Super! Üben macht stark, das sieht man.", "Jawohl, das stimmt!", "Prima! Du hast gut aufgepasst.",
+    "Richtig! Wieder ein Schritt weiter.", "Toll gerechnet! Ich freue mich mit dir.", "Großartig! Du gibst dir richtig Mühe.",
+    "Wow, richtig! Das war gar nicht so leicht.", "Super! Erst überlegt, dann getippt.", "Klasse! In Ruhe klappt es am besten.",
+    "Juhu! Das hast du dir verdient.", "Richtig! Deine Wiese wird immer bunter.", "Sehr schön! Du rechnest richtig fleißig.",
+  ];
+  // Lob, das zur Aufgabe passt und das Vorgehen beschreibt
+  const CONTEXT_PRAISE = {
+    text: ["Toll! Du hast genau gelesen und richtig gerechnet.", "Super, die Textaufgabe hast du gelöst!", "Klasse! Lesen und Rechnen, beides geschafft."],
+    zehner: ["Super, du bist geschickt über den Zehner gerechnet!", "Klasse! Der Zehnerübergang klappt immer besser.", "Toll! Über die 10 hast du sicher gerechnet."],
+    mal: ["Prima, das Einmaleins übst du richtig gut!", "Super, die Malaufgabe hast du gut gerechnet!", "Klasse! Mal rechnen klappt immer besser."],
+    geteilt: ["Toll! Du hast gerecht verteilt.", "Super, beim Teilen hast du gut nachgedacht!", "Klasse! Die Malaufgabe hat dir beim Teilen geholfen."],
+    stellen: ["Klasse! Zehner und Einer hast du gut erkannt.", "Super, du kennst dich mit den Stellen aus!", "Toll! Jede Ziffer an der richtigen Stelle."],
+    luecke: ["Super! Du hast die Lücke gefunden.", "Toll, rückwärts rechnen klappt!", "Klasse! Die fehlende Zahl hast du entdeckt."],
+  };
+  const HELPED = ["Super, du hast die Hilfe genutzt und es geschafft!", "Toll! Mit dem Tipp hast du es selbst gerechnet.", "Klasse! Hilfe holen ist schlau, und jetzt stimmt es."];
+  // Bei Fehlern: "noch nicht" statt "falsch" (Wachstumsdenken)
+  const TRY_AGAIN = [
+    "Noch nicht ganz. Versuch es nochmal, du schaffst das!", "Fast! Schau nochmal genau hin.", "Nicht schlimm! Fehler helfen beim Lernen.",
+    "Hmm, noch nicht. Denk nochmal in Ruhe nach.", "Knapp daneben! Probier es nochmal.", "Kein Problem! Aus Fehlern lernt dein Kopf.",
+    "Noch nicht richtig, aber du bist auf einem guten Weg.", "Atme einmal tief durch und versuch es nochmal.",
+    "Das kriegst du hin! Rechne es nochmal Schritt für Schritt.", "Oh, noch nicht. Tipp auf Hilfe, wenn du magst.",
+  ];
+  const SECOND_TRY = [
+    "Jetzt stimmt es! Super, dass du nicht aufgegeben hast.", "Richtig! Dranbleiben lohnt sich.", "Geschafft! Beim zweiten Versuch klappt es oft besser.",
+    "Toll! Du hast deinen Fehler selbst gefunden.", "Super! Du hast nochmal nachgedacht, und jetzt stimmt es.",
+  ];
+  const MISSED = [
+    "Die Lösung ist {x}. Nicht schlimm, so lernst du dazu!", "Die Lösung ist {x}. Schau dir den Tipp an, dann klappt es beim nächsten Mal.",
+    "Die Lösung ist {x}. Fehler gehören zum Lernen dazu. Weiter geht's!", "Die Lösung ist {x}. Die nächste Aufgabe schaffst du!",
+  ];
+  const STREAK = ["{n} richtig hintereinander! Dein Üben zahlt sich aus!", "{n} am Stück! Du rechnest richtig konzentriert!", "Super-Serie: {n} richtige! Weiter so!"];
+  const HIT_WORDS = ["Treffer!", "Super!", "Klasse!", "Toll!", "Jawohl!", "Spitze!", "Prima!", "Juhu!"];
+
+  // Wie ein gemischter Kartenstapel: jeder Satz kommt erst wieder, wenn alle anderen dran waren.
+  // Der Stapel wird gespeichert, damit es auch am nächsten Tag weitergeht.
+  function fromDeck(name, list) {
+    const key = `rw-deck-${name}`;
+    let deck = store.get(key, []).filter((k) => k < list.length);
+    if (!deck.length) deck = shuffle(list.map((_, k) => k));
+    const k = deck.shift();
+    store.set(key, deck);
+    return list[k];
+  }
+
+  // Manchmal spricht Summi das Kind mit Namen an: "Richtig! Gut gerechnet, Mia!"
+  const withName = (text) => (state.name && Math.random() < 0.25 ? `${text.replace(/[!.]$/, "")}, ${state.name}!` : text);
+
+  function contextPraise(t) {
+    if (t.kind === "text") return "text";
+    if (t.topic === "stellen") return "stellen";
+    if (t.topic === "luecke") return "luecke";
+    if (t.op === "·") return "mal";
+    if (t.op === ":") return "geteilt";
+    const crosses = t.op === "+" ? t.a % 10 + t.b % 10 > 10 : t.op === "−" && t.a % 10 < t.b % 10;
+    return crosses ? "zehner" : null;
+  }
+
+  function praiseFor(t, r) {
+    if (r.tries > 0) return fromDeck("second", SECOND_TRY);
+    if (r.helped) return fromDeck("helped", HELPED);
+    const ctx = contextPraise(t);
+    if (ctx && Math.random() < 0.4) return withName(fromDeck(`ctx-${ctx}`, CONTEXT_PRAISE[ctx]));
+    return withName(fromDeck("praise", PRAISE));
+  }
+
+  // ---------- Tagesziel, Tage in Folge, Meilensteine ----------
+  const DAILY_GOAL = 3;
+  const MILESTONES = [10, 25, 50, 100, 150, 200, 300, 400, 500, 750, 1000, 1500, 2000, 3000, 5000];
+  const dayString = (offset = 0) => new Date(Date.now() + offset * 864e5).toLocaleDateString("sv");   // JJJJ-MM-TT
+  const streakDays = () => (state.days.last === dayString() || state.days.last === dayString(-1) ? state.days.count : 0);
+  const playedToday = () => (state.daily.date === dayString() ? state.daily.done : 0);
+
+  function addSolved() {
+    state.solved++;
+    if (MILESTONES.includes(state.solved)) state.milestone = state.solved;
+    store.set("rw-solved", state.solved);
+  }
+
+  // Nach jedem fertigen Spiel: Tagesziel und Tage in Folge zählen. Gibt einen Text zum Feiern zurück.
+  function afterGame() {
+    const today = dayString(), msgs = [];
+    if (state.days.last !== today) {
+      state.days = { last: today, count: state.days.last === dayString(-1) ? state.days.count + 1 : 1 };
+      store.set("rw-days", state.days);
+      if (state.days.count >= 2) msgs.push(`Du übst schon ${state.days.count} Tage hintereinander. Toll, dass du dranbleibst!`);
+    }
+    if (state.daily.date !== today) state.daily = { date: today, done: 0, bonus: false };
+    state.daily.done++;
+    if (!state.daily.bonus && state.daily.done >= DAILY_GOAL) {
+      state.daily.bonus = true;
+      for (let k = 0; k < 5; k++) state.garden.push("f" + (k % 4));
+      store.set("rw-garden", state.garden);
+      msgs.push(`Tagesziel geschafft! Dafür bekommst du 5 Bonus-Blumen.`);
+    }
+    store.set("rw-daily", state.daily);
+    if (state.milestone) { msgs.push(`Wow, du hast schon ${fmt(state.milestone)} Aufgaben gelöst!`); state.milestone = 0; }
+    renderHeader();
+    return msgs.join(" ");
+  }
 
   // Rückmeldung zeigen und von Summi sprechen lassen
   function cheer(text, cls) { say(text, cls); autoRead(text); }
@@ -1386,11 +1545,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       const party = r.streak >= 3 && r.streak % 3 === 0;   // bei 3, 6 und 9 richtig hintereinander
       if (party) {
         beep(SOUND_STREAK);
-        cheer(`${r.streak} richtig hintereinander! Super-Serie! Du bist großartig!`, "ok");
+        cheer(withName(fromDeck("streak", STREAK).replace("{n}", r.streak)), "ok");
       } else {
         beep(SOUND_RIGHT);
-        cheer(r.tries === 0 ? pickFresh(PRAISE) : pickFresh(SECOND_TRY), "ok");
+        cheer(praiseFor(t, r), "ok");
       }
+      addSolved();
       renderTask("right");
       renderMeadow(r.i);
       renderStreak(party);
@@ -1405,7 +1565,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     beep(SOUND_WRONG);
     if (r.tries === 1) {
       renderTask("wrong");
-      cheer(pickFresh(TRY_AGAIN), "oops");
+      cheer(fromDeck("try", TRY_AGAIN), "oops");
       r.input = "";
       setTimeout(() => { if (!r.locked && r.tasks[r.i] === t) renderTask(); }, 400);
       return;
@@ -1415,7 +1575,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     r.input = String(t.answer);
     renderTask("right");
     renderMeadow(r.i);
-    cheer(`Die Lösung ist ${fmt(t.answer)}. Fehler sind zum Lernen da. Beim nächsten Mal klappt's!`, "oops");
+    cheer(fromDeck("missed", MISSED).replace("{x}", fmt(t.answer)), "oops");
     showHelp(true);
     setPadEnabled(false);
     $("helpBtn").hidden = true;
@@ -1427,7 +1587,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const r = state.round;
     if (!r || state.round !== r) return;
     r.i++;
-    r.input = ""; r.tries = 0; r.locked = false;
+    r.input = ""; r.tries = 0; r.locked = false; r.helped = false;
     if (r.i >= r.tasks.length) return finish();
     resetTaskUi();
     renderTask();
@@ -1541,6 +1701,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   function showHelp(afterMiss = false) {
     const t = state.round.tasks[state.round.i];
+    if (!afterMiss) state.round.helped = true;
     const more = `<button class="more-tricks" type="button" data-tricks="${t.topic}">Mehr Rechentricks dazu</button>`;
     const listen = (txt) => (canSpeak ? `<button class="speak" type="button" data-speak-text="${encodeURIComponent(txt)}">${SPEAKER}Tipp vorlesen</button>` : "");
     if (t.kind) {
@@ -1791,6 +1952,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       const bonus = Math.max(0, Math.round(10 * b.y / H));   // früh getroffen gibt Extrapunkte
       bj.score += 10 + bonus;
       bj.hits++;
+      addSolved();
       if (bj.target && bj.hits >= bj.target) {   // Level-Ziel erreicht
         beep(SOUND_RIGHT);
         fx.pop(b.el, 1);
@@ -1800,12 +1962,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       fx.pop(b.el, 1);
       if (bj.hits % 5 === 0) {
         beep(SOUND_STREAK);
-        sayBj(`${bj.hits} Treffer! Du bist super! Jetzt wird es schneller!`, "ok");
-        autoRead(`${bj.hits} Treffer! Du bist super!`);
+        sayBj(`${bj.hits} Treffer! Klasse konzentriert! Jetzt wird es schneller!`, "ok");
+        autoRead(`${bj.hits} Treffer! Klasse konzentriert!`);
         $("bjSky").insertAdjacentHTML("beforeend", `<div class="level-up">Stufe ${bj.hits / 5 + 1}!</div>`);
       } else {
         beep(SOUND_RIGHT);
-        const hitWord = pickFresh(HIT_WORDS);
+        const hitWord = fromDeck("hit", HIT_WORDS);
         sayBj(`${hitWord} +${10 + bonus} Punkte`, "ok");
         autoRead(hitWord);
       }
@@ -1853,9 +2015,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       (bj.target || (record && bj.score > 0) ? "" : ` Dein Rekord: ${fmt(Math.max(best, bj.score))} Punkte.`) +
       (flowers ? ` ${flowers} ${flowers === 1 ? "Blume wächst" : "Blumen wachsen"} in deinem Garten.` : "") +
       (state.level ? " " + completeLevel(bj.lives, won) : "");
-    autoRead(won ? "Juhu, Level geschafft! Du bist toll!"
-      : record && bj.score > 0 ? "Neuer Rekord! Wahnsinn, wie gut du rechnest!"
-      : "Gut gespielt! Beim nächsten Mal schaffst du noch mehr!");
+    const extra = afterGame();
+    if (extra) $("bjOverText").textContent += " " + extra;
+    autoRead((won ? "Juhu, Level geschafft! Toll gekämpft!"
+      : record && bj.score > 0 ? "Neuer Rekord! Dein Üben zahlt sich aus!"
+      : "Gut gespielt! Mit jedem Spiel wirst du sicherer.") + (extra ? " " + extra : ""));
     if (won || (record && bj.score > 0)) { beep(SOUND_PERFECT); fx.show(5); } else beep(SOUND_DONE);
     $("bjAgain").focus();
   }
@@ -2128,9 +2292,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       for (const k of mem.open) $("memGrid").children[k].classList.add("done");
       mem.open = [];
       mem.found++;
+      addSolved();
       beep(SOUND_RIGHT);
       fx.pop(el, 1);
-      $("memSay").textContent = `${pickFresh(PRAISE)} ${a.ans ? b.text : a.text} = ${a.ans ? a.text : b.text}`;
+      $("memSay").textContent = `${fromDeck("praise", PRAISE)} ${a.ans ? b.text : a.text} = ${a.ans ? a.text : b.text}`;
       if (mem.found < mem.cards.length / 2) autoRead(pick(["Super, ein Paar!", "Toll, das passt!", "Klasse gefunden!"]));
       beeMood("memBee", "happy");
       if (mem.found === mem.cards.length / 2) setTimeout(memoryWon, 700);
@@ -2164,7 +2329,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       (record ? "So wenige Züge hattest du noch nie!" : `Dein Rekord: ${best} Züge.`) + " 3 Blumen wachsen in deinem Garten." +
       (state.level ? " " + completeLevel(mem.moves <= 8 ? 3 : mem.moves <= 12 ? 2 : 1, true) : "");
     $("memSay").textContent = "Super gemacht!";
-    autoRead(record ? "Neuer Rekord! Du hast ein tolles Gedächtnis!" : "Geschafft! Alle Paare gefunden. Super gemacht!");
+    const extra = afterGame();
+    if (extra) $("memOverText").textContent += " " + extra;
+    autoRead((record ? "Neuer Rekord! Du hast dir die Karten super gemerkt!" : "Geschafft! Alle Paare gefunden. Super gemacht!") + (extra ? " " + extra : ""));
     beeMood("memBee", "happy");
     if (record || mem.moves <= 9) { beep(SOUND_PERFECT); fx.show(4); } else beep(SOUND_DONE);
     $("memAgain").focus();
@@ -2192,10 +2359,20 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
     $("resultTitle").textContent = perfect ? "Perfekt! Alles richtig!" : stars === 3 ? "Fantastisch!" : stars === 2 ? "Gut gemacht!" : "Weiter so!";
     const levelMsg = state.level ? (first + second >= (LEVELS[state.level.i].boss ? 8 : 7) ? " Und das Level hast du geschafft!" : " Probier das Level gleich nochmal, du schaffst das!") : "";
-    const resultVoice = (perfect ? "Perfekt! Alles richtig! Du bist ein echter Rechenprofi!"
-      : stars === 3 ? "Fantastisch! Du hast super gerechnet!"
+    // Mit dem eigenen letzten Ergebnis vergleichen, nie mit anderen
+    const correct = first + second, lastKey = `${state.grade}-${r.N}-${selectionKey(r.sel)}`;
+    const last = state.lastScores[lastKey];
+    state.lastScores[lastKey] = correct;
+    store.set("rw-last", state.lastScores);
+    const progress = last === undefined ? ""
+      : correct > last ? `Letztes Mal hattest du ${last} richtig, heute ${correct}. Du hast dich verbessert!`
+      : correct === last && correct >= 7 ? "Genauso gut wie letztes Mal!" : "";
+    const extra = afterGame();
+    $("resultText").textContent += [progress, extra].filter(Boolean).map((x) => " " + x).join("");
+    const resultVoice = [(perfect ? "Perfekt! Alles richtig! Du hast super konzentriert gerechnet!"
+      : stars === 3 ? "Fantastisch! Dein Üben hat sich gelohnt!"
       : stars === 2 ? "Gut gemacht! Du wirst immer besser!"
-      : "Weiter so! Mit jeder Runde lernst du dazu!") + levelMsg;
+      : "Gut, dass du geübt hast! Mit jeder Runde lernst du dazu.") + levelMsg, progress, extra].filter(Boolean).join(" ");
     $("bigStars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= stars ? "on grow" : "off"}">${STAR}</span>`).join("");
     $("bigStars").setAttribute("aria-label", `${stars} von 3 Sternen`);
     $("resultText").textContent = first === 10
@@ -2246,7 +2423,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (setupStep === 0) return goHome();
     setupStep--; renderSetup();
   });
-  $("settingsChip").addEventListener("click", () => openSetup(0));
+  $("settingsChip").addEventListener("click", () => openSetup(S_NAME));
+  $("nameOk").addEventListener("click", () => saveName(false));
+  $("nameSkip").addEventListener("click", () => saveName(true));
+  $("nameInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); saveName(false); } });
   $("memoryBtn").addEventListener("click", () => { state.level = null; setLevelButtons(); startMemory(); });
   $("pathBtn").addEventListener("click", openPath);
   $("pathBack").addEventListener("click", () => goHome());
@@ -2325,7 +2505,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   });
 
   document.addEventListener("keydown", (e) => {
-    if (!$("setupView").hidden && setupStep === 1) {
+    if (!$("setupView").hidden && setupStep === S_RANGE) {
       const k = /^[0-9]$/.test(e.key) ? e.key : e.key === "Backspace" ? "del" : e.key === "Enter" ? "ok" : "";
       if (k) { rangeKey(k); e.preventDefault(); }
       return;
@@ -2360,7 +2540,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   renderTricks("plus");
   renderHeader();
-  openSetup(0);
+  openSetup(state.name ? S_GRADE : S_NAME);
 })();
 </script>
 <!-- /body-ende -->

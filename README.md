@@ -35,6 +35,19 @@ Ist der Ton an, spricht Summi mit einer fröhlichen Stimme: Sie liest ihre Frage
 Textaufgaben von selbst vor, lobt richtige Antworten, macht bei Fehlern Mut
 („Nicht schlimm! Versuch es nochmal, du schaffst das!“) und jubelt bei Serien, Rekorden und Leveln.
 
+**Motivation nach dem Stand der Forschung:**
+
+- Summi lobt **Anstrengung, Vorgehen und Fortschritt** („Du hast genau hingeschaut“, „Dranbleiben
+  lohnt sich“) statt „Du bist schlau“. Studien zeigen, dass Lob für Begabung Kinder eher vorsichtig
+  macht, während Lob für den Lernweg sie mutiger an schwierige Aufgaben gehen lässt.
+- Über 40 Lobsätze plus Lob passend zur Aufgabe (Zehnerübergang, Einmaleins, Textaufgabe …).
+  Sie werden wie ein Kartenstapel gemischt, sodass jedes Lob erst wiederkommt, wenn alle anderen dran waren.
+- Bei Fehlern spricht Summi von „noch nicht“ und davon, dass Fehler beim Lernen helfen.
+- Fortschritt im Vergleich mit sich selbst: „Letztes Mal hattest du 6 richtig, heute 8.“
+- **Tagesziel** (3 Spiele, dann 5 Bonus-Blumen), **Tage in Folge** und **Meilensteine**
+  („Du hast schon 100 Aufgaben gelöst!“) auf der Startseite.
+- Auf Wunsch spricht Summi das Kind mit seinem Namen an (bleibt nur auf dem Gerät gespeichert).
+
 **1. Summi fragt nach – eine Frage pro Bildschirm**
 
 1. In welche Klasse gehst du?
