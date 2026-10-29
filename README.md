@@ -95,6 +95,15 @@ Es ist nichts vorausgewählt. Über „Ändern“ auf der Startseite lässt sich
   Dort lässt sich auch **Summis Stimme** einstellen: jede deutsche Stimme des Geräts anhören und auswählen,
   Tonhöhe (natürlich oder etwas fröhlicher) und Tempo (langsam oder normal), dazu eine Anleitung,
   wie man auf Android natürlicher klingende Stimmen nachlädt.
+- **Eigene Stimme für Summi:** Eltern können Summis feste Sätze (Lob, Mut-Sätze, Begrüßung, Spiele)
+  selbst einsprechen. Die 181 Sätze stehen in `app/stimme/sprechliste.json`, in 22 kurzen Aufnahmen.
+  Aufnahmen (z. B. aus der Sprachrekorder-App) kommen in den Ordner `stimme-aufnahmen/`. Dann läuft der
+  Ablauf „Summis Stimme bearbeiten“ von selbst: Spracherkennung ordnet jeden Satz zu (Versprecher und
+  Wiederholungen sind kein Problem, der letzte Versuch zählt), schneidet ihn aus, entfernt Rauschen,
+  gleicht die Lautstärke an und erzeugt zwei Fassungen: „Natürlich“ und „Kleine Biene“ (etwas höher).
+  Danach wird eine neue Android-App gebaut. Was noch fehlt, steht in `app/stimme/bericht.md`.
+  In der Eltern-Ansicht lässt sich die eingesprochene Stimme wählen oder ausschalten. Aufgaben, Zahlen
+  und Namen liest weiter die Computerstimme.
 
 **Belohnungen:** Blumen für den eigenen Garten, Funken bei 3, 6 und 9 richtigen Antworten in Folge,
 Feuerwerk bei 3 Sternen oder einem neuen Rekord, eine Goldblume für eine fehlerfreie Blumen-Runde.

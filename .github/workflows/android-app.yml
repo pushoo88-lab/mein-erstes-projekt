@@ -8,6 +8,13 @@ on:
       - 'app/**'
       - '.github/workflows/android-app.yml'
   workflow_dispatch:
+  # Wird auch nach dem Bearbeiten von Summis Stimme aufgerufen (stimme.yml)
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Branch, der gebaut wird'
+        type: string
+        required: true
 
 permissions:
   contents: write
@@ -21,6 +28,8 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - uses: actions/setup-node@v4
         with:
@@ -45,16 +54,24 @@ jobs:
           npx playwright install --with-deps chromium
           npm test
 
+      # Passen die eingesprochenen Sätze noch zur App? Geänderte Sätze spricht sonst die Computerstimme.
+      - name: Sprechliste prüfen
+        run: node stimme/sprechliste.mjs --check || echo "::warning::Die Sprechliste passt nicht mehr zur App. Geänderte Sätze spricht die Computerstimme."
+
       - name: Android-Projekt anlegen
         run: npx cap add android
 
       - name: App-Symbol und Startbild erzeugen
         run: npx @capacitor/assets generate --android --iconBackgroundColor '#e6f2f6' --splashBackgroundColor '#e6f2f6' --splashBackgroundColorDark '#0f2228'
 
+      # Minuten seit Anfang 2026: wird mit jedem Bau größer, egal welcher Ablauf baut.
+      # Android installiert ein Update nur, wenn die Nummer größer ist als die der installierten App.
       - name: Versionsnummer setzen
         run: |
-          sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/" android/app/build.gradle
-          sed -i "s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
+          CODE=$(( ($(date +%s) - 1767225600) / 60 ))
+          echo "VERSION=1.0.$CODE" >> "$GITHUB_ENV"
+          sed -i "s/versionCode 1$/versionCode $CODE/" android/app/build.gradle
+          sed -i "s/versionName \"1.0\"/versionName \"1.0.$CODE\"/" android/app/build.gradle
           grep -n "versionCode\|versionName" android/app/build.gradle
 
       # Immer derselbe Schlüssel, damit Updates über die alte App installiert werden können
@@ -119,7 +136,7 @@ jobs:
           make_latest: true
           files: app/Rechenwiese.apk
           body: |
-            Die neueste Rechenwiese als Android-App (Version 1.0.${{ github.run_number }}).
+            Die neueste Rechenwiese als Android-App (Version ${{ env.VERSION }}).
 
             So installierst du sie:
             1. Auf dem Android-Handy oder Tablet unten bei „Assets“ auf **Rechenwiese.apk** tippen.

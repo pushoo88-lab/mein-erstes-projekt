@@ -1,0 +1,1275 @@
+{
+ "teile": [
+  "Teil 1: Das Wichtigste",
+  "Teil 2: Spiele und Belohnungen"
+ ],
+ "saetze": [
+  {
+   "id": 1,
+   "teil": 1,
+   "block": 1,
+   "gruppe": "Begrüßung",
+   "text": "Hallo! Ich bin Summi, die Rechenbiene. Wie heißt du?"
+  },
+  {
+   "id": 2,
+   "teil": 1,
+   "block": 1,
+   "gruppe": "Begrüßung",
+   "text": "Schön, dass du da bist! In welche Klasse gehst du?"
+  },
+  {
+   "id": 3,
+   "teil": 1,
+   "block": 1,
+   "gruppe": "Begrüßung",
+   "text": "Bis zu welcher Zahl rechnest du schon? Tippe die Zahl ein."
+  },
+  {
+   "id": 4,
+   "teil": 1,
+   "block": 1,
+   "gruppe": "Begrüßung",
+   "text": "Kannst du schon Mal und Geteilt rechnen?"
+  },
+  {
+   "id": 5,
+   "teil": 1,
+   "block": 1,
+   "gruppe": "Begrüßung",
+   "text": "Was möchtest du rechnen? Tippe alles an, was du üben magst."
+  },
+  {
+   "id": 6,
+   "teil": 1,
+   "block": 1,
+   "gruppe": "Begrüßung",
+   "text": "Das ist eine riesige Zahl! Wenn du sicher bist, tippe nochmal auf Weiter."
+  },
+  {
+   "id": 7,
+   "teil": 1,
+   "block": 1,
+   "gruppe": "Begrüßung",
+   "text": "Super! Jetzt kann es losgehen. Möchtest du spielen oder Blumen sammeln?"
+  },
+  {
+   "id": 8,
+   "teil": 1,
+   "block": 1,
+   "gruppe": "Begrüßung",
+   "text": "Was möchtest du jetzt machen?"
+  },
+  {
+   "id": 9,
+   "teil": 1,
+   "block": 1,
+   "gruppe": "Begrüßung",
+   "text": "Lust auf ein Spiel?"
+  },
+  {
+   "id": 10,
+   "teil": 1,
+   "block": 1,
+   "gruppe": "Begrüßung",
+   "text": "Wollen wir zusammen rechnen?"
+  },
+  {
+   "id": 11,
+   "teil": 1,
+   "block": 1,
+   "gruppe": "Begrüßung",
+   "text": "Toll, dass du da bist! Was spielen wir?"
+  },
+  {
+   "id": 12,
+   "teil": 1,
+   "block": 1,
+   "gruppe": "Begrüßung",
+   "text": "Schön, dass du da bist!"
+  },
+  {
+   "id": 13,
+   "teil": 1,
+   "block": 2,
+   "gruppe": "Begrüßung",
+   "text": "Dein Tagesziel hast du heute schon geschafft! Du kannst trotzdem weiterspielen."
+  },
+  {
+   "id": 14,
+   "teil": 1,
+   "block": 2,
+   "gruppe": "Begrüßung",
+   "text": "Hallo!"
+  },
+  {
+   "id": 15,
+   "teil": 1,
+   "block": 2,
+   "gruppe": "Begrüßung",
+   "text": "Ich bin Summi. Super, das hast du toll gerechnet!"
+  },
+  {
+   "id": 16,
+   "teil": 1,
+   "block": 3,
+   "gruppe": "Lob",
+   "text": "Richtig! Gut gerechnet!"
+  },
+  {
+   "id": 17,
+   "teil": 1,
+   "block": 3,
+   "gruppe": "Lob",
+   "text": "Super, das stimmt!"
+  },
+  {
+   "id": 18,
+   "teil": 1,
+   "block": 3,
+   "gruppe": "Lob",
+   "text": "Klasse! Du hast genau hingeschaut."
+  },
+  {
+   "id": 19,
+   "teil": 1,
+   "block": 3,
+   "gruppe": "Lob",
+   "text": "Richtig! Dein Üben lohnt sich."
+  },
+  {
+   "id": 20,
+   "teil": 1,
+   "block": 3,
+   "gruppe": "Lob",
+   "text": "Toll! Du rechnest immer sicherer."
+  },
+  {
+   "id": 21,
+   "teil": 1,
+   "block": 3,
+   "gruppe": "Lob",
+   "text": "Prima! Das hast du dir gut überlegt."
+  },
+  {
+   "id": 22,
+   "teil": 1,
+   "block": 3,
+   "gruppe": "Lob",
+   "text": "Ja, genau! Schritt für Schritt geschafft."
+  },
+  {
+   "id": 23,
+   "teil": 1,
+   "block": 3,
+   "gruppe": "Lob",
+   "text": "Stark! Du hast konzentriert gerechnet."
+  },
+  {
+   "id": 24,
+   "teil": 1,
+   "block": 3,
+   "gruppe": "Lob",
+   "text": "Juhu, richtig! Weiter so!"
+  },
+  {
+   "id": 25,
+   "teil": 1,
+   "block": 3,
+   "gruppe": "Lob",
+   "text": "Spitze! Du bleibst dran."
+  },
+  {
+   "id": 26,
+   "teil": 1,
+   "block": 3,
+   "gruppe": "Lob",
+   "text": "Richtig! Man merkt, dass du übst."
+  },
+  {
+   "id": 27,
+   "teil": 1,
+   "block": 3,
+   "gruppe": "Lob",
+   "text": "Super gemacht! Du wirst immer besser."
+  },
+  {
+   "id": 28,
+   "teil": 1,
+   "block": 4,
+   "gruppe": "Lob",
+   "text": "Klasse! Das war gut nachgedacht."
+  },
+  {
+   "id": 29,
+   "teil": 1,
+   "block": 4,
+   "gruppe": "Lob",
+   "text": "Bravo! Genau so geht das."
+  },
+  {
+   "id": 30,
+   "teil": 1,
+   "block": 4,
+   "gruppe": "Lob",
+   "text": "Toll! Das hast du ganz allein geschafft."
+  },
+  {
+   "id": 31,
+   "teil": 1,
+   "block": 4,
+   "gruppe": "Lob",
+   "text": "Richtig! Dein Kopf hat super gearbeitet."
+  },
+  {
+   "id": 32,
+   "teil": 1,
+   "block": 4,
+   "gruppe": "Lob",
+   "text": "Wunderbar! Das hast du sorgfältig gerechnet."
+  },
+  {
+   "id": 33,
+   "teil": 1,
+   "block": 4,
+   "gruppe": "Lob",
+   "text": "Hurra, das stimmt!"
+  },
+  {
+   "id": 34,
+   "teil": 1,
+   "block": 4,
+   "gruppe": "Lob",
+   "text": "Sehr gut! Du hast dir Mühe gegeben."
+  },
+  {
+   "id": 35,
+   "teil": 1,
+   "block": 4,
+   "gruppe": "Lob",
+   "text": "Richtig! Das war ein guter Rechenweg."
+  },
+  {
+   "id": 36,
+   "teil": 1,
+   "block": 4,
+   "gruppe": "Lob",
+   "text": "Prima! Noch eine Blume für deinen Garten."
+  },
+  {
+   "id": 37,
+   "teil": 1,
+   "block": 4,
+   "gruppe": "Lob",
+   "text": "Fantastisch! Du hast nicht geraten, sondern gerechnet."
+  },
+  {
+   "id": 38,
+   "teil": 1,
+   "block": 4,
+   "gruppe": "Lob",
+   "text": "Super! Diese Aufgabe hast du geknackt."
+  },
+  {
+   "id": 39,
+   "teil": 1,
+   "block": 4,
+   "gruppe": "Lob",
+   "text": "Yippie, richtig!"
+  },
+  {
+   "id": 40,
+   "teil": 1,
+   "block": 5,
+   "gruppe": "Lob",
+   "text": "Toll! Du lernst richtig schnell dazu."
+  },
+  {
+   "id": 41,
+   "teil": 1,
+   "block": 5,
+   "gruppe": "Lob",
+   "text": "Klasse! Du hast die Zahlen gut im Blick."
+  },
+  {
+   "id": 42,
+   "teil": 1,
+   "block": 5,
+   "gruppe": "Lob",
+   "text": "Richtig! Summi summt vor Freude."
+  },
+  {
+   "id": 43,
+   "teil": 1,
+   "block": 5,
+   "gruppe": "Lob",
+   "text": "Ausgezeichnet! Weiter so!"
+  },
+  {
+   "id": 44,
+   "teil": 1,
+   "block": 5,
+   "gruppe": "Lob",
+   "text": "Super! Üben macht stark, das sieht man."
+  },
+  {
+   "id": 45,
+   "teil": 1,
+   "block": 5,
+   "gruppe": "Lob",
+   "text": "Jawohl, das stimmt!"
+  },
+  {
+   "id": 46,
+   "teil": 1,
+   "block": 5,
+   "gruppe": "Lob",
+   "text": "Prima! Du hast gut aufgepasst."
+  },
+  {
+   "id": 47,
+   "teil": 1,
+   "block": 5,
+   "gruppe": "Lob",
+   "text": "Richtig! Wieder ein Schritt weiter."
+  },
+  {
+   "id": 48,
+   "teil": 1,
+   "block": 5,
+   "gruppe": "Lob",
+   "text": "Toll gerechnet! Ich freue mich mit dir."
+  },
+  {
+   "id": 49,
+   "teil": 1,
+   "block": 5,
+   "gruppe": "Lob",
+   "text": "Großartig! Du gibst dir richtig Mühe."
+  },
+  {
+   "id": 50,
+   "teil": 1,
+   "block": 5,
+   "gruppe": "Lob",
+   "text": "Wow, richtig! Das war gar nicht so leicht."
+  },
+  {
+   "id": 51,
+   "teil": 1,
+   "block": 5,
+   "gruppe": "Lob",
+   "text": "Super! Erst überlegt, dann getippt."
+  },
+  {
+   "id": 52,
+   "teil": 1,
+   "block": 6,
+   "gruppe": "Lob",
+   "text": "Klasse! In Ruhe klappt es am besten."
+  },
+  {
+   "id": 53,
+   "teil": 1,
+   "block": 6,
+   "gruppe": "Lob",
+   "text": "Juhu! Das hast du dir verdient."
+  },
+  {
+   "id": 54,
+   "teil": 1,
+   "block": 6,
+   "gruppe": "Lob",
+   "text": "Richtig! Deine Wiese wird immer bunter."
+  },
+  {
+   "id": 55,
+   "teil": 1,
+   "block": 6,
+   "gruppe": "Lob",
+   "text": "Sehr schön! Du rechnest richtig fleißig."
+  },
+  {
+   "id": 56,
+   "teil": 1,
+   "block": 7,
+   "gruppe": "Nochmal versuchen",
+   "text": "Noch nicht ganz. Versuch es nochmal, du schaffst das!"
+  },
+  {
+   "id": 57,
+   "teil": 1,
+   "block": 7,
+   "gruppe": "Nochmal versuchen",
+   "text": "Fast! Schau nochmal genau hin."
+  },
+  {
+   "id": 58,
+   "teil": 1,
+   "block": 7,
+   "gruppe": "Nochmal versuchen",
+   "text": "Nicht schlimm! Fehler helfen beim Lernen."
+  },
+  {
+   "id": 59,
+   "teil": 1,
+   "block": 7,
+   "gruppe": "Nochmal versuchen",
+   "text": "Hmm, noch nicht. Denk nochmal in Ruhe nach."
+  },
+  {
+   "id": 60,
+   "teil": 1,
+   "block": 7,
+   "gruppe": "Nochmal versuchen",
+   "text": "Knapp daneben! Probier es nochmal."
+  },
+  {
+   "id": 61,
+   "teil": 1,
+   "block": 7,
+   "gruppe": "Nochmal versuchen",
+   "text": "Kein Problem! Aus Fehlern lernt dein Kopf."
+  },
+  {
+   "id": 62,
+   "teil": 1,
+   "block": 7,
+   "gruppe": "Nochmal versuchen",
+   "text": "Noch nicht richtig, aber du bist auf einem guten Weg."
+  },
+  {
+   "id": 63,
+   "teil": 1,
+   "block": 7,
+   "gruppe": "Nochmal versuchen",
+   "text": "Atme einmal tief durch und versuch es nochmal."
+  },
+  {
+   "id": 64,
+   "teil": 1,
+   "block": 7,
+   "gruppe": "Nochmal versuchen",
+   "text": "Das kriegst du hin! Rechne es nochmal Schritt für Schritt."
+  },
+  {
+   "id": 65,
+   "teil": 1,
+   "block": 7,
+   "gruppe": "Nochmal versuchen",
+   "text": "Oh, noch nicht. Tipp auf Hilfe, wenn du magst."
+  },
+  {
+   "id": 66,
+   "teil": 1,
+   "block": 8,
+   "gruppe": "Beim zweiten Versuch geschafft",
+   "text": "Jetzt stimmt es! Super, dass du nicht aufgegeben hast."
+  },
+  {
+   "id": 67,
+   "teil": 1,
+   "block": 8,
+   "gruppe": "Beim zweiten Versuch geschafft",
+   "text": "Richtig! Dranbleiben lohnt sich."
+  },
+  {
+   "id": 68,
+   "teil": 1,
+   "block": 8,
+   "gruppe": "Beim zweiten Versuch geschafft",
+   "text": "Geschafft! Beim zweiten Versuch klappt es oft besser."
+  },
+  {
+   "id": 69,
+   "teil": 1,
+   "block": 8,
+   "gruppe": "Beim zweiten Versuch geschafft",
+   "text": "Toll! Du hast deinen Fehler selbst gefunden."
+  },
+  {
+   "id": 70,
+   "teil": 1,
+   "block": 8,
+   "gruppe": "Beim zweiten Versuch geschafft",
+   "text": "Super! Du hast nochmal nachgedacht, und jetzt stimmt es."
+  },
+  {
+   "id": 71,
+   "teil": 1,
+   "block": 9,
+   "gruppe": "Mit Hilfe geschafft",
+   "text": "Super, du hast die Hilfe genutzt und es geschafft!"
+  },
+  {
+   "id": 72,
+   "teil": 1,
+   "block": 9,
+   "gruppe": "Mit Hilfe geschafft",
+   "text": "Toll! Mit dem Tipp hast du es selbst gerechnet."
+  },
+  {
+   "id": 73,
+   "teil": 1,
+   "block": 9,
+   "gruppe": "Mit Hilfe geschafft",
+   "text": "Klasse! Hilfe holen ist schlau, und jetzt stimmt es."
+  },
+  {
+   "id": 74,
+   "teil": 1,
+   "block": 10,
+   "gruppe": "Nach der Lösung",
+   "text": "Nicht schlimm, so lernst du dazu!"
+  },
+  {
+   "id": 75,
+   "teil": 1,
+   "block": 10,
+   "gruppe": "Nach der Lösung",
+   "text": "Schau dir den Tipp an, dann klappt es beim nächsten Mal."
+  },
+  {
+   "id": 76,
+   "teil": 1,
+   "block": 10,
+   "gruppe": "Nach der Lösung",
+   "text": "Fehler gehören zum Lernen dazu. Weiter geht's!"
+  },
+  {
+   "id": 77,
+   "teil": 1,
+   "block": 10,
+   "gruppe": "Nach der Lösung",
+   "text": "Die nächste Aufgabe schaffst du!"
+  },
+  {
+   "id": 78,
+   "teil": 2,
+   "block": 11,
+   "gruppe": "Passendes Lob",
+   "text": "Toll! Du hast genau gelesen und richtig gerechnet."
+  },
+  {
+   "id": 79,
+   "teil": 2,
+   "block": 11,
+   "gruppe": "Passendes Lob",
+   "text": "Super, die Textaufgabe hast du gelöst!"
+  },
+  {
+   "id": 80,
+   "teil": 2,
+   "block": 11,
+   "gruppe": "Passendes Lob",
+   "text": "Klasse! Lesen und Rechnen, beides geschafft."
+  },
+  {
+   "id": 81,
+   "teil": 2,
+   "block": 11,
+   "gruppe": "Passendes Lob",
+   "text": "Super, du bist geschickt über den Zehner gerechnet!"
+  },
+  {
+   "id": 82,
+   "teil": 2,
+   "block": 11,
+   "gruppe": "Passendes Lob",
+   "text": "Klasse! Der Zehnerübergang klappt immer besser."
+  },
+  {
+   "id": 83,
+   "teil": 2,
+   "block": 11,
+   "gruppe": "Passendes Lob",
+   "text": "Toll! Über die 10 hast du sicher gerechnet."
+  },
+  {
+   "id": 84,
+   "teil": 2,
+   "block": 11,
+   "gruppe": "Passendes Lob",
+   "text": "Prima, das Einmaleins übst du richtig gut!"
+  },
+  {
+   "id": 85,
+   "teil": 2,
+   "block": 11,
+   "gruppe": "Passendes Lob",
+   "text": "Super, die Malaufgabe hast du gut gerechnet!"
+  },
+  {
+   "id": 86,
+   "teil": 2,
+   "block": 11,
+   "gruppe": "Passendes Lob",
+   "text": "Klasse! Mal rechnen klappt immer besser."
+  },
+  {
+   "id": 87,
+   "teil": 2,
+   "block": 11,
+   "gruppe": "Passendes Lob",
+   "text": "Toll! Du hast gerecht verteilt."
+  },
+  {
+   "id": 88,
+   "teil": 2,
+   "block": 11,
+   "gruppe": "Passendes Lob",
+   "text": "Super, beim Teilen hast du gut nachgedacht!"
+  },
+  {
+   "id": 89,
+   "teil": 2,
+   "block": 11,
+   "gruppe": "Passendes Lob",
+   "text": "Klasse! Die Malaufgabe hat dir beim Teilen geholfen."
+  },
+  {
+   "id": 90,
+   "teil": 2,
+   "block": 12,
+   "gruppe": "Passendes Lob",
+   "text": "Klasse! Zehner und Einer hast du gut erkannt."
+  },
+  {
+   "id": 91,
+   "teil": 2,
+   "block": 12,
+   "gruppe": "Passendes Lob",
+   "text": "Super, du kennst dich mit den Stellen aus!"
+  },
+  {
+   "id": 92,
+   "teil": 2,
+   "block": 12,
+   "gruppe": "Passendes Lob",
+   "text": "Toll! Jede Ziffer an der richtigen Stelle."
+  },
+  {
+   "id": 93,
+   "teil": 2,
+   "block": 12,
+   "gruppe": "Passendes Lob",
+   "text": "Super! Du hast die Lücke gefunden."
+  },
+  {
+   "id": 94,
+   "teil": 2,
+   "block": 12,
+   "gruppe": "Passendes Lob",
+   "text": "Toll, rückwärts rechnen klappt!"
+  },
+  {
+   "id": 95,
+   "teil": 2,
+   "block": 12,
+   "gruppe": "Passendes Lob",
+   "text": "Klasse! Die fehlende Zahl hast du entdeckt."
+  },
+  {
+   "id": 96,
+   "teil": 2,
+   "block": 12,
+   "gruppe": "Passendes Lob",
+   "text": "Super verdoppelt!"
+  },
+  {
+   "id": 97,
+   "teil": 2,
+   "block": 12,
+   "gruppe": "Passendes Lob",
+   "text": "Klasse! Verdoppeln und Halbieren klappt richtig gut."
+  },
+  {
+   "id": 98,
+   "teil": 2,
+   "block": 12,
+   "gruppe": "Passendes Lob",
+   "text": "Toll! Du hast die Zahl geschickt zerlegt."
+  },
+  {
+   "id": 99,
+   "teil": 2,
+   "block": 12,
+   "gruppe": "Passendes Lob",
+   "text": "Super! Du kennst dich auf dem Zahlenstrahl aus."
+  },
+  {
+   "id": 100,
+   "teil": 2,
+   "block": 12,
+   "gruppe": "Passendes Lob",
+   "text": "Klasse! Die Nachbarn hast du gefunden."
+  },
+  {
+   "id": 101,
+   "teil": 2,
+   "block": 12,
+   "gruppe": "Passendes Lob",
+   "text": "Toll! Du weißt genau, wo die Zahl wohnt."
+  },
+  {
+   "id": 102,
+   "teil": 2,
+   "block": 13,
+   "gruppe": "Passendes Lob",
+   "text": "Super! Die Zahlenmauer steht."
+  },
+  {
+   "id": 103,
+   "teil": 2,
+   "block": 13,
+   "gruppe": "Passendes Lob",
+   "text": "Klasse gebaut! Jeder Stein passt."
+  },
+  {
+   "id": 104,
+   "teil": 2,
+   "block": 13,
+   "gruppe": "Passendes Lob",
+   "text": "Toll! Du hast den fehlenden Stein gefunden."
+  },
+  {
+   "id": 105,
+   "teil": 2,
+   "block": 13,
+   "gruppe": "Passendes Lob",
+   "text": "Super! Du kannst gut mit Geld rechnen."
+  },
+  {
+   "id": 106,
+   "teil": 2,
+   "block": 13,
+   "gruppe": "Passendes Lob",
+   "text": "Klasse! Damit kannst du schon einkaufen."
+  },
+  {
+   "id": 107,
+   "teil": 2,
+   "block": 13,
+   "gruppe": "Passendes Lob",
+   "text": "Toll! Das Geld hast du richtig gezählt."
+  },
+  {
+   "id": 108,
+   "teil": 2,
+   "block": 13,
+   "gruppe": "Passendes Lob",
+   "text": "Super! Du kannst die Uhr lesen."
+  },
+  {
+   "id": 109,
+   "teil": 2,
+   "block": 13,
+   "gruppe": "Passendes Lob",
+   "text": "Klasse! Die Zeiger hast du richtig gedeutet."
+  },
+  {
+   "id": 110,
+   "teil": 2,
+   "block": 13,
+   "gruppe": "Passendes Lob",
+   "text": "Toll! Jetzt weißt du, wie spät es ist."
+  },
+  {
+   "id": 111,
+   "teil": 2,
+   "block": 14,
+   "gruppe": "Serien",
+   "text": "3 richtig hintereinander! Dein Üben zahlt sich aus!"
+  },
+  {
+   "id": 112,
+   "teil": 2,
+   "block": 14,
+   "gruppe": "Serien",
+   "text": "3 am Stück! Du rechnest richtig konzentriert!"
+  },
+  {
+   "id": 113,
+   "teil": 2,
+   "block": 14,
+   "gruppe": "Serien",
+   "text": "Super-Serie: 3 richtige! Weiter so!"
+  },
+  {
+   "id": 114,
+   "teil": 2,
+   "block": 14,
+   "gruppe": "Serien",
+   "text": "6 richtig hintereinander! Dein Üben zahlt sich aus!"
+  },
+  {
+   "id": 115,
+   "teil": 2,
+   "block": 14,
+   "gruppe": "Serien",
+   "text": "6 am Stück! Du rechnest richtig konzentriert!"
+  },
+  {
+   "id": 116,
+   "teil": 2,
+   "block": 14,
+   "gruppe": "Serien",
+   "text": "Super-Serie: 6 richtige! Weiter so!"
+  },
+  {
+   "id": 117,
+   "teil": 2,
+   "block": 14,
+   "gruppe": "Serien",
+   "text": "9 richtig hintereinander! Dein Üben zahlt sich aus!"
+  },
+  {
+   "id": 118,
+   "teil": 2,
+   "block": 14,
+   "gruppe": "Serien",
+   "text": "9 am Stück! Du rechnest richtig konzentriert!"
+  },
+  {
+   "id": 119,
+   "teil": 2,
+   "block": 14,
+   "gruppe": "Serien",
+   "text": "Super-Serie: 9 richtige! Weiter so!"
+  },
+  {
+   "id": 120,
+   "teil": 2,
+   "block": 15,
+   "gruppe": "Wiederholen",
+   "text": "Die kennst du schon von vorhin. Jetzt klappt sie bestimmt!"
+  },
+  {
+   "id": 121,
+   "teil": 2,
+   "block": 15,
+   "gruppe": "Wiederholen",
+   "text": "Diese Aufgabe hattest du schon mal. Zeig, was du gelernt hast!"
+  },
+  {
+   "id": 122,
+   "teil": 2,
+   "block": 16,
+   "gruppe": "Ergebnis",
+   "text": "Perfekt! Alles richtig! Du hast super konzentriert gerechnet!"
+  },
+  {
+   "id": 123,
+   "teil": 2,
+   "block": 16,
+   "gruppe": "Ergebnis",
+   "text": "Fantastisch! Dein Üben hat sich gelohnt!"
+  },
+  {
+   "id": 124,
+   "teil": 2,
+   "block": 16,
+   "gruppe": "Ergebnis",
+   "text": "Gut gemacht! Du wirst immer besser!"
+  },
+  {
+   "id": 125,
+   "teil": 2,
+   "block": 16,
+   "gruppe": "Ergebnis",
+   "text": "Gut, dass du geübt hast! Mit jeder Runde lernst du dazu."
+  },
+  {
+   "id": 126,
+   "teil": 2,
+   "block": 16,
+   "gruppe": "Ergebnis",
+   "text": "Und das Level hast du geschafft!"
+  },
+  {
+   "id": 127,
+   "teil": 2,
+   "block": 16,
+   "gruppe": "Ergebnis",
+   "text": "Probier das Level gleich nochmal, du schaffst das!"
+  },
+  {
+   "id": 128,
+   "teil": 2,
+   "block": 16,
+   "gruppe": "Ergebnis",
+   "text": "Du hast dich verbessert!"
+  },
+  {
+   "id": 129,
+   "teil": 2,
+   "block": 16,
+   "gruppe": "Ergebnis",
+   "text": "Genauso gut wie letztes Mal!"
+  },
+  {
+   "id": 130,
+   "teil": 2,
+   "block": 16,
+   "gruppe": "Ergebnis",
+   "text": "Toll, dass du dranbleibst!"
+  },
+  {
+   "id": 131,
+   "teil": 2,
+   "block": 16,
+   "gruppe": "Ergebnis",
+   "text": "Tagesziel geschafft! Dafür bekommst du 5 Bonus-Blumen."
+  },
+  {
+   "id": 132,
+   "teil": 2,
+   "block": 17,
+   "gruppe": "Ballonjagd",
+   "text": "Treffer!"
+  },
+  {
+   "id": 133,
+   "teil": 2,
+   "block": 17,
+   "gruppe": "Ballonjagd",
+   "text": "Super!"
+  },
+  {
+   "id": 134,
+   "teil": 2,
+   "block": 17,
+   "gruppe": "Ballonjagd",
+   "text": "Klasse!"
+  },
+  {
+   "id": 135,
+   "teil": 2,
+   "block": 17,
+   "gruppe": "Ballonjagd",
+   "text": "Toll!"
+  },
+  {
+   "id": 136,
+   "teil": 2,
+   "block": 17,
+   "gruppe": "Ballonjagd",
+   "text": "Jawohl!"
+  },
+  {
+   "id": 137,
+   "teil": 2,
+   "block": 17,
+   "gruppe": "Ballonjagd",
+   "text": "Spitze!"
+  },
+  {
+   "id": 138,
+   "teil": 2,
+   "block": 17,
+   "gruppe": "Ballonjagd",
+   "text": "Prima!"
+  },
+  {
+   "id": 139,
+   "teil": 2,
+   "block": 17,
+   "gruppe": "Ballonjagd",
+   "text": "Juhu!"
+  },
+  {
+   "id": 140,
+   "teil": 2,
+   "block": 17,
+   "gruppe": "Ballonjagd",
+   "text": "5 Treffer!"
+  },
+  {
+   "id": 141,
+   "teil": 2,
+   "block": 17,
+   "gruppe": "Ballonjagd",
+   "text": "10 Treffer!"
+  },
+  {
+   "id": 142,
+   "teil": 2,
+   "block": 17,
+   "gruppe": "Ballonjagd",
+   "text": "15 Treffer!"
+  },
+  {
+   "id": 143,
+   "teil": 2,
+   "block": 17,
+   "gruppe": "Ballonjagd",
+   "text": "20 Treffer!"
+  },
+  {
+   "id": 144,
+   "teil": 2,
+   "block": 18,
+   "gruppe": "Ballonjagd",
+   "text": "Klasse konzentriert!"
+  },
+  {
+   "id": 145,
+   "teil": 2,
+   "block": 18,
+   "gruppe": "Ballonjagd",
+   "text": "Oh, das war nicht der richtige. Versuch einen anderen!"
+  },
+  {
+   "id": 146,
+   "teil": 2,
+   "block": 18,
+   "gruppe": "Ballonjagd",
+   "text": "Die Ballons kommen nochmal. Lass dir ruhig Zeit!"
+  },
+  {
+   "id": 147,
+   "teil": 2,
+   "block": 18,
+   "gruppe": "Ballonjagd",
+   "text": "Nicht schlimm, weiter geht's!"
+  },
+  {
+   "id": 148,
+   "teil": 2,
+   "block": 18,
+   "gruppe": "Ballonjagd",
+   "text": "Juhu, Level geschafft! Toll gekämpft!"
+  },
+  {
+   "id": 149,
+   "teil": 2,
+   "block": 18,
+   "gruppe": "Ballonjagd",
+   "text": "Neuer Rekord! Dein Üben zahlt sich aus!"
+  },
+  {
+   "id": 150,
+   "teil": 2,
+   "block": 18,
+   "gruppe": "Ballonjagd",
+   "text": "Gut gespielt! Mit jedem Spiel wirst du sicherer."
+  },
+  {
+   "id": 151,
+   "teil": 2,
+   "block": 19,
+   "gruppe": "Zahlen-Memory",
+   "text": "Super, ein Paar!"
+  },
+  {
+   "id": 152,
+   "teil": 2,
+   "block": 19,
+   "gruppe": "Zahlen-Memory",
+   "text": "Toll, das passt!"
+  },
+  {
+   "id": 153,
+   "teil": 2,
+   "block": 19,
+   "gruppe": "Zahlen-Memory",
+   "text": "Klasse gefunden!"
+  },
+  {
+   "id": 154,
+   "teil": 2,
+   "block": 19,
+   "gruppe": "Zahlen-Memory",
+   "text": "Neuer Rekord! Du hast dir die Karten super gemerkt!"
+  },
+  {
+   "id": 155,
+   "teil": 2,
+   "block": 19,
+   "gruppe": "Zahlen-Memory",
+   "text": "Geschafft! Alle Paare gefunden. Super gemacht!"
+  },
+  {
+   "id": 156,
+   "teil": 2,
+   "block": 20,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Level 1: Blumenwiese."
+  },
+  {
+   "id": 157,
+   "teil": 2,
+   "block": 20,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Level 2: Bienenstock."
+  },
+  {
+   "id": 158,
+   "teil": 2,
+   "block": 20,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Level 3: Kleeblattfeld."
+  },
+  {
+   "id": 159,
+   "teil": 2,
+   "block": 20,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Level 4: Pilzwald."
+  },
+  {
+   "id": 160,
+   "teil": 2,
+   "block": 20,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Level 5: Teich."
+  },
+  {
+   "id": 161,
+   "teil": 2,
+   "block": 20,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Level 6: Schmetterlingsgarten."
+  },
+  {
+   "id": 162,
+   "teil": 2,
+   "block": 20,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Level 7: Holzbrücke."
+  },
+  {
+   "id": 163,
+   "teil": 2,
+   "block": 20,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Level 8: Windmühle."
+  },
+  {
+   "id": 164,
+   "teil": 2,
+   "block": 20,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Level 9: Sonnenhügel."
+  },
+  {
+   "id": 165,
+   "teil": 2,
+   "block": 20,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Level 10: Regenbogen."
+  },
+  {
+   "id": 166,
+   "teil": 2,
+   "block": 20,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Level 11: Wolkenberg."
+  },
+  {
+   "id": 167,
+   "teil": 2,
+   "block": 20,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Level 12: Honigschloss."
+  },
+  {
+   "id": 168,
+   "teil": 2,
+   "block": 21,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Blumen-Runde!"
+  },
+  {
+   "id": 169,
+   "teil": 2,
+   "block": 21,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Ballonjagd!"
+  },
+  {
+   "id": 170,
+   "teil": 2,
+   "block": 21,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Zahlen-Memory!"
+  },
+  {
+   "id": 171,
+   "teil": 2,
+   "block": 21,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Großes Finale!"
+  },
+  {
+   "id": 172,
+   "teil": 2,
+   "block": 21,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Schaffe mindestens 7 von 10 Aufgaben."
+  },
+  {
+   "id": 173,
+   "teil": 2,
+   "block": 21,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Schaffe mindestens 8 von 10 Aufgaben."
+  },
+  {
+   "id": 174,
+   "teil": 2,
+   "block": 21,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Triff 6 richtige Ballons."
+  },
+  {
+   "id": 175,
+   "teil": 2,
+   "block": 21,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Triff 8 richtige Ballons."
+  },
+  {
+   "id": 176,
+   "teil": 2,
+   "block": 21,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Triff 10 richtige Ballons."
+  },
+  {
+   "id": 177,
+   "teil": 2,
+   "block": 21,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Du hast 3 Leben für falsche Ballons."
+  },
+  {
+   "id": 178,
+   "teil": 2,
+   "block": 21,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Finde alle 6 Paare."
+  },
+  {
+   "id": 179,
+   "teil": 2,
+   "block": 21,
+   "gruppe": "Abenteuer-Pfad",
+   "text": "Du hast den ganzen Pfad geschafft! Du kannst jedes Level nochmal spielen."
+  },
+  {
+   "id": 180,
+   "teil": 2,
+   "block": 22,
+   "gruppe": "Garten",
+   "text": "Such dir im Laden etwas Schönes für deinen Garten aus!"
+  },
+  {
+   "id": 181,
+   "teil": 2,
+   "block": 22,
+   "gruppe": "Garten",
+   "text": "Sammle Blumen beim Spielen und Üben. Dann kannst du hier einkaufen!"
+  }
+ ]
+}

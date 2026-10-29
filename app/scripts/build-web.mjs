@@ -1,5 +1,6 @@
 // Baut den Web-Teil der Android-App aus lernapp/index.html.
 // - Schriftarten kommen aus app/fonts statt aus dem Internet (App läuft offline)
+// - Summis eingesprochene Stimme aus lernapp/stimme
 // - ohne viewport-fit=cover, damit Android die App neben Statusleiste und Navigationsleiste platziert
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -22,4 +23,6 @@ rmSync(www, { recursive: true, force: true });
 mkdirSync(www, { recursive: true });
 writeFileSync(join(www, "index.html"), html);
 cpSync(join(appDir, "fonts"), join(www, "fonts"), { recursive: true });
+// Eingesprochene Sätze für Summis Stimme (stimme.js und die mp3-Dateien)
+cpSync(join(appDir, "..", "lernapp", "stimme"), join(www, "stimme"), { recursive: true });
 console.log("www/ gebaut aus lernapp/index.html");
