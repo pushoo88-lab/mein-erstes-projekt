@@ -58,11 +58,25 @@ jobs:
           grep -n "versionCode\|versionName" android/app/build.gradle
 
       # Immer derselbe Schlüssel, damit Updates über die alte App installiert werden können
-      # und der Fortschritt (Garten, Pfad, Rekorde) erhalten bleibt.
-      - name: Signatur-Schlüssel bereitlegen
+      # und der Fortschritt (Garten, Pfad, Rekorde) erhalten bleibt. Der Schlüssel wird direkt in
+      # die Bau-Einstellung eingetragen, statt sich auf den Standard-Ordner von Gradle zu verlassen.
+      - name: Festen Signatur-Schlüssel eintragen
         run: |
-          mkdir -p ~/.android
-          cp signing/rechenwiese-debug.keystore ~/.android/debug.keystore
+          cat >> android/app/build.gradle <<'EOF'
+
+          // Rechenwiese: immer mit dem festen Schlüssel aus app/signing signieren
+          android {
+              signingConfigs {
+                  debug {
+                      storeFile file("../../signing/rechenwiese-debug.keystore")
+                      storePassword "android"
+                      keyAlias "androiddebugkey"
+                      keyPassword "android"
+                  }
+              }
+          }
+          EOF
+          tail -14 android/app/build.gradle
 
       - name: Web-Teil in das Android-Projekt kopieren
         run: npx cap sync android
@@ -73,6 +87,24 @@ jobs:
 
       - name: APK umbenennen
         run: cp android/app/build/outputs/apk/debug/app-debug.apk Rechenwiese.apk
+
+      # Prüft mit dem offiziellen Android-Werkzeug, dass die APK mit dem festen Schlüssel signiert ist.
+      # Sonst lehnt Android das Update ab ("App nicht installiert").
+      - name: Signatur prüfen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)/apksigner"
+          EXPECTED="$(keytool -list -v -keystore signing/rechenwiese-debug.keystore -storepass android -alias androiddebugkey | grep 'SHA256:' | awk '{print $2}' | tr -d ':' | tr 'A-F' 'a-f')"
+          echo "Erwarteter Fingerabdruck: $EXPECTED"
+          echo "--- Neue APK:"
+          "$APKSIGNER" verify --print-certs Rechenwiese.apk | tee new-cert.txt
+          echo "--- Bisher veröffentlichte APK (zum Vergleich):"
+          if gh release download rechenwiese-app --repo "$GITHUB_REPOSITORY" --pattern Rechenwiese.apk --output previous.apk 2>/dev/null; then
+            "$APKSIGNER" verify --print-certs previous.apk | grep "SHA-256" || true
+          fi
+          grep -qi "SHA-256 digest: $EXPECTED" new-cert.txt || { echo "FEHLER: APK ist nicht mit dem festen Schlüssel signiert"; exit 1; }
+          echo "OK: APK ist mit dem festen Schlüssel signiert."
 
       - uses: actions/upload-artifact@v4
         with:
