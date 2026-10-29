@@ -111,10 +111,17 @@ const doppelt = texts.filter((x, i) => texts.indexOf(x) !== i);
 if (doppelt.length) throw new Error(`Doppelte Sätze: ${doppelt.join(" | ")}`);
 
 const json = JSON.stringify({ teile: teile.map((t) => t.titel), saetze }, null, 1) + "\n";
+// Dieselbe Liste für das Aufnehmen in der App
+const appList = join(here, "..", "..", "lernapp", "stimme", "liste.js");
+const js = "// Automatisch erzeugt von app/stimme/sprechliste.mjs: die Sätze zum Einsprechen. Nicht von Hand ändern.\n" +
+  `window.RW_SPRECHLISTE = ${JSON.stringify(saetze.map(({ id, teil, block, gruppe, text }) => ({ id, teil, block, gruppe, text })))};\n`;
 if (process.argv.includes("--check")) {
-  if (readFileSync(out, "utf8") !== json) throw new Error("app/stimme/sprechliste.json passt nicht mehr zur App: node app/stimme/sprechliste.mjs ausführen");
+  if (readFileSync(out, "utf8") !== json || readFileSync(appList, "utf8") !== js) {
+    throw new Error("Die Sprechliste passt nicht mehr zur App: node app/stimme/sprechliste.mjs ausführen");
+  }
   console.log(`Sprechliste passt zur App (${saetze.length} Sätze).`);
 } else {
   writeFileSync(out, json);
+  writeFileSync(appList, js);
   console.log(`${saetze.length} Sätze in ${block} Blöcken, Teil 1: ${saetze.filter((s) => s.teil === 1).length} Sätze`);
 }

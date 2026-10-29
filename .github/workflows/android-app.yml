@@ -61,6 +61,13 @@ jobs:
       - name: Android-Projekt anlegen
         run: npx cap add android
 
+      # Mikrofon für "Summis Stimme aufnehmen" (Android fragt beim ersten Aufnehmen nach)
+      - name: Mikrofon erlauben
+        run: |
+          sed -i 's#</manifest>#    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n</manifest>#' android/app/src/main/AndroidManifest.xml
+          grep -n "uses-permission" android/app/src/main/AndroidManifest.xml
+          grep -q RECORD_AUDIO android/app/src/main/AndroidManifest.xml
+
       - name: App-Symbol und Startbild erzeugen
         run: npx @capacitor/assets generate --android --iconBackgroundColor '#e6f2f6' --splashBackgroundColor '#e6f2f6' --splashBackgroundColorDark '#0f2228'
 

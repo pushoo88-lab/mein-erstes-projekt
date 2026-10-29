@@ -96,8 +96,12 @@ Es ist nichts vorausgewählt. Über „Ändern“ auf der Startseite lässt sich
   Dort lässt sich auch **Summis Stimme** einstellen: jede deutsche Stimme des Geräts anhören und auswählen,
   Tonhöhe (natürlich oder etwas fröhlicher) und Tempo (langsam oder normal), dazu eine Anleitung,
   wie man auf Android natürlicher klingende Stimmen nachlädt.
-- **Eigene Stimme für Summi:** Eltern können Summis feste Sätze (Lob, Mut-Sätze, Begrüßung, Spiele)
-  selbst einsprechen. Die 181 Sätze stehen in `app/stimme/sprechliste.json`, in 22 kurzen Aufnahmen.
+- **Eigene Stimme in der App aufnehmen:** Unter „Für Eltern“ › „Sätze für Summi aufnehmen“ sprechen Eltern
+  Summis feste Sätze direkt in der App ein, Satz für Satz. Die App schneidet die Stille weg, entfernt Brummen,
+  nutzt die Rauschunterdrückung des Geräts und gleicht die Lautstärke an. Die Aufnahmen bleiben nur auf dem
+  Gerät (nichts wird hochgeladen). „Kleine Biene“ spielt sie etwas höher ab.
+- **Eigene Stimme für Summi (alternativ über GitHub):** Eltern können Summis feste Sätze (Lob, Mut-Sätze, Begrüßung, Spiele)
+  auch extern einsprechen. Die 181 Sätze stehen in `app/stimme/sprechliste.json`, in 22 kurzen Aufnahmen.
   Aufnahmen (z. B. aus der Sprachrekorder-App) kommen in den Ordner `stimme-aufnahmen/`. Dann läuft der
   Ablauf „Summis Stimme bearbeiten“ von selbst: Spracherkennung ordnet jeden Satz zu (Versprecher und
   Wiederholungen sind kein Problem, der letzte Versuch zählt), schneidet ihn aus, entfernt Rauschen,

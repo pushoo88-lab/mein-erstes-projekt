@@ -456,6 +456,23 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 .school-points li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 10px; border-radius: 10px; background: var(--key); }
 .school-points b { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .mode.school { background: color-mix(in srgb, var(--petal-3) 12%, var(--paper)); border-color: color-mix(in srgb, var(--petal-3) 45%, var(--line)); box-shadow: 0 5px 0 color-mix(in srgb, var(--petal-3) 45%, var(--line)); }
+/* Summis Stimme aufnehmen */
+.own-voice { display: grid; gap: 8px; }
+.rec-card { display: grid; gap: 14px; justify-items: center; text-align: center; padding: 22px 16px; }
+.rec-group { margin: 0; font-size: 14px; font-weight: 700; color: var(--ink-soft); }
+.rec-text { margin: 0; font: 700 clamp(22px, 6vw, 28px)/1.35 var(--body); text-wrap: balance; }
+.rec-btn { font: 800 22px var(--display); border: none; border-radius: 999px; padding: 16px 28px; min-width: 220px; cursor: pointer;
+  background: var(--red); color: #fff; box-shadow: 0 5px 0 color-mix(in srgb, var(--red) 60%, #000); }
+.rec-btn.recording { background: var(--ink); animation: recpulse .8s infinite alternate; }
+@keyframes recpulse { to { box-shadow: 0 0 0 12px color-mix(in srgb, var(--red) 30%, transparent); } }
+.rec-btn:disabled { opacity: .6; }
+.rec-btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.rec-note { margin: 0; min-height: 1.4em; color: var(--ink-soft); max-width: 34ch; }
+.rec-note.bad { color: var(--oops); font-weight: 700; }
+.rec-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+.rec-nav .tool { padding-inline: 4px; white-space: nowrap; }
+.rec-nav .tool:disabled { opacity: .45; }
+.rec-tips ul { margin: 8px 0 0; padding-left: 1.2em; display: grid; gap: 6px; line-height: 1.4; }
 /* Rechentabelle */
 .optab { display: grid; grid-template-columns: auto auto; border: 3px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); }
 .optab-head { grid-column: 1 / -1; text-align: center; font-size: .7em; padding: 2px 12px; background: var(--key); color: var(--grass-deep); }
@@ -674,6 +691,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     </section>
     <section class="sheet" style="display:grid; gap:12px;">
       <h2 style="font-size:21px">Summis Stimme</h2>
+      <div class="own-voice" id="ownVoice" hidden>
+        <p class="label" style="margin:0">Eigene Stimme</p>
+        <p class="muted" id="ownInfo" style="margin:0"></p>
+        <button class="go" id="recordOpen" type="button">Sätze für Summi aufnehmen</button>
+        <button class="go secondary" id="recordWipe" type="button" hidden>Alle eigenen Aufnahmen löschen</button>
+      </div>
       <div style="display:grid; gap:6px;" id="recBox" hidden>
         <p class="label" style="margin:0">Eingesprochene Stimme</p>
         <p class="muted" id="recInfo" style="margin:0"></p>
@@ -767,6 +790,37 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     <div class="meadow" id="meadow" aria-label="Deine Blumen in dieser Runde"></div>
   </main>
 
+  <!-- Summis Stimme aufnehmen (für Eltern) -->
+  <main id="recordView" hidden style="display:grid; gap:14px;">
+    <div class="bar">
+      <button class="back" id="recordBack" type="button">← Zurück</button>
+      <span class="where">Summis Stimme</span>
+      <span class="count" id="recCount"></span>
+    </div>
+    <section class="sheet rec-card">
+      <p class="rec-group" id="recGroup"></p>
+      <p class="rec-text" id="recText"></p>
+      <button class="rec-btn" id="recBtn" type="button"></button>
+      <p class="rec-note" id="recNote" aria-live="polite"></p>
+      <div class="rec-nav">
+        <button class="tool" id="recPrev" type="button">← Zurück</button>
+        <button class="tool" id="recPlay" type="button">▶ Anhören</button>
+        <button class="tool" id="recNext" type="button">Weiter →</button>
+      </div>
+    </section>
+    <button class="go secondary" id="recMissing" type="button">Zum nächsten fehlenden Satz</button>
+    <section class="sheet rec-tips">
+      <h2 style="font-size:19px">So klingt es am besten</h2>
+      <ul>
+        <li>Ein ruhiger Raum, Fenster zu, Fernseher aus.</li>
+        <li>Das Handy etwa eine Handbreit vor den Mund halten.</li>
+        <li>Auf „Aufnehmen“ tippen, kurz warten, dann den Satz lebendig sprechen, wie beim Vorlesen. Lächeln hört man.</li>
+        <li>Danach auf „Fertig“ tippen. Die App schneidet die Stille weg und gleicht die Lautstärke an.</li>
+        <li>Nicht zufrieden? Einfach nochmal aufnehmen. Die neue Aufnahme ersetzt die alte.</li>
+      </ul>
+    </section>
+  </main>
+
   <!-- Ergebnis -->
   <main id="resultView" hidden>
     <section class="sheet result">
@@ -820,6 +874,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
 <!-- Eigene Aufnahmen für Summis Stimme (erzeugt von app/stimme/verarbeiten.py) -->
 <script src="stimme/stimme.js"></script>
+<script src="stimme/liste.js"></script>
 <script>
 (() => {
   "use strict";
@@ -1761,8 +1816,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   })();
 
   // ---------- Ansichten ----------
-  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView", "pathView", "gardenView", "parentView"];
+  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView", "pathView", "gardenView", "parentView", "recordView"];
   function show(view) {
+    if (view !== "recordView") cancelRecording();
     for (const id of VIEWS) $(id).hidden = id !== view;
     fx.stop();
     stopSpeaking();
@@ -1832,7 +1888,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }, { once: true, capture: true });
 
   // Geht die App in den Hintergrund (anderes App, Anruf, Bildschirm aus), hört Summi auf zu sprechen
-  document.addEventListener("visibilitychange", () => { if (document.hidden) stopSpeaking(); });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) return;
+    stopSpeaking();
+    if (recState === "recording") stopRecording();   // Anruf oder App gewechselt: Aufnahme beenden und speichern
+  });
 
   function autoRead(text, queue = false) { if (state.sound && interacted) speak(text, queue); }
 
@@ -1906,9 +1966,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
   // ---------- Eingesprochene Stimme ----------
   // Feste Sätze kommen als Aufnahme, alles andere (Aufgaben, Zahlen, Namen) von der Computerstimme.
+  // Zwei Quellen: in der App aufgenommene Sätze (nur auf diesem Gerät) und bearbeitete Aufnahmen aus stimme/
   const REC = (window.RW_STIMME && window.RW_STIMME.clips) || [];
-  const clipAudio = REC.length && typeof Audio === "function" ? new Audio() : null;
-  const useRec = () => !!(clipAudio && voiceCfg.rec);
+  const clipAudio = typeof Audio === "function" ? new Audio() : null;
+  let ownClips = {};   // Nummer des Satzes → { id, text, dur, url }
+  const ownCount = () => Object.keys(ownClips).length;
+  const useRec = () => !!(clipAudio && voiceCfg.rec && (REC.length || ownCount()));
   const splitSentences = (text) => text.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
   // Satz zum Nachschlagen: Name am Ende weglassen ("Gut gerechnet, Mia!"), Punkt und Ausrufezeichen gleich behandeln
   function sentenceKey(s) {
@@ -1920,11 +1983,13 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function recLookup(key) {
     if (!recMap) {
       recMap = {};
-      for (const [id, text, dur] of REC) {
-        const parts = splitSentences(text);
+      const add = (c) => {
+        const parts = splitSentences(c.text);
         recSpan = Math.max(recSpan, parts.length);
-        recMap[parts.map(sentenceKey).join("|")] = { id, text, dur };
-      }
+        recMap[parts.map(sentenceKey).join("|")] = c;
+      };
+      for (const [id, text, dur] of REC) add({ id, text, dur });
+      for (const c of Object.values(ownClips)) add(c);   // eigene Aufnahmen gewinnen
     }
     return recMap[key];
   }
@@ -1966,12 +2031,15 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function playClip(c, gen) {
     return new Promise((done) => {
       const fallback = () => { if (gen === speechGen) ttsOnce(c.text).then(done); else done(); };
-      const timer = setTimeout(done, c.dur * 1000 / (clipAudio.playbackRate || 1) + 1500);
+      // Eigene Aufnahme als "Kleine Biene": schneller abspielen, ohne die Tonhöhe festzuhalten. So klingt sie höher.
+      const bee = !!c.url && voiceCfg.rec === "biene";
+      clipAudio.src = c.url || `stimme/${voiceCfg.rec}/${c.id}.mp3`;
+      clipAudio.playbackRate = bee ? 1.12 : voiceCfg.rate < 0.9 ? 0.88 : 1;
+      clipAudio.preservesPitch = clipAudio.webkitPreservesPitch = !bee;
+      const timer = setTimeout(done, c.dur * 1000 / clipAudio.playbackRate + 1500);
       const finish = (f) => () => { clearTimeout(timer); clipAudio.onended = clipAudio.onerror = null; f(); };
       clipAudio.onended = finish(done);
       clipAudio.onerror = finish(fallback);
-      clipAudio.src = `stimme/${voiceCfg.rec}/${c.id}.mp3`;
-      clipAudio.playbackRate = voiceCfg.rate < 0.9 ? 0.88 : 1;
       const p = clipAudio.play();
       if (p && p.catch) p.catch(finish(fallback));
     });
@@ -1986,6 +2054,209 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     for (const p of recPieces(text)) {
       recChain = recChain.then(() => (gen !== speechGen ? null : p.clip ? playClip(p.clip, gen) : ttsOnce(p.text)));
     }
+  }
+
+  // ---------- Summis Stimme in der App aufnehmen ----------
+  // Satz für Satz: aufnehmen, automatisch bearbeiten (Stille weg, Brummen weg, gleiche Lautstärke), auf dem Gerät speichern.
+  const LISTE = window.RW_SPRECHLISTE || [];
+  const canRecord = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder && window.indexedDB);
+  let recDbPromise = null;
+  function recDb() {
+    return recDbPromise || (recDbPromise = new Promise((ok, fail) => {
+      try {
+        const req = indexedDB.open("rw-stimme", 1);
+        req.onupgradeneeded = () => req.result.createObjectStore("clips", { keyPath: "id" });
+        req.onsuccess = () => ok(req.result);
+        req.onerror = () => fail(req.error);
+      } catch (e) { fail(e); }
+    }));
+  }
+  function recStore(mode, work) {
+    return recDb().then((db) => new Promise((ok, fail) => {
+      const tx = db.transaction("clips", mode), req = work(tx.objectStore("clips"));
+      tx.oncomplete = () => ok(req && req.result);
+      tx.onerror = () => fail(tx.error);
+    }));
+  }
+  function addOwnClip(c) {
+    if (ownClips[c.id]) URL.revokeObjectURL(ownClips[c.id].url);
+    ownClips[c.id] = { id: c.id, text: c.text, dur: c.dur, url: URL.createObjectURL(c.blob), own: true };
+    recMap = null;
+  }
+  function loadOwnClips() {
+    if (!window.indexedDB) return Promise.resolve();
+    return recStore("readonly", (st) => st.getAll()).then((all) => { for (const c of all || []) addOwnClip(c); }).catch(() => {});
+  }
+  loadOwnClips();
+
+  // Aus der Aufnahme einen sauberen Satz machen
+  function polishRecording(buf) {
+    const rate = buf.sampleRate, raw = buf.getChannelData(0);
+    let clipped = 0, rawPeak = 0;
+    // Brummen und Rumpeln unter 80 Hz entfernen
+    const a = Math.exp(-2 * Math.PI * 80 / rate), x = new Float32Array(raw.length);
+    let px = 0, py = 0;
+    for (let i = 0; i < raw.length; i++) {
+      const v = raw[i];
+      if (Math.abs(v) > 0.99) clipped++;
+      if (Math.abs(v) > rawPeak) rawPeak = Math.abs(v);
+      py = a * (py + v - px); px = v; x[i] = py;
+    }
+    // Lautstärke je 20 ms
+    const n = Math.max(1, Math.floor(rate * 0.02)), frames = Math.floor(x.length / n), lv = [];
+    for (let f = 0; f < frames; f++) {
+      let sum = 0;
+      for (let i = f * n; i < (f + 1) * n; i++) sum += x[i] * x[i];
+      lv.push(10 * Math.log10(sum / n + 1e-12));
+    }
+    if (!frames) return { empty: true };
+    const sorted = [...lv].sort((p, q) => p - q), floor = sorted[Math.floor(frames * 0.1)], top = sorted[frames - 1];
+    const thr = Math.max(floor + 12, top - 40);
+    // Sprache = mindestens 60 ms am Stück laut. Kurze Knackser (Antippen, Einschalten) zählen nicht.
+    const loud = (f) => lv[f] > thr && lv[f + 1] > thr && lv[f + 2] > thr;
+    let first = -1, last = -1;
+    // Die ersten 250 ms überspringen: Dort stellt sich das Mikrofon ein und es knackt oft
+    const skip = Math.min(Math.round(0.25 / 0.02), Math.max(0, frames - 12));
+    for (let f = skip; f + 2 < frames; f++) if (loud(f)) { first = f; break; }
+    for (let f = frames - 3; f >= skip; f--) if (loud(f)) { last = f + 2; break; }
+    if (first < 0 || last - first < 8 || top < -60) return { empty: true };
+    // Stille am Anfang und Ende abschneiden, etwas Luft lassen
+    const start = Math.max(0, first * n - Math.round(0.08 * rate)), end = Math.min(x.length, (last + 1) * n + Math.round(0.15 * rate));
+    let seg = x.slice(start, end);
+    // Gleiche Lautstärke für alle Sätze: Sprache auf etwa −19 dB, Spitzen höchstens −1,5 dB
+    const speech = lv.slice(first, last + 1).filter((v) => v > thr);
+    const rms = Math.pow(10, speech.reduce((s2, v) => s2 + v, 0) / speech.length / 20);
+    let peak = 0;
+    for (const v of seg) if (Math.abs(v) > peak) peak = Math.abs(v);
+    const gain = Math.min(Math.pow(10, -19 / 20) / rms, Math.pow(10, -1.5 / 20) / (peak || 1), 20);
+    // Halbe Abtastrate genügt für Sprache und spart Platz
+    const half = rate >= 32000, outRate = half ? rate / 2 : rate, len = half ? Math.floor(seg.length / 2) : seg.length;
+    const out = new Float32Array(len + Math.round(0.08 * outRate));
+    const pad = Math.round(0.04 * outRate), fi = Math.round(0.015 * outRate), fo = Math.round(0.06 * outRate);
+    for (let i = 0; i < len; i++) {
+      let v = (half ? (seg[2 * i] + seg[2 * i + 1]) / 2 : seg[i]) * gain;
+      if (i < fi) v *= i / fi;
+      if (i > len - fo) v *= (len - i) / fo;
+      out[pad + i] = v;
+    }
+    seg = null;
+    return { samples: out, rate: outRate, dur: out.length / outRate, quiet: rawPeak < 0.03, loud: clipped > rate * 0.01 };
+  }
+
+  function wavBlob(samples, rate) {
+    const buf = new ArrayBuffer(44 + samples.length * 2), v = new DataView(buf);
+    const text = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    text(0, "RIFF"); v.setUint32(4, 36 + samples.length * 2, true); text(8, "WAVE"); text(12, "fmt ");
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true);
+    v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); text(36, "data"); v.setUint32(40, samples.length * 2, true);
+    for (let i = 0; i < samples.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, samples[i])) * 32767, true);
+    return new Blob([buf], { type: "audio/wav" });
+  }
+
+  let recIdx = 0, recStream = null, recorder = null, recChunks = [], recTimer = 0, recState = "idle";
+  function openRecorder() {
+    stopSpeaking();
+    const missing = LISTE.findIndex((s2) => !ownClips[s2.id]);
+    recIdx = missing >= 0 ? missing : 0;
+    recState = "idle";
+    show("recordView");
+    renderRecorder();
+  }
+  function renderRecorder(note) {
+    const s2 = LISTE[recIdx];
+    if (!s2) return;
+    const have = ownClips[s2.id];
+    $("recCount").textContent = `${ownCount()} / ${LISTE.length}`;
+    $("recGroup").textContent = `Satz ${s2.id} von ${LISTE.length} · ${s2.gruppe}`;
+    $("recText").textContent = s2.text;
+    $("recBtn").className = `rec-btn ${recState}`;
+    $("recBtn").disabled = recState === "working";
+    $("recBtn").textContent = recState === "recording" ? "■ Fertig" : recState === "working" ? "Moment …" : have ? "● Nochmal aufnehmen" : "● Aufnehmen";
+    $("recPlay").disabled = !have || recState !== "idle";
+    $("recPrev").disabled = recIdx === 0 || recState !== "idle";
+    $("recNext").disabled = recIdx >= LISTE.length - 1 || recState !== "idle";
+    $("recMissing").hidden = ownCount() >= LISTE.length;
+    $("recNote").className = "rec-note" + (note && note.bad ? " bad" : "");
+    $("recNote").textContent = note ? note.text : recState === "recording" ? "Sprechen Sie jetzt den Satz. Danach auf „Fertig“ tippen."
+      : recState === "working" ? "Die Aufnahme wird bearbeitet …"
+      : have ? `Aufgenommen (${fmt(Math.round(have.dur * 10) / 10)} Sekunden).` : "Noch nicht aufgenommen.";
+  }
+  function startRecording() {
+    if (!canRecord()) return renderRecorder({ text: "Auf diesem Gerät kann die App leider nichts aufnehmen.", bad: true });
+    stopSpeaking();
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } })
+      .then((stream) => {
+        recStream = stream;
+        recChunks = [];
+        recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = (e) => { if (e.data && e.data.size) recChunks.push(e.data); };
+        recorder.onstop = finishRecording;
+        recorder.start();
+        recState = "recording";
+        recTimer = setTimeout(stopRecording, 15000);   // höchstens 15 Sekunden
+        renderRecorder();
+      })
+      .catch(() => {
+        recState = "idle";
+        renderRecorder({ text: "Das Mikrofon ist nicht freigegeben. Bitte beim Nachfragen „Zulassen“ tippen oder in den Android-Einstellungen der App das Mikrofon erlauben.", bad: true });
+      });
+  }
+  function releaseMic() {
+    clearTimeout(recTimer);
+    if (recStream) recStream.getTracks().forEach((tr) => tr.stop());
+    recStream = null;
+  }
+  function stopRecording() {
+    if (recorder && recorder.state !== "inactive") { recState = "working"; renderRecorder(); recorder.stop(); }
+    releaseMic();
+  }
+  function cancelRecording() {
+    if (recorder && recorder.state !== "inactive") { recorder.onstop = null; recorder.stop(); }
+    releaseMic();
+    recState = "idle";
+  }
+  function finishRecording() {
+    const s2 = LISTE[recIdx], blob = new Blob(recChunks, { type: (recorder && recorder.mimeType) || "audio/webm" });
+    const fail = (text) => { recState = "idle"; renderRecorder({ text, bad: true }); };
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+        audio.decodeAudioData(reader.result, (buf) => {
+          const res = polishRecording(buf);
+          if (res.empty) return fail("Da war nichts zu hören. Bitte nochmal aufnehmen und etwas lauter sprechen.");
+          const clip = { id: s2.id, text: s2.text, dur: res.dur, blob: wavBlob(res.samples, res.rate) };
+          recStore("readwrite", (st) => st.put(clip)).then(() => {
+            addOwnClip(clip);
+            recState = "idle";
+            renderRecorder(res.quiet ? { text: "Gespeichert, aber sehr leise. Am besten das Handy näher an den Mund halten und nochmal aufnehmen.", bad: true }
+              : res.loud ? { text: "Gespeichert, aber etwas übersteuert. Am besten etwas weiter weg vom Handy nochmal aufnehmen.", bad: true }
+              : { text: "Gespeichert! Hören Sie es sich an. Passt es, geht es mit „Weiter“ zum nächsten Satz." });
+            playOwn(s2.id);
+          }).catch(() => fail("Speichern hat nicht geklappt. Ist der Speicher des Geräts voll?"));
+        }, () => fail("Die Aufnahme ließ sich nicht lesen. Bitte nochmal versuchen."));
+      } catch (e) { fail("Die Aufnahme ließ sich nicht bearbeiten. Bitte nochmal versuchen."); }
+    };
+    reader.onerror = () => fail("Die Aufnahme ließ sich nicht lesen. Bitte nochmal versuchen.");
+    reader.readAsArrayBuffer(blob);
+  }
+  function playOwn(id) {
+    const c = ownClips[id];
+    if (!c || !clipAudio) return;
+    stopSpeaking();
+    const bee = voiceCfg.rec === "biene";
+    clipAudio.src = c.url;
+    clipAudio.playbackRate = bee ? 1.12 : 1;
+    clipAudio.preservesPitch = clipAudio.webkitPreservesPitch = !bee;
+    const p = clipAudio.play();
+    if (p && p.catch) p.catch(() => {});
+  }
+  function wipeOwnClips() {
+    return recStore("readwrite", (st) => st.clear()).then(() => {
+      for (const c of Object.values(ownClips)) URL.revokeObjectURL(c.url);
+      ownClips = {};
+      recMap = null;
+    }).catch(() => {});
   }
 
   // Rechenaufgabe so, wie man sie laut sagt: "7 plus 5 gleich wie viel"
@@ -2142,10 +2413,17 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     for (const b of $("voicePitch").querySelectorAll("[data-pitch]")) b.setAttribute("aria-pressed", String(Number(b.dataset.pitch) === voiceCfg.pitch));
     for (const b of $("voiceRate").querySelectorAll("[data-rate]")) b.setAttribute("aria-pressed", String(Number(b.dataset.rate) === voiceCfg.rate));
     $("voiceInstall").hidden = !nativeTTS;
-    $("recBox").hidden = !clipAudio;
-    $("ttsLabel").hidden = !clipAudio;
-    if (clipAudio) {
-      $("recInfo").textContent = `${REC.length} Sätze sind eingesprochen. Alles andere, zum Beispiel die Aufgaben, liest die Computerstimme vor. Sie lässt sich darunter einstellen.`;
+    const recorded = new Set([...REC.map((c) => c[1]), ...Object.values(ownClips).map((c) => c.text)]).size;
+    $("ownVoice").hidden = !canRecord() || !LISTE.length;
+    $("ownInfo").textContent = ownCount()
+      ? `${ownCount()} von ${LISTE.length} Sätzen sind aufgenommen. Die Aufnahmen bleiben nur auf diesem Gerät.`
+      : `Sprechen Sie Summis Lob und Mut-Sätze selbst ein, Satz für Satz. Die App schneidet, entrauscht und gleicht die Lautstärke an. Die Aufnahmen bleiben nur auf diesem Gerät.`;
+    $("recordWipe").hidden = !ownCount();
+    $("recordWipe").textContent = "Alle eigenen Aufnahmen löschen";
+    $("recBox").hidden = !(clipAudio && recorded);
+    $("ttsLabel").hidden = !(clipAudio && recorded);
+    if (clipAudio && recorded) {
+      $("recInfo").textContent = `${recorded} Sätze sind eingesprochen. Alles andere, zum Beispiel die Aufgaben, liest die Computerstimme vor. Sie lässt sich darunter einstellen.`;
       for (const b of $("voiceRec").querySelectorAll("[data-rec]")) b.setAttribute("aria-pressed", String(b.dataset.rec === voiceCfg.rec));
     }
     if (!canSpeak) {
@@ -3697,6 +3975,24 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     voiceCfg.rec = b.dataset.rec; saveVoice(); renderVoices(); speak(voiceSample());
   });
   $("voiceTest").addEventListener("click", () => speak(voiceSample()));
+  $("recordOpen").addEventListener("click", openRecorder);
+  $("recordBack").addEventListener("click", () => { cancelRecording(); show("parentView"); openVoiceSettings(); });
+  $("recBtn").addEventListener("click", () => (recState === "recording" ? stopRecording() : recState === "idle" ? startRecording() : null));
+  $("recPlay").addEventListener("click", () => playOwn(LISTE[recIdx].id));
+  $("recPrev").addEventListener("click", () => { recIdx = Math.max(0, recIdx - 1); renderRecorder(); });
+  $("recNext").addEventListener("click", () => { recIdx = Math.min(LISTE.length - 1, recIdx + 1); renderRecorder(); });
+  $("recMissing").addEventListener("click", () => {
+    const after = LISTE.findIndex((s2, i) => i > recIdx && !ownClips[s2.id]), any = LISTE.findIndex((s2) => !ownClips[s2.id]);
+    if (after >= 0 || any >= 0) recIdx = after >= 0 ? after : any;
+    renderRecorder();
+  });
+  // Löschen nur nach zweitem Antippen
+  $("recordWipe").addEventListener("click", () => {
+    const b = $("recordWipe");
+    if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Wirklich alle löschen? Nochmal antippen."; return; }
+    b.dataset.sure = "";
+    wipeOwnClips().then(renderVoices);
+  });
   $("voiceInstall").addEventListener("click", () => nativeCall("TextToSpeech", "openInstall").catch(() => {}));
   $("nameOk").addEventListener("click", () => saveName(false));
   $("nameSkip").addEventListener("click", () => saveName(true));
@@ -3819,7 +4115,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   if (isApp && cap.addListener) {
     try {
       const BACK = { setupView: "setupBack", gameView: "backBtn", resultView: "menuBtn", tricksView: "tricksBack",
-        balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack" };
+        balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack", recordView: "recordBack" };
       cap.addListener("App", "backButton", () => {
         const btn = $(BACK[VIEWS.find((id) => !$(id).hidden)] || "");
         if (btn && !btn.hidden) btn.click();
