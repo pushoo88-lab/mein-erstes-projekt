@@ -467,6 +467,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 @keyframes recpulse { to { box-shadow: 0 0 0 12px color-mix(in srgb, var(--red) 30%, transparent); } }
 .rec-btn:disabled { opacity: .6; }
 .rec-btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.rec-meter { width: min(260px, 100%); height: 12px; border-radius: 999px; background: var(--key); overflow: hidden; border: 2px solid var(--line); }
+.rec-meter i { display: block; height: 100%; width: 3%; border-radius: 999px; background: var(--line); transition: width .08s linear; }
+.rec-meter i.on { background: var(--ok); }
 .rec-note { margin: 0; min-height: 1.4em; color: var(--ink-soft); max-width: 34ch; }
 .rec-note.bad { color: var(--oops); font-weight: 700; }
 .rec-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
@@ -801,6 +804,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       <p class="rec-group" id="recGroup"></p>
       <p class="rec-text" id="recText"></p>
       <button class="rec-btn" id="recBtn" type="button"></button>
+      <div class="rec-meter" id="recMeter" hidden aria-hidden="true"><i id="recLevel"></i></div>
       <p class="rec-note" id="recNote" aria-live="polite"></p>
       <div class="rec-nav">
         <button class="tool" id="recPrev" type="button">← Zurück</button>
@@ -815,7 +819,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         <li>Ein ruhiger Raum, Fenster zu, Fernseher aus.</li>
         <li>Das Handy etwa eine Handbreit vor den Mund halten.</li>
         <li>Auf „Aufnehmen“ tippen, kurz warten, dann den Satz lebendig sprechen, wie beim Vorlesen. Lächeln hört man.</li>
-        <li>Danach auf „Fertig“ tippen. Die App schneidet die Stille weg und gleicht die Lautstärke an.</li>
+        <li>Der grüne Balken zeigt, dass das Handy Sie hört. Sind Sie fertig, stoppt die Aufnahme nach einer kurzen Pause von selbst.</li>
+        <li>Die App schneidet die Stille weg, entfernt Brummen und gleicht die Lautstärke an.</li>
         <li>Nicht zufrieden? Einfach nochmal aufnehmen. Die neue Aufnahme ersetzt die alte.</li>
       </ul>
     </section>
@@ -1297,11 +1302,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         return { kind: "parts", parts: [fmt(a), "−", fmt(b), "−", fmt(c), "=", "§"], answer: a - 10, key: `g${a}-${b}-${c}`,
           tip: `${fmt(b)} und ${fmt(c)} sind zusammen 10. Nimm also gleich 10 weg: ${fmt(a)} − 10.` };
       }
-      // 16 − 6 − 7: erst zum vollen Zehner, dann weiter
+      // 16 − 6 − 7 oder 15 − 8 − 5: erst zum vollen Zehner, dann weiter
       if (tensMax < 1) continue;
       const a = R(1, Math.min(9, tensMax)) * 10 + u, c = R(2, 9);
-      if (a - u - c < 1) continue;
-      return { kind: "parts", parts: [fmt(a), "−", fmt(u), "−", fmt(c), "=", "§"], answer: a - u - c, key: `g${a}-${u}-${c}`,
+      if (a - u - c < 1 || c === u) continue;
+      const seq = Math.random() < 0.5 ? [u, c] : [c, u];
+      return { kind: "parts", parts: [fmt(a), "−", fmt(seq[0]), "−", fmt(seq[1]), "=", "§"], answer: a - u - c, key: `g${a}-${seq.join("-")}`,
         tip: `Erst ${fmt(a)} − ${fmt(u)} = ${fmt(a - u)}. Von dem vollen Zehner aus geht es leicht weiter.` };
     }
   }
@@ -1324,9 +1330,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   const NUM = (answer, tip) => ({ type: "num", answer, tip });
 
   // Rechenroboter mit der ganzen Aufgabenfamilie: erst die fehlende Zahl, dann vier Aufgaben aufschreiben
-  function familyFullTask(N, start = pick(["mund", "auge"])) {
-    const { a, b, c } = plusTask(N);
-    const miss = start === "mund" ? 2 : R(0, 1);
+  // fix = feste Zahlen, z. B. { a: 16, b: 4, miss: 2 } wie auf dem Arbeitsblatt
+  function familyFullTask(N, start = pick(["mund", "auge"]), fix = null) {
+    const { a, b, c } = fix ? { a: fix.a, b: fix.b, c: fix.a + fix.b } : plusTask(N);
+    const miss = fix ? fix.miss : start === "mund" ? 2 : R(0, 1);
     const steps = [NUM([a, b, c][miss], miss === 2 ? `Rechne die beiden Augen zusammen: ${fmt(a)} + ${fmt(b)}.`
       : `Rechne rückwärts: ${fmt(c)} − ${fmt(miss ? a : b)}.`)];
     const rowTip = ["Erste Plusaufgabe: ein Auge plus das andere Auge ergibt den Mund.", "Tauschaufgabe: die Augen in der anderen Reihenfolge.",
@@ -1337,8 +1344,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
 
   // Roboter, bei dem nur der Mund steht: Viele Lösungen sind richtig
-  function freeRobotTask(N) {
-    const c = R(Math.max(4, Math.ceil(Math.min(N, 100) / 2)), Math.min(N, 100));
+  function freeRobotTask(N, fixC = 0) {
+    const c = fixC || R(Math.max(4, Math.ceil(Math.min(N, 100) / 2)), Math.min(N, 100));
     return { kind: "robofree", nums: [null, null, c], answer: c, key: `O${c}`,
       steps: [{ type: "num", tip: `Denk dir eine Zahl für das erste Auge aus, die nicht größer als ${fmt(c)} ist.` },
         { type: "num", tip: `Wie viel fehlt vom ersten Auge bis ${fmt(c)}? Rechne ${fmt(c)} minus das erste Auge.` }],
@@ -1346,9 +1353,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
 
   // Zahlenmauer mit mehreren Lücken. Die Reihenfolge der Felder ist immer lösbar.
-  function wallMultiTask(N) {
+  // fix = { bottom: [x, y, z], known: ["00", "11", "21"] } (Reihe und Spalte der bekannten Steine)
+  function wallMultiTask(N, fix = null) {
     const st = N <= 100 ? 1 : N <= 1000 ? 10 : N <= 10000 ? 100 : 1000, lim = Math.max(1, Math.floor(N / 4 / st));
-    const [x, y, z] = [R(1, lim) * st, R(1, lim) * st, R(1, lim) * st];
+    const [x, y, z] = fix ? fix.bottom : [R(1, lim) * st, R(1, lim) * st, R(1, lim) * st];
     const rows = [[x + 2 * y + z], [x + y, y + z], [x, y, z]];
     const cells = [[0, 0], [1, 0], [1, 1], [2, 0], [2, 1], [2, 2]];
     const val = ([r, c]) => rows[r][c];
@@ -1356,7 +1364,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const rel = [[[0, 0], [1, 0], [1, 1]], [[1, 0], [2, 0], [2, 1]], [[1, 1], [2, 1], [2, 2]]];
     const id = ([r, c]) => `${r}${c}`;
     for (;;) {
-      const known = new Set(shuffle(cells.map(id)).slice(0, 3)), order = [], tips = {};
+      const known = new Set(fix ? fix.known : shuffle(cells.map(id)).slice(0, 3)), order = [], tips = {};
       for (let changed = true; changed;) {
         changed = false;
         for (const [top, l, rr] of rel) {
@@ -1368,18 +1376,20 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
           known.add(id(m)); order.push(m); changed = true;
         }
       }
-      if (known.size < 6) continue;
+      if (known.size < 6) { if (fix) throw new Error("Zahlenmauer nicht lösbar"); continue; }
       return { kind: "wall3", rows, order, answer: val(order[order.length - 1]), key: `W${rows.flat().join(",")}-${order.map(id).join("")}`,
         steps: order.map((m) => NUM(val(m), tips[id(m)])), tip: "Zwei Steine nebeneinander ergeben zusammen den Stein darüber." };
     }
   }
 
   // Rechentabelle mit vier Zeilen, vorwärts und rückwärts gemischt
-  function tableMultiTask(N, op) {
-    const step = Math.min(R(2, 9), N - 2), sign = op === "plus" ? "+" : "−", xs = new Set();
-    while (xs.size < Math.min(4, N - step)) xs.add(R(1, N - step));
-    const rows = [...xs].map((x) => (op === "plus" ? [x, x + step] : [x + step, x]));
-    const miss = shuffle([0, 0, 1, 1]).slice(0, rows.length);
+  // fix = { step: 6, left: [4, 7, 5, 10], miss: [1, 1, 0, 0] } (miss 0 = links fehlt, 1 = rechts fehlt)
+  function tableMultiTask(N, op, fix = null) {
+    const step = fix ? fix.step : Math.min(R(2, 9), N - 2), sign = op === "plus" ? "+" : "−", xs = new Set(fix ? fix.left : []);
+    // xs = die Zahlen links. Ergebnisse bleiben zwischen 1 und N.
+    while (xs.size < Math.min(4, N - step)) xs.add(op === "plus" ? R(1, N - step) : R(step + 1, N));
+    const rows = [...xs].map((x) => (op === "plus" ? [x, x + step] : [x, x - step]));
+    const miss = fix ? fix.miss : shuffle([0, 0, 1, 1]).slice(0, rows.length);
     return { kind: "table4", sign, step, rows, miss, answer: rows[rows.length - 1][miss[rows.length - 1]], key: `T${sign}${step}-${rows.flat().join(",")}`,
       steps: rows.map((row, i) => NUM(row[miss[i]], miss[i] ? `Rechne ${fmt(row[0])} ${sign} ${step}.`
         : `Rückwärts: ${fmt(row[1])} ${op === "plus" ? "−" : "+"} ${step}.`)),
@@ -1387,10 +1397,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
 
   // Tabelle "die Zahl / das Doppelte" wie auf dem Arbeitsblatt
-  function doubleTableTask(N) {
+  // fix = { cols: [4, 9, 5, 3, 7, 10], miss: ["d", "d", "z", "z", "d", "d"] } wie auf dem Arbeitsblatt
+  function doubleTableTask(N, fix = null) {
     const max = Math.max(2, Math.min(Math.floor(N / 2), N <= 100 ? 50 : 500)), xs = new Set();
-    while (xs.size < Math.min(5, max)) xs.add(R(1, max));
-    const cols = [...xs], miss = shuffle(["d", "d", "d", "z", "z"]).slice(0, cols.length);
+    while (!fix && xs.size < Math.min(6, max)) xs.add(R(1, max));
+    const cols = fix ? fix.cols : [...xs], miss = fix ? fix.miss : shuffle(["d", "d", "d", "d", "z", "z"]).slice(0, cols.length);
     return { kind: "doubletab", cols, miss, answer: 2 * cols[0], key: `D${cols.join(",")}${miss.join("")}`,
       steps: cols.map((x, i) => (miss[i] === "d" ? NUM(2 * x, `Das Doppelte von ${fmt(x)}: ${fmt(x)} + ${fmt(x)}.`)
         : NUM(x, `Welche Zahl plus sich selbst ergibt ${fmt(2 * x)}? Das ist die Hälfte von ${fmt(2 * x)}.`))),
@@ -1398,19 +1409,25 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
 
   // Geschickt rechnen in zwei Schritten: erst die beiden Zahlen antippen, mit denen man anfängt
-  function smartPickTask(N) {
-    const t = smartTask(N), num = (x) => Number(x.replace(/\./g, ""));
-    const nums = [num(t.parts[0]), num(t.parts[2]), num(t.parts[4])], ops = [t.parts[1], t.parts[3]];
+  // fix = "7 + 8 + 3" (eine Aufgabe vom Arbeitsblatt)
+  function smartPickTask(N, fix = "") {
+    const t = fix ? null : smartTask(N), num = (x) => Number(x.replace(/\./g, ""));
+    const parts = fix ? fix.split(" ") : t.parts;
+    const nums = [num(parts[0]), num(parts[2]), num(parts[4])], ops = [parts[1], parts[3]];
+    const answer = ops[0] === "+" ? nums[0] + nums[1] + nums[2] : nums[0] - nums[1] - nums[2];
+    // Richtig sind alle zwei Zahlen, mit denen man geschickt beginnt
     const pairs = [];
     if (ops[0] === "+") { for (const [i, j] of [[0, 1], [0, 2], [1, 2]]) if ((nums[i] + nums[j]) % 10 === 0) pairs.push(`${i},${j}`); }
     else {
-      if (nums[1] + nums[2] === 10) pairs.push("1,2");
-      if ((nums[0] - nums[1]) % 10 === 0 && nums[0] > nums[1]) pairs.push("0,1");
+      if (nums[1] + nums[2] === 10) pairs.push("1,2");   // 14 − 6 − 4: 6 und 4 sind zusammen 10
+      for (const j of [1, 2]) if (nums[0] > nums[j] && (nums[0] - nums[j]) % 10 === 0) pairs.push(`0,${j}`);   // 15 − 5 = 10
     }
-    return { kind: "smart2", nums, ops, answer: t.answer, key: `S${t.key}`,
+    const tip = t ? t.tip : ops[0] === "+" ? "Such zwei Zahlen, die zusammen einen vollen Zehner ergeben. Rechne die zuerst."
+      : "Nimm zuerst weg, was dich zu einem vollen Zehner bringt.";
+    return { kind: "smart2", nums, ops, answer, key: `S${parts.join("")}`,
       steps: [{ type: "pick2", options: pairs, tip: ops[0] === "+" ? "Welche zwei Zahlen ergeben zusammen einen vollen Zehner?"
-        : "Welche zwei Zahlen ergeben zusammen 10? Oder: Welche Zahl führt dich zu einem vollen Zehner?" }, NUM(t.answer, t.tip)],
-      tip: t.tip };
+        : "Welche zwei Zahlen ergeben zusammen 10? Oder: Welche Zahl führt dich zu einem vollen Zehner?" }, NUM(answer, tip)],
+      tip };
   }
 
   // Sachaufgabe wie in der Schule: Frage finden, Rechnung, Antwortsatz
@@ -1436,13 +1453,15 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         wrong: ["Wie viele Mädchen sind in der Klasse?", "Wie heißt die Lehrerin?"], say: "In der Klasse sind § Kinder." }),
     ],
   };
-  function sachTask(N, ops = ["plus", "minus"]) {
+  // fix = { op: "minus", a: 15, b: 6, story: 0, kid: 0 } (Sina hat 15 Bonbons …)
+  function sachTask(N, ops = ["plus", "minus"], fix = null) {
     const allowed = ops.filter((o) => o === "plus" || o === "minus");
-    const op = pick(allowed.length ? allowed : ["plus", "minus"]);
+    const op = fix ? fix.op : pick(allowed.length ? allowed : ["plus", "minus"]);
     let t;
-    do t = plusTask(Math.min(N, 1000)); while (t.a < 2 || t.b < 2);
+    if (fix) t = op === "plus" ? { a: fix.a, b: fix.b, c: fix.a + fix.b } : { a: fix.a - fix.b, b: fix.b, c: fix.a };
+    else do t = plusTask(Math.min(N, 1000)); while (t.a < 2 || t.b < 2);
     const [a, b, c] = op === "plus" ? [t.a, t.b, t.c] : [t.c, t.b, t.a];   // Minus: a − b = c
-    const story = pick(SACH[op])(pick(SACH_KIDS), fmt(a), fmt(b));
+    const story = (fix ? SACH[op][fix.story] : pick(SACH[op]))(fix ? SACH_KIDS[fix.kid] : pick(SACH_KIDS), fmt(a), fmt(b));
     const options = shuffle([story.q, ...story.wrong]);
     const sign = op === "plus" ? "+" : "−";
     return { kind: "sach", text: story.text, options, nums: [a, b, c], sign, say: story.say, answer: c, key: `A${story.text}`,
@@ -1459,10 +1478,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
 
   // Zahlenrätsel wie in der Schule: Rechnung mit der Umkehraufgabe und Antwortsatz
-  function riddleTask(N) {
+  // fix = { plus: true, b: 6, c: 13 }: "Wenn ich zu meiner Zahl 6 dazuzähle, erhalte ich 13."
+  function riddleTask(N, fix = null) {
     let t;
-    do t = plusTask(N); while (t.a < 2 || t.b < 2);
-    const plusRiddle = Math.random() < 0.6;
+    if (fix) t = fix.plus ? { a: fix.c - fix.b, b: fix.b, c: fix.c } : { a: fix.c, b: fix.b, c: fix.c + fix.b };
+    else do t = plusTask(N); while (t.a < 2 || t.b < 2);
+    const plusRiddle = fix ? fix.plus : Math.random() < 0.6;
     // "zu meiner Zahl 6 dazu, erhalte 13": 13 − 6 = 7. "von meiner Zahl 6 weg, erhalte 7": 7 + 6 = 13.
     const text = plusRiddle ? `Wenn ich zu meiner Zahl ${fmt(t.b)} dazuzähle, erhalte ich ${fmt(t.c)}.`
       : `Wenn ich von meiner Zahl ${fmt(t.b)} wegnehme, erhalte ich ${fmt(t.a)}.`;
@@ -1480,8 +1501,20 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
 
   // Platzhalteraufgabe mit Probe: erst die Lücke, dann prüfen, ob die Rechnung stimmt
-  function probeTask(N, op = pick(["plus", "minus"])) {
-    const t = MAKERS[op](N), blank = pick(["a", "b"]);
+  // fix = "□ − 5 = 6" (eine Platzhalteraufgabe vom Arbeitsblatt)
+  function probeTask(N, op = pick(["plus", "minus"]), fix = "") {
+    let t, blank;
+    if (fix) {
+      const [l, o, r, , res] = fix.split(" "), c = Number(res);
+      blank = l === "□" ? "a" : "b";
+      const known = Number(blank === "a" ? r : l);
+      const x = o === "+" ? c - known : blank === "a" ? c + known : known - c;   // die gesuchte Zahl
+      t = blank === "a" ? { a: x, b: known, c } : { a: known, b: x, c };
+      t.op = o === "+" ? "+" : "−";
+    } else {
+      t = MAKERS[op](N);
+      blank = pick(["a", "b"]);
+    }
     const base = { ...t, blank, answer: t[blank] };
     return { kind: "probe", a: t.a, b: t.b, c: t.c, op: t.op, blank, answer: t[blank], key: `P${t.a}${t.op}${t.b}${blank}`,
       steps: [NUM(t[blank], tipFor(base)), NUM(t.c, `Setze deine Zahl ein und rechne: Kommt wieder ${fmt(t.c)} heraus, stimmt die Rechnung.`)],
@@ -2058,7 +2091,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // ---------- Summis Stimme in der App aufnehmen ----------
   // Satz für Satz: aufnehmen, automatisch bearbeiten (Stille weg, Brummen weg, gleiche Lautstärke), auf dem Gerät speichern.
-  const LISTE = window.RW_SPRECHLISTE || [];
+  const LISTE_FEST = window.RW_SPRECHLISTE || [];
+  // Hat das Kind einen Namen eingegeben, kommt "Hallo Luisa!" als erster Satz dazu
+  const recList = () => (state.name ? [{ id: 0, gruppe: "Name", text: `Hallo ${state.name}!` }] : []).concat(LISTE_FEST);
+  let LISTE = LISTE_FEST;
   const canRecord = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder && window.indexedDB);
   let recDbPromise = null;
   function recDb() {
@@ -2156,7 +2192,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   let recIdx = 0, recFor = 0, recStream = null, recorder = null, recChunks = [], recTimer = 0, recState = "idle";
   function openRecorder() {
     stopSpeaking();
-    const missing = LISTE.findIndex((s2) => !ownClips[s2.id]);
+    LISTE = recList();
+    const missing = LISTE.findIndex((s2) => !ownClips[s2.id] || ownClips[s2.id].text !== s2.text);
     recIdx = missing >= 0 ? missing : 0;
     recState = "idle";
     show("recordView");
@@ -2166,8 +2203,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const s2 = LISTE[recIdx];
     if (!s2) return;
     const have = ownClips[s2.id];
-    $("recCount").textContent = `${ownCount()} / ${LISTE.length}`;
-    $("recGroup").textContent = `Satz ${s2.id} von ${LISTE.length} · ${s2.gruppe}`;
+    const done = LISTE.filter((x) => ownClips[x.id] && ownClips[x.id].text === x.text).length;
+    $("recCount").textContent = `${done} / ${LISTE.length}`;
+    $("recMeter").hidden = recState !== "recording";
+    $("recGroup").textContent = `Satz ${recIdx + 1} von ${LISTE.length} · ${s2.gruppe}`;
     $("recText").textContent = s2.text;
     $("recBtn").className = `rec-btn ${recState}`;
     $("recBtn").disabled = recState === "working" || recState === "starting";
@@ -2177,7 +2216,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("recNext").disabled = recIdx >= LISTE.length - 1 || recState !== "idle";
     $("recMissing").hidden = ownCount() >= LISTE.length;
     $("recNote").className = "rec-note" + (note && note.bad ? " bad" : "");
-    $("recNote").textContent = note ? note.text : recState === "recording" ? "Sprechen Sie jetzt den Satz. Danach auf „Fertig“ tippen."
+    $("recNote").textContent = note ? note.text : recState === "recording" ? "Jetzt sprechen. Die Aufnahme stoppt nach einer kurzen Pause von selbst."
       : recState === "working" ? "Die Aufnahme wird bearbeitet …"
       : have ? `Aufgenommen (${fmt(Math.round(have.dur * 10) / 10)} Sekunden).` : "Noch nicht aufgenommen.";
   }
@@ -2201,6 +2240,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         recState = "recording";
         recTimer = setTimeout(stopRecording, 15000);   // höchstens 15 Sekunden
         renderRecorder();
+        watchLevel(stream);
       })
       .catch(() => {
         if (recState !== "starting") return;
@@ -2208,7 +2248,38 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         renderRecorder({ text: "Das Mikrofon ist nicht freigegeben. Bitte beim Nachfragen „Zulassen“ tippen oder in den Android-Einstellungen der App das Mikrofon erlauben.", bad: true });
       });
   }
+  // Pegelanzeige: zeigt, dass das Handy zuhört. Nach dem Sprechen 1,3 Sekunden Ruhe: Aufnahme stoppt von selbst.
+  let levelStop = null;
+  function watchLevel(stream) {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === "suspended") audio.resume().catch(() => {});
+      const src = audio.createMediaStreamSource(stream), an = audio.createAnalyser();
+      an.fftSize = 1024;
+      src.connect(an);
+      const data = new Float32Array(an.fftSize), t0 = performance.now();
+      let floor = -60, heard = false, lastLoud = 0, raf = 0;
+      const tick = () => {
+        if (recState !== "recording") return;
+        an.getFloatTimeDomainData(data);
+        let sum = 0;
+        for (const v of data) sum += v * v;
+        const db = 10 * Math.log10(sum / data.length + 1e-12), now = performance.now();
+        if (now - t0 < 400) floor = Math.max(floor, db);   // Grundrauschen am Anfang messen
+        const loud = db > Math.max(floor + 15, -50);
+        if (loud) { lastLoud = now; if (now - t0 > 300) heard = true; }
+        $("recLevel").style.width = `${Math.max(3, Math.min(100, (db + 60) * 2))}%`;
+        $("recLevel").classList.toggle("on", loud);
+        if (heard && now - lastLoud > 1300) return stopRecording();
+        raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+      levelStop = () => { cancelAnimationFrame(raf); try { src.disconnect(); } catch { /* schon getrennt */ } };
+    } catch { levelStop = null; }   // ohne Pegel: dann eben mit "Fertig"
+  }
+
   function releaseMic() {
+    if (levelStop) { levelStop(); levelStop = null; }
     clearTimeout(recTimer);
     if (recStream) recStream.getTracks().forEach((tr) => tr.stop());
     recStream = null;
@@ -2430,9 +2501,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     for (const b of $("voiceRate").querySelectorAll("[data-rate]")) b.setAttribute("aria-pressed", String(Number(b.dataset.rate) === voiceCfg.rate));
     $("voiceInstall").hidden = !nativeTTS;
     const recorded = new Set([...REC.map((c) => c[1]), ...Object.values(ownClips).map((c) => c.text)]).size;
-    $("ownVoice").hidden = !canRecord() || !LISTE.length;
-    $("ownInfo").textContent = ownCount()
-      ? `${ownCount()} von ${LISTE.length} Sätzen sind aufgenommen. Die Aufnahmen bleiben nur auf diesem Gerät.`
+    const sentences = recList(), own = sentences.filter((x) => ownClips[x.id] && ownClips[x.id].text === x.text).length;
+    $("ownVoice").hidden = !canRecord() || !sentences.length;
+    $("ownInfo").textContent = own
+      ? `${own} von ${sentences.length} Sätzen sind aufgenommen. Die Aufnahmen bleiben nur auf diesem Gerät.`
       : `Sprechen Sie Summis Lob und Mut-Sätze selbst ein, Satz für Satz. Die App schneidet, entrauscht und gleicht die Lautstärke an. Die Aufnahmen bleiben nur auf diesem Gerät.`;
     $("recordWipe").hidden = !ownCount();
     $("recordWipe").textContent = "Alle eigenen Aufnahmen löschen";
@@ -2536,14 +2608,23 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       make: (N) => [{ ...(N >= 20 ? wallMultiTask(N) : wallTask(N)), topic: "mauer" }, { ...(N >= 20 ? wallMultiTask(N) : wallTask(N)), topic: "mauer" },
         { ...tableMultiTask(N, "plus"), topic: "luecke" }, { ...tableMultiTask(N, "minus"), topic: "luecke" }] },
     { title: "Berechne die Platzhalteraufgaben! Überprüfe danach, ob die Rechnung stimmt.", short: "Platzhalter mit Probe", points: 4,
-      make: (N) => ["plus", "minus", "plus", "minus"].map((op) => ({ ...probeTask(N, op), topic: "luecke" })) },
+      // Lücke vorne und hinten, bei Plus und bei Minus, wie auf dem Blatt
+      make: (N) => [["plus", "a"], ["plus", "b"], ["minus", "a"], ["minus", "b"]].map(([op, blank]) => {
+        let t;
+        do t = probeTask(N, op); while (t.blank !== blank);
+        return { ...t, topic: "luecke" };
+      }) },
     { title: "Berechne das Doppelte!", short: "Das Doppelte", points: 3, make: (N) => [{ ...doubleTableTask(N), topic: "verdoppeln" }] },
     { title: "Rechne geschickt! Tippe zuerst die beiden Zahlen an, mit denen du beginnst.", short: "Geschickt rechnen", points: 4,
-      make: (N) => [0, 1, 2].map(() => ({ ...smartPickTask(N), topic: "geschickt" })) },
+      // Drei Plus- und drei Minusaufgaben wie auf dem Blatt
+      make: (N) => ["+", "+", "+", "−", "−", "−"].map((op) => {
+        let t;
+        do t = smartPickTask(N); while (t.ops[0] !== op);
+        return { ...t, topic: "geschickt" };
+      }) },
     { title: "Löse das Zahlenrätsel! Denke an die Umkehraufgabe.", short: "Zahlenrätsel", points: 3.5, make: (N) => [riddleOrText(N)] },
     { title: "Löse die Sachaufgabe!", short: "Sachaufgabe", points: 3.5, make: (N) => [{ ...sachTask(N), topic: "text" }] },
   ];
-  const SCHOOL_MAX = SCHOOL.reduce((sum, sec) => sum + sec.points, 0);
   const half = (x) => fmt(x).replace(".", ",");
 
   function startSchool() {
@@ -2570,9 +2651,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const r = state.round;
     const per = SCHOOL.map((sec, i) => {
       const own = r.tasks.map((t, k) => (t.sec === i ? r.scores[k] || 0 : null)).filter((x) => x !== null);
-      return { short: sec.short, max: sec.points, got: Math.round(sec.points * own.reduce((a, b) => a + b, 0) / own.length * 2) / 2 };
-    });
-    const total = per.reduce((sum, p) => sum + p.got, 0);
+      return own.length ? { short: sec.short, max: sec.points, got: Math.round(sec.points * own.reduce((a, b) => a + b, 0) / own.length * 2) / 2 } : null;
+    }).filter(Boolean);
+    const total = per.reduce((sum, p) => sum + p.got, 0), maxPoints = per.reduce((sum, p) => sum + p.max, 0);
     r.results.forEach((x, i) => {
       if (x === "first") state.garden.push("f" + (i % 4));
       else if (x === "second") state.garden.push("b" + (i % 4));
@@ -2581,14 +2662,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     store.set("rw-garden", state.garden);
     const last = store.get("rw-school", null);
     store.set("rw-school", { total, date: dayString() });
-    const pct = total / SCHOOL_MAX, stars = pct >= 0.85 ? 3 : pct >= 0.6 ? 2 : 1;
+    const pct = total / maxPoints, stars = pct >= 0.85 ? 3 : pct >= 0.6 ? 2 : 1;
     const better = last && total > last.total ? `Letztes Mal hattest du ${half(last.total)} Punkte, heute ${half(total)}. Du hast dich verbessert!` : "";
     const weak = per.filter((p) => p.got / p.max < 0.75).sort((a, b) => a.got / a.max - b.got / b.max)[0];
     const extra = afterGame();
     $("resultTitle").textContent = stars === 3 ? "Super Übungsblatt!" : "Übungsblatt geschafft!";
     $("bigStars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= stars ? "on grow" : "off"}">${STAR}</span>`).join("");
     $("bigStars").setAttribute("aria-label", `${stars} von 3 Sternen`);
-    $("resultText").textContent = `Von ${half(SCHOOL_MAX)} Punkten hast du ${half(total)} erreicht.` + (better ? " " + better : "") +
+    $("resultText").textContent = `Von ${half(maxPoints)} Punkten hast du ${half(total)} erreicht.` + (better ? " " + better : "") +
       (weak ? ` Das üben wir noch: ${weak.short}.` : "") + (extra ? " " + extra : "");
     $("tally").innerHTML = `<ul class="school-points">${per.map((p, i) =>
       `<li><span>${i + 1}. ${p.short}</span><b>${half(p.got)} / ${half(p.max)}</b></li>`).join("")}</ul>`;
