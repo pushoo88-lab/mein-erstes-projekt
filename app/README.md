@@ -18,6 +18,9 @@ Updates werden genauso installiert. Weil jede Version mit demselben Schlüssel
 
 ## Was die App anders macht als die Browser-Version
 
+- Stürzt beim Start doch einmal etwas ab, erscheint statt eines leeren Bildschirms eine Meldung
+  mit dem Fehlertext und einem Knopf „Neu starten“.
+
 - Läuft komplett offline, die Schriftarten liegen in `fonts/`.
 - Vorlesen nutzt die Sprachausgabe von Android (Plugin `@capacitor-community/text-to-speech`).
   Dafür muss auf dem Gerät eine deutsche Stimme installiert sein.
@@ -27,8 +30,12 @@ Updates werden genauso installiert. Weil jede Version mit demselben Schlüssel
 ## Starttest
 
 Vor jedem Bau startet `npm test` (`scripts/smoke-test.mjs`) die App im Browser mit der echten
-Android-Brücke von Capacitor (`native-bridge.js`). Er prüft, dass Summis erste Frage erscheint,
-eine Runde startet, das Vorlesen Android erreicht und die Zurück-Taste angemeldet ist.
+Android-Brücke von Capacitor (`native-bridge.js`). Er prüft:
+
+- Der Code lässt sich als JavaScript von 2019 lesen, läuft also auch auf älteren Android-WebViews (ab Chrome 66).
+- Summis erste Frage erscheint und eine Runde startet.
+- Das Vorlesen erreicht die Sprachausgabe von Android.
+- Die Zurück-Taste führt zur Startseite und beendet dort die App.
 Schlägt der Test fehl, baut GitHub keine neue APK.
 
 ## Selbst bauen (optional)
