@@ -142,8 +142,12 @@ def choose(found_per_file):
             by_id.setdefault(c["id"], []).append(dict(c, datei=f_index))
     used = set()
     chosen = {}
-    # Wer am besten passt, wählt zuerst ("Jawohl, das stimmt!" vor "Hurra, das stimmt!"), bei Gleichstand der längere Satz
-    for sid in sorted(by_id, key=lambda i: (-round(max(c["score"] for c in by_id[i]), 2), -max(len(c["gehoert"]) for c in by_id[i]))):
+    # Wer besser passt, wählt zuerst ("Jawohl, das stimmt!" vor "Hurra, das stimmt!"). Alle guten Treffer gelten als
+    # gleich gut, dann wählt der längere Satz zuerst ("Super! Erst überlegt, dann getippt." vor "Super!").
+    def order(i):
+        best = max(c["score"] for c in by_id[i])
+        return (-min(round(best, 2), 0.9), -max(len(c["gehoert"]) for c in by_id[i] if c["score"] >= best - 0.06))
+    for sid in sorted(by_id, key=order):
         options = [c for c in by_id[sid]
                    if c["score"] >= ACCEPT and not any((c["datei"], k) in used for k in range(c["von"], c["bis"] + 1))]
         if not options:
