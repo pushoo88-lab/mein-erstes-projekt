@@ -24,6 +24,13 @@ Updates werden genauso installiert. Weil jede Version mit demselben Schlüssel
 - Die Zurück-Taste von Android geht einen Schritt zurück statt die App zu schließen.
 - App-Symbol und Startbild mit Summi liegen in `assets/` und werden beim Bauen erzeugt.
 
+## Starttest
+
+Vor jedem Bau startet `npm test` (`scripts/smoke-test.mjs`) die App im Browser mit der echten
+Android-Brücke von Capacitor (`native-bridge.js`). Er prüft, dass Summis erste Frage erscheint,
+eine Runde startet, das Vorlesen Android erreicht und die Zurück-Taste angemeldet ist.
+Schlägt der Test fehl, baut GitHub keine neue APK.
+
 ## Selbst bauen (optional)
 
 Voraussetzungen: Node.js 22, Java 21 und das Android-SDK.

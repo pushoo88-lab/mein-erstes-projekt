@@ -1399,7 +1399,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // In der App gibt es window.Capacitor. Im Browser bleibt alles wie gehabt.
   const cap = window.Capacitor;
   const isApp = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
-  const nativeTTS = isApp ? cap.registerPlugin("TextToSpeech") : null;
+  // Plugins direkt über die Brücke von Capacitor ansprechen (nativePromise und addListener gibt es
+  // in jeder Capacitor-App, registerPlugin dagegen nur mit dem Zusatzpaket @capacitor/core).
+  const nativeCall = (plugin, method, options = {}) =>
+    cap && cap.nativePromise ? cap.nativePromise(plugin, method, options) : Promise.reject(new Error(`${plugin} nicht verfügbar`));
+  const nativeTTS = isApp && cap.nativePromise ? {
+    speak: (options) => nativeCall("TextToSpeech", "speak", options),
+    stop: () => nativeCall("TextToSpeech", "stop"),
+  } : null;
 
   // ---------- Vorlesen ----------
   const canSpeak = !!nativeTTS || ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window);
@@ -2931,15 +2938,16 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("iconFlower").innerHTML = flowerSVG("flower", "var(--petal-2)");
   $("iconTricks").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="26" r="17" fill="var(--sun)"/><rect x="24" y="42" width="16" height="10" rx="3" fill="var(--ink-soft)"/><path d="M26 30l6-8 6 8" stroke="var(--sun-ink)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 4v4M10 26H6M58 26h-4M15 10l3 3M49 10l-3 3" stroke="var(--sun)" stroke-width="3" stroke-linecap="round"/></svg>';
   // Android-Zurück-Taste: einen Schritt zurück statt die App zu schließen
-  if (isApp) {
-    const appPlugin = cap.registerPlugin("App");
-    const BACK = { setupView: "setupBack", gameView: "backBtn", resultView: "menuBtn", tricksView: "tricksBack",
-      balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack" };
-    appPlugin.addListener("backButton", () => {
-      const btn = $(BACK[VIEWS.find((id) => !$(id).hidden)] || "");
-      if (btn && !btn.hidden) btn.click();
-      else appPlugin.exitApp();
-    });
+  if (isApp && cap.addListener) {
+    try {
+      const BACK = { setupView: "setupBack", gameView: "backBtn", resultView: "menuBtn", tricksView: "tricksBack",
+        balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack" };
+      cap.addListener("App", "backButton", () => {
+        const btn = $(BACK[VIEWS.find((id) => !$(id).hidden)] || "");
+        if (btn && !btn.hidden) btn.click();
+        else nativeCall("App", "exitApp").catch(() => {});
+      });
+    } catch (e) { console.error("Zurück-Taste nicht verfügbar", e); }   // die App läuft trotzdem weiter
   }
 
   renderTricks("plus");

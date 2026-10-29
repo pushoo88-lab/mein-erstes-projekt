@@ -39,6 +39,12 @@ jobs:
       - name: Web-Teil aus lernapp/index.html bauen
         run: npm run build:web
 
+      # Startet die App mit der echten Android-Brücke von Capacitor. Startet sie nicht, gibt es keine APK.
+      - name: Starttest
+        run: |
+          npx playwright install --with-deps chromium
+          npm test
+
       - name: Android-Projekt anlegen
         run: npx cap add android
 
