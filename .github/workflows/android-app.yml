@@ -135,7 +135,9 @@ jobs:
           name: Rechenwiese-APK
           path: app/Rechenwiese.apk
 
+      # Nur der Arbeits-Branch und master ersetzen die App zum Herunterladen, Versuche auf anderen Branches nicht
       - name: Als Download bereitstellen
+        if: ${{ contains(fromJSON('["ccr-daadfa50-cgyznk", "master"]'), inputs.ref || github.ref_name) }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: rechenwiese-app

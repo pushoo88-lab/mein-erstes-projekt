@@ -1696,7 +1696,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     let guard = 0;
     while (list.length < 10 && guard++ < 500) {
       const t = generate(cfg, pick(sel), sel);
-      const key = t.key || `${t.a}${t.op}${t.b}${t.blank}`;
+      const key = taskKey(t);
       if (seen.has(key)) continue;
       seen.add(key);
       list.push(t);
@@ -2153,7 +2153,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     return new Blob([buf], { type: "audio/wav" });
   }
 
-  let recIdx = 0, recStream = null, recorder = null, recChunks = [], recTimer = 0, recState = "idle";
+  let recIdx = 0, recFor = 0, recStream = null, recorder = null, recChunks = [], recTimer = 0, recState = "idle";
   function openRecorder() {
     stopSpeaking();
     const missing = LISTE.findIndex((s2) => !ownClips[s2.id]);
@@ -2170,8 +2170,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("recGroup").textContent = `Satz ${s2.id} von ${LISTE.length} · ${s2.gruppe}`;
     $("recText").textContent = s2.text;
     $("recBtn").className = `rec-btn ${recState}`;
-    $("recBtn").disabled = recState === "working";
-    $("recBtn").textContent = recState === "recording" ? "■ Fertig" : recState === "working" ? "Moment …" : have ? "● Nochmal aufnehmen" : "● Aufnehmen";
+    $("recBtn").disabled = recState === "working" || recState === "starting";
+    $("recBtn").textContent = recState === "recording" ? "■ Fertig" : recState === "working" || recState === "starting" ? "Moment …" : have ? "● Nochmal aufnehmen" : "● Aufnehmen";
     $("recPlay").disabled = !have || recState !== "idle";
     $("recPrev").disabled = recIdx === 0 || recState !== "idle";
     $("recNext").disabled = recIdx >= LISTE.length - 1 || recState !== "idle";
@@ -2184,8 +2184,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function startRecording() {
     if (!canRecord()) return renderRecorder({ text: "Auf diesem Gerät kann die App leider nichts aufnehmen.", bad: true });
     stopSpeaking();
+    // "starting": bis das Mikrofon bereit ist, zählt kein weiteres Antippen
+    recState = "starting";
+    recFor = recIdx;
+    renderRecorder();
     navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } })
       .then((stream) => {
+        // Inzwischen abgebrochen (Zurück gedrückt): Mikrofon sofort wieder freigeben
+        if (recState !== "starting" || $("recordView").hidden) { stream.getTracks().forEach((tr) => tr.stop()); return; }
         recStream = stream;
         recChunks = [];
         recorder = new MediaRecorder(stream);
@@ -2197,6 +2203,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         renderRecorder();
       })
       .catch(() => {
+        if (recState !== "starting") return;
         recState = "idle";
         renderRecorder({ text: "Das Mikrofon ist nicht freigegeben. Bitte beim Nachfragen „Zulassen“ tippen oder in den Android-Einstellungen der App das Mikrofon erlauben.", bad: true });
       });
@@ -2216,7 +2223,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     recState = "idle";
   }
   function finishRecording() {
-    const s2 = LISTE[recIdx], blob = new Blob(recChunks, { type: (recorder && recorder.mimeType) || "audio/webm" });
+    const s2 = LISTE[recFor], blob = new Blob(recChunks, { type: (recorder && recorder.mimeType) || "audio/webm" });
     const fail = (text) => { recState = "idle"; renderRecorder({ text, bad: true }); };
     const reader = new FileReader();
     reader.onload = () => {
@@ -2351,7 +2358,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     }).join("");
   }
 
-  function setupNext() {
+  // from = der Schritt, der gerade fertig ist. Doppeltippen springt so nie über eine Frage hinweg.
+  function setupNext(from) {
+    if (setupStep !== from) return;
     setupStep++;
     renderSetup();
     autoRead(setupSay(setupStep));
@@ -2378,7 +2387,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       if (msg) { beeMood("setupBee", "think"); beep(SOUND_WRONG); renderSetup(); return; }
       state.N = N;
       $("rangeNote").textContent = noteFor(N);
-      return setupNext();
+      return setupNext(S_RANGE);
     } else if (rangeDigits.length < 7) rangeDigits = (rangeDigits === "0" ? "" : rangeDigits) + k;
     $("rangeNote").textContent = "";
     $("rangeNote").classList.remove("bad");
@@ -2387,13 +2396,20 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // Name übernehmen: nur Buchstaben, Leerzeichen und Bindestrich
   function saveName(skip) {
+    if (setupStep !== S_NAME) return;
     state.name = skip ? "" : $("nameInput").value.replace(/[^\p{L} -]/gu, "").trim().slice(0, 14);
     store.set("rw-name", state.name);
     $("nameInput").blur();
-    setupNext();
+    setupNext(S_NAME);
   }
 
   function finishSetup() {
+    // Sicherheitsnetz: Fehlt eine Antwort, zurück zu genau dieser Frage
+    if (!state.grade || !state.N || state.mal === null) {
+      setupStep = !state.grade ? S_GRADE : !state.N ? S_RANGE : S_MAL;
+      renderSetup();
+      return;
+    }
     if (!state.topics.length) {
       $("topicNote").textContent = "Tippe mindestens ein Thema an.";
       $("topicNote").classList.add("bad");
@@ -2871,7 +2887,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // ---------- Tagesziel, Tage in Folge, Meilensteine ----------
   const DAILY_GOAL = 3;
   const MILESTONES = [10, 25, 50, 100, 150, 200, 300, 400, 500, 750, 1000, 1500, 2000, 3000, 5000];
-  const dayString = (offset = 0) => new Date(Date.now() + offset * 864e5).toLocaleDateString("sv");   // JJJJ-MM-TT
+  // JJJJ-MM-TT, nach Kalendertagen gerechnet (auch an Tagen mit Zeitumstellung richtig)
+  const dayString = (offset = 0) => { const d = new Date(); d.setDate(d.getDate() + offset); return d.toLocaleDateString("sv"); };
   const streakDays = () => (state.days.last === dayString() || state.days.last === dayString(-1) ? state.days.count : 0);
   const playedToday = () => (state.daily.date === dayString() ? state.daily.done : 0);
 
@@ -3384,6 +3401,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   function stopBalloons() {
     bj.running = false;
+    bj.gen = (bj.gen || 0) + 1;   // geplante Schritte (nächste Welle, Spielende) verfallen
     cancelAnimationFrame(bj.raf);
   }
 
@@ -3468,7 +3486,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       bj.score += 10 + bonus;
       bj.hits++;
       addSolved();
-      recordResult(w.t.topic, w.retried ? 0.5 : 1);
+      // Jede Aufgabe zählt einmal: falsch angetippt oder zweiter Anlauf = halb
+      recordResult(w.t.topic, w.retried || w.missed ? 0.5 : 1);
+      if (w.missed) rememberMistake(w.t);
       if (bj.target && bj.hits >= bj.target) {   // Level-Ziel erreicht
         beep(SOUND_RIGHT);
         fx.pop(b.el, 1);
@@ -3494,10 +3514,15 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     b.out = true;
     b.el.classList.add("wrong");
     beep(SOUND_WRONG);
-    if (!w.missed) { w.missed = true; recordResult(w.t.topic, 0.5); rememberMistake(w.t); }
+    w.missed = true;
     bj.lives--;
     renderBjBar();
-    if (bj.lives <= 0) { w.done = true; return gameOver(`Die Lösung war ${fmt(w.t.answer)}.`); }
+    if (bj.lives <= 0) {
+      w.done = true;
+      recordResult(w.t.topic, 0);
+      rememberMistake(w.t);
+      return gameOver(`Die Lösung war ${fmt(w.t.answer)}.`);
+    }
     sayBj(`${fmt(b.v)} stimmt nicht. Versuch einen anderen Ballon!`, "oops");
     autoRead("Oh, das war nicht der richtige. Versuch einen anderen!");
   }
@@ -3826,7 +3851,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       $("memSay").textContent = `${fromDeck("praise", PRAISE)} ${a.ans ? b.text : a.text} = ${a.ans ? a.text : b.text}`;
       if (mem.found < mem.cards.length / 2) autoRead(pick(["Super, ein Paar!", "Toll, das passt!", "Klasse gefunden!"]));
       beeMood("memBee", "happy");
-      if (mem.found === mem.cards.length / 2) setTimeout(memoryWon, 700);
+      // Nur feiern, wenn das Kind noch im Memory ist
+      if (mem.found === mem.cards.length / 2) setTimeout(() => { if (!$("memoryView").hidden && mem.found === mem.cards.length / 2 && $("memOver").hidden) memoryWon(); }, 700);
       return;
     }
     mem.lock = true;
@@ -3898,7 +3924,6 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       : correct > last ? `Letztes Mal hattest du ${last} richtig, heute ${correct}. Du hast dich verbessert!`
       : correct === last && correct >= 7 ? "Genauso gut wie letztes Mal!" : "";
     const extra = afterGame();
-    $("resultText").textContent += [progress, extra].filter(Boolean).map((x) => " " + x).join("");
     const resultVoice = [(perfect ? "Perfekt! Alles richtig! Du hast super konzentriert gerechnet!"
       : stars === 3 ? "Fantastisch! Dein Üben hat sich gelohnt!"
       : stars === 2 ? "Gut gemacht! Du wirst immer besser!"
@@ -3908,6 +3933,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("resultText").textContent = first === 10
       ? "Alle 10 Aufgaben gleich beim ersten Versuch richtig."
       : `${first + second} von 10 Aufgaben richtig, ${first} davon gleich beim ersten Versuch.`;
+    $("resultText").textContent += [progress, extra].filter(Boolean).map((x) => " " + x).join("");
     $("tally").innerHTML =
       `<span>${flowerSVG("flower", "var(--petal-1)")} ${first} Blumen</span>` +
       `<span>${flowerSVG("bud", "var(--petal-2)")} ${second} Knospen</span>` +
@@ -3940,13 +3966,13 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const b = e.target.closest("[data-grade]"); if (!b) return;
     state.grade = Number(b.dataset.grade);
     renderSetup();
-    setTimeout(setupNext, 250);
+    setTimeout(() => setupNext(S_GRADE), 250);
   });
   $("malChoice").addEventListener("click", (e) => {
     const b = e.target.closest("[data-mal]"); if (!b) return;
     state.mal = b.dataset.mal === "1";
     renderSetup();
-    setTimeout(setupNext, 250);
+    setTimeout(() => setupNext(S_MAL), 250);
   });
   $("setupDone").addEventListener("click", finishSetup);
   $("setupBack").addEventListener("click", () => {
