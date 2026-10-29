@@ -286,6 +286,16 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .skill .meter { grid-column: 1 / -1; height: 10px; border-radius: 5px; background: var(--key); overflow: hidden; }
 .skill .meter i { display: block; height: 100%; border-radius: 5px; background: var(--grass); }
 .skill small { grid-column: 1 / -1; color: var(--ink-soft); font-size: 13px; }
+.voice-list { display: grid; gap: 8px; }
+.voice-opt {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left;
+  border: 2px solid var(--line); background: var(--key); border-radius: 14px; padding: 10px 14px; font-weight: 700;
+}
+.voice-opt small { color: var(--ink-soft); font-weight: 700; font-size: 13px; white-space: nowrap; }
+.voice-opt[aria-pressed="true"] { border-color: var(--grass-deep); background: color-mix(in srgb, var(--grass) 16%, var(--paper)); }
+.voice-help { display: grid; gap: 8px; font-size: 15px; color: var(--ink-soft); }
+.voice-help p { margin: 0; }
+.voice-help ol { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; }
 .parent-tips ul { margin: 8px 0 0; padding-left: 1.2em; display: grid; gap: 8px; }
 .parent-tips li { line-height: 1.4; }
 
@@ -605,6 +615,36 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     <section class="sheet" style="display:grid; gap:10px;">
       <h2 style="font-size:21px">Themen</h2>
       <div class="skill-list" id="skillList"></div>
+    </section>
+    <section class="sheet" style="display:grid; gap:12px;">
+      <h2 style="font-size:21px">Summis Stimme</h2>
+      <p class="muted">Tippen Sie auf eine Stimme, um sie anzuhören. Die zuletzt angetippte Stimme spricht ab jetzt für Summi.</p>
+      <div class="voice-list" id="voiceList"></div>
+      <div style="display:grid; gap:6px;">
+        <p class="label" style="margin:0">Tonhöhe</p>
+        <div class="yesno" id="voicePitch">
+          <button class="choice" type="button" data-pitch="1">Natürlich</button>
+          <button class="choice" type="button" data-pitch="1.12">Etwas fröhlicher</button>
+        </div>
+      </div>
+      <div style="display:grid; gap:6px;">
+        <p class="label" style="margin:0">Tempo</p>
+        <div class="yesno" id="voiceRate">
+          <button class="choice" type="button" data-rate="0.8">Langsam</button>
+          <button class="choice" type="button" data-rate="0.92">Normal</button>
+        </div>
+      </div>
+      <button class="go secondary" id="voiceTest" type="button">Probe hören</button>
+      <div class="voice-help" id="voiceHelp">
+        <p><b>Klingt keine Stimme gut?</b> Auf Android-Geräten ist oft eine einfache Stimme eingestellt. Bessere, natürlicher klingende Stimmen lassen sich kostenlos nachladen. Auf Samsung-Geräten zum Beispiel so (die Namen sind je nach Gerät etwas anders):</p>
+        <ol>
+          <li>Einstellungen › Allgemeine Verwaltung › Sprache › Sprachausgabe öffnen.</li>
+          <li>Bei „Bevorzugte Engine“ die Sprachausgabe von Google wählen („Speech Services by Google“).</li>
+          <li>Über das Zahnrad daneben „Sprachdaten installieren“ › Deutsch öffnen und eine Stimme herunterladen.</li>
+          <li>Die App neu starten und hier die neue Stimme auswählen.</li>
+        </ol>
+        <button class="go secondary" id="voiceInstall" type="button" hidden>Weitere Stimmen installieren</button>
+      </div>
     </section>
     <section class="sheet parent-tips">
       <h2 style="font-size:21px">So helfen Sie beim Lernen</h2>
@@ -1463,14 +1503,28 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (nativeTTS) nativeTTS.stop().catch(() => {});
     else if (window.speechSynthesis) speechSynthesis.cancel();
   }
-  // Summis Stimme: etwas höher und lebendig, damit sie fröhlich und motivierend klingt
-  const VOICE = { rate: 0.95, pitch: 1.25 };
-  let nativeChain = Promise.resolve(), deVoice = null;
+  // Summis Stimme: Eltern wählen im Eltern-Bereich Stimme, Tonhöhe und Tempo.
+  // Grundeinstellung ist natürlich, denn höher gestellte Computerstimmen klingen schnell künstlich.
+  const voiceCfg = Object.assign({ uri: "", pitch: 1.0, rate: 0.92 }, store.get("rw-voice", {}));
+  let nativeChain = Promise.resolve(), deVoice = null, nativeVoices = [];
 
-  // Im Browser möglichst eine weibliche deutsche Stimme nehmen
+  // Android: alle Stimmen des Geräts. Das Plugin wählt eine Stimme über ihre Nummer in genau dieser Liste.
+  function loadNativeVoices() {
+    if (!nativeTTS) return Promise.resolve([]);
+    return nativeCall("TextToSpeech", "getSupportedVoices")
+      .then((r) => { nativeVoices = (r && r.voices) || []; return nativeVoices; })
+      .catch(() => nativeVoices);
+  }
+  if (nativeTTS) setTimeout(loadNativeVoices, 1500);   // Sprachausgabe braucht nach dem Start einen Moment
+  const nativeVoiceIndex = () => (voiceCfg.uri ? nativeVoices.findIndex((v) => v.voiceURI === voiceCfg.uri) : -1);
+
+  // Im Browser: die gewählte Stimme, sonst möglichst eine weibliche deutsche Stimme
   function germanVoice() {
+    const all = speechSynthesis.getVoices().filter((v) => /^de/i.test(v.lang));
+    const chosen = voiceCfg.uri && all.find((v) => v.voiceURI === voiceCfg.uri || v.name === voiceCfg.uri);
+    if (chosen) return chosen;
     if (deVoice) return deVoice;
-    const voices = speechSynthesis.getVoices().filter((v) => /^de/i.test(v.lang));
+    const voices = all;
     deVoice = voices.find((v) => /anna|petra|katja|vicki|marlene|helena|hedda|female|weiblich/i.test(v.name))
       || voices.find((v) => /google/i.test(v.name)) || voices[0] || null;
     return deVoice;
@@ -1479,13 +1533,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // queue = true: erst ausreden lassen (z. B. Lob), dann den neuen Text sprechen
   function speak(text, queue = false) {
     if (!canSpeak || !text) return;
+    if (nativeTTS && voiceCfg.uri && !nativeVoices.length) loadNativeVoices();
     if (nativeTTS) {   // Sprachausgabe von Android
       if (!queue) speechGen++;
       const gen = speechGen;
       // Android meldet bei abgebrochenen Sätzen nie "fertig". Darum höchstens so lange warten,
       // wie der Satz ungefähr dauert, sonst bliebe die Warteschlange für immer hängen.
       const go = () => (gen !== speechGen ? null : Promise.race([
-        nativeTTS.speak({ text, lang: "de-DE", rate: VOICE.rate, pitch: VOICE.pitch }).catch(() => {}),
+        nativeTTS.speak({ text, lang: "de-DE", rate: voiceCfg.rate, pitch: voiceCfg.pitch, voice: nativeVoiceIndex() }).catch(() => {}),
         new Promise((done) => setTimeout(done, 1500 + text.length * 80)),
       ]));
       nativeChain = queue ? nativeChain.then(go) : nativeTTS.stop().catch(() => {}).then(go);
@@ -1495,8 +1550,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       if (!queue) speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "de-DE";
-      u.rate = VOICE.rate;
-      u.pitch = VOICE.pitch;
+      u.rate = voiceCfg.rate;
+      u.pitch = voiceCfg.pitch;
       const v = germanVoice();
       if (v) u.voice = v;
       speechSynthesis.speak(u);
@@ -1628,6 +1683,36 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     autoRead($("homeSay").textContent);
   }
 
+  // ---------- Für Eltern: Summis Stimme ----------
+  const voiceSample = () => `Hallo${state.name ? " " + state.name : ""}! Ich bin Summi. Super, das hast du toll gerechnet!`;
+  function saveVoice() { store.set("rw-voice", voiceCfg); }
+
+  function renderVoices() {
+    for (const b of $("voicePitch").querySelectorAll("[data-pitch]")) b.setAttribute("aria-pressed", String(Number(b.dataset.pitch) === voiceCfg.pitch));
+    for (const b of $("voiceRate").querySelectorAll("[data-rate]")) b.setAttribute("aria-pressed", String(Number(b.dataset.rate) === voiceCfg.rate));
+    $("voiceInstall").hidden = !nativeTTS;
+    if (!canSpeak) {
+      $("voiceList").innerHTML = '<p class="muted">Auf diesem Gerät gibt es keine Sprachausgabe.</p>';
+      return;
+    }
+    // Android: Stimmen aus dem Plugin, im Browser die Stimmen des Browsers
+    const list = nativeTTS
+      ? nativeVoices.filter((v) => /^de/i.test(v.lang)).map((v, k) => ({ uri: v.voiceURI, label: `Stimme ${k + 1}`, tag: v.localService ? "ohne Internet" : "braucht Internet" }))
+      : window.speechSynthesis ? speechSynthesis.getVoices().filter((v) => /^de/i.test(v.lang)).map((v) => ({ uri: v.voiceURI || v.name, label: v.name, tag: v.localService ? "ohne Internet" : "braucht Internet" })) : [];
+    const options = [{ uri: "", label: "Standard-Stimme des Geräts", tag: "" }, ...list];
+    $("voiceList").innerHTML = options.map((o) =>
+      `<button class="voice-opt" type="button" data-voice="${encodeURIComponent(o.uri)}" aria-pressed="${o.uri === voiceCfg.uri}">` +
+      `<span>${o.label}</span><small>${o.tag}${o.tag ? " · " : ""}anhören ▶</small></button>`).join("");
+  }
+
+  function openVoiceSettings() {
+    renderVoices();
+    if (nativeTTS) loadNativeVoices().then(() => { if (!$("parentView").hidden) renderVoices(); });
+  }
+  if (window.speechSynthesis && "onvoiceschanged" in speechSynthesis) {
+    speechSynthesis.onvoiceschanged = () => { deVoice = null; if (!$("parentView").hidden) renderVoices(); };
+  }
+
   // ---------- Für Eltern: Lernstand ----------
   function openParent() {
     const k = streakDays(), due = review.filter((x) => x.due <= Date.now()).length;
@@ -1647,6 +1732,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         `<small>${rate} % der letzten ${last.length} Aufgaben gleich richtig · Schwierigkeit ${level} von 5 · zuletzt geübt am ${when}</small></div>`;
     }).join("") : `<p class="muted">Noch keine Aufgaben gelöst. Sobald Ihr Kind übt, sehen Sie hier, welche Themen schon sicher sind und wo es noch Übung braucht.</p>`;
     show("parentView");
+    openVoiceSettings();
   }
 
   // ---------- Startseite ----------
@@ -2884,6 +2970,21 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("settingsChip").addEventListener("click", () => openSetup(S_NAME));
   $("parentBtn").addEventListener("click", openParent);
   $("parentBack").addEventListener("click", () => goHome());
+  $("voiceList").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-voice]"); if (!b) return;
+    voiceCfg.uri = decodeURIComponent(b.dataset.voice);
+    saveVoice(); renderVoices(); speak(voiceSample());
+  });
+  $("voicePitch").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-pitch]"); if (!b) return;
+    voiceCfg.pitch = Number(b.dataset.pitch); saveVoice(); renderVoices(); speak(voiceSample());
+  });
+  $("voiceRate").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-rate]"); if (!b) return;
+    voiceCfg.rate = Number(b.dataset.rate); saveVoice(); renderVoices(); speak(voiceSample());
+  });
+  $("voiceTest").addEventListener("click", () => speak(voiceSample()));
+  $("voiceInstall").addEventListener("click", () => nativeCall("TextToSpeech", "openInstall").catch(() => {}));
   $("nameOk").addEventListener("click", () => saveName(false));
   $("nameSkip").addEventListener("click", () => saveName(true));
   $("nameInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); saveName(false); } });

@@ -92,6 +92,9 @@ Es ist nichts vorausgewählt. Über „Ändern“ auf der Startseite lässt sich
 - **Kein Zeitdruck:** Es wird keine Zeit gemessen. In der Ballonjagd kommen die Ballons beim
   Nachdenken einfach langsamer wieder; Leben kosten nur falsch angetippte Ballons.
 - **Für Eltern:** Eine eigene Seite zeigt je Thema, wie sicher das Kind ist, und gibt Tipps zum Begleiten.
+  Dort lässt sich auch **Summis Stimme** einstellen: jede deutsche Stimme des Geräts anhören und auswählen,
+  Tonhöhe (natürlich oder etwas fröhlicher) und Tempo (langsam oder normal), dazu eine Anleitung,
+  wie man auf Android natürlicher klingende Stimmen nachlädt.
 
 **Belohnungen:** Blumen für den eigenen Garten, Funken bei 3, 6 und 9 richtigen Antworten in Folge,
 Feuerwerk bei 3 Sternen oder einem neuen Rekord, eine Goldblume für eine fehlerfreie Blumen-Runde.
