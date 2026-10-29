@@ -91,7 +91,7 @@ const teile = [
     ]],
     ["Garten", fixed(["Such dir im Laden etwas Schönes für deinen Garten aus!", "Sammle Blumen beim Spielen und Üben. Dann kannst du hier einkaufen!"])],
     // Später dazugekommen: am Ende, damit sich die Nummern der Aufnahmen davor nicht verschieben
-    ["Neue Aufgaben und Übungsblatt", [...NEU.flatMap((k) => CONTEXT_PRAISE[k]), ...grab("MULTI_MISSED"), ...grab("SCHOOL_DONE")]],
+    ["Neue Aufgaben und Übungsblatt", [...NEU.flatMap((k) => CONTEXT_PRAISE[k]), ...grab("MULTI_MISSED"), ...grab("SCHOOL_DONE"), ...grab("STICKER_SAY")]],
   ] },
 ];
 

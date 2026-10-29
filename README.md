@@ -66,6 +66,8 @@ Es ist nichts vorausgewählt. Über „Ändern“ auf der Startseite lässt sich
 | **Zahlen-Memory** (Spiel) | 12 Karten: immer eine Aufgabe und ihr Ergebnis bilden ein Paar. Züge zählen, Rekord, 3 Blumen pro Spiel. |
 | **Blumen-Runde** (Üben) | 10 Aufgaben mit Zahlenfeld. Jede richtige Antwort lässt eine Blume wachsen, Hilfe mit Bildern und Tipps. |
 | **Übungsblatt** (Wie in der Schule) | Ein Blatt wie die Lernzielkontrolle in Klasse 2, in derselben Reihenfolge: Kopfrechnen, Rechenroboter mit allen vier Aufgaben der Familie, Zahlenmauern und Rechentabellen mit mehreren Lücken, Platzhalter mit Probe, Tabelle „das Doppelte“, geschickt rechnen (erst die beiden Startzahlen antippen), Zahlenrätsel mit Rechnung und Antwortsatz, Sachaufgabe mit Frage, Rechnung und Antwort. Summi liest nicht automatisch vor (Selbstlesen üben), am Ende gibt es Punkte wie in der Schule: von 35 Punkten. |
+| **Sticker-Album** (Sammeln) | 21 Sticker für Dranbleiben, Mut und Üben: erste Runde, nicht aufgegeben, mutig Hilfe geholt, Tage in Folge, Übungsblatt, Rechenroboter-Profi und mehr. Leere Felder zeigen blass, was man noch sammeln kann, und Summi sagt, wie man den Sticker bekommt. |
+| **Summis Kleiderschrank** (im Garten) | Summi verkleiden: Partyhut, Schleife, Sonnenbrille, Blumenkranz, Krone, Zauberhut. Bezahlt wird mit Blumen. Summi trägt die Verkleidung überall in der App. |
 | **Rechentricks** (Lernen) | Kindgerechte Erklärungen, wie man am besten rechnet, z. B. „Erst bis zur 10“, Tauschaufgabe, Signalwörter. |
 | **Mein Garten** (Belohnung) | Alle gesammelten Blumen wachsen in einem Garten-Bild. Im Gartenladen bezahlt das Kind mit Blumen und kauft Schnecke, Pilz, Schmetterling, Gartenzwerg, Teich, Bienenstock, Regenbogen und mehr (4 bis 30 Blumen). |
 

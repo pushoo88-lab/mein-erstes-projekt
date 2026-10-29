@@ -13,7 +13,10 @@
 /* Layout: eine schmale Spalte wie ein Arbeitsblatt, unten wächst die Wiese mit jeder richtigen Aufgabe */
 :root {
   --sky: #e6f2f6;
-  --sky-top: #cfe7f1;
+  --sky-top: #b9e0f2;
+  --hill-1: #bfe3a8;
+  --hill-2: #a6d78f;
+  --cloud: rgba(255, 255, 255, .9);
   --bee-ink: #3b2f14;
   --wing: #ffffff;
   --paper: #ffffff;
@@ -42,6 +45,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --sky: #0f2228; --sky-top: #17323d; --wing: #d8eef5; --paper: #18323a; --ink: #e4f1ee; --ink-soft: #9db8b8; --line: #2c4a52;
+    --hill-1: #1c3a2c; --hill-2: #214532; --cloud: rgba(200, 225, 235, .10);
     --grass: #4a9542; --grass-deep: #3a7e36; --stem: #5aa651; --sun: #f6c24a; --sun-ink: #2a1d00;
     --petal-1: #f483ad; --petal-2: #a68cf0; --petal-3: #f59a55; --petal-4: #5ab8e3;
     --red: #f06a60; --blue: #6c9cf0; --ok: #6fcf6a; --oops: #f0915f;
@@ -51,6 +55,7 @@
 }
 :root[data-theme="dark"] {
   --sky: #0f2228; --sky-top: #17323d; --wing: #d8eef5; --paper: #18323a; --ink: #e4f1ee; --ink-soft: #9db8b8; --line: #2c4a52;
+  --hill-1: #1c3a2c; --hill-2: #214532; --cloud: rgba(200, 225, 235, .10);
   --grass: #4a9542; --grass-deep: #3a7e36; --stem: #5aa651; --sun: #f6c24a; --sun-ink: #2a1d00;
   --petal-1: #f483ad; --petal-2: #a68cf0; --petal-3: #f59a55; --petal-4: #5ab8e3;
   --red: #f06a60; --blue: #6c9cf0; --ok: #6fcf6a; --oops: #f0915f;
@@ -81,6 +86,27 @@ body {
   flex-direction: column;
   gap: 18px;
 }
+/* Hintergrund wie eine Wiese: Himmel, Wolken, Hügel. Liegt fest hinter allem. */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(130% 55% at 15% 112%, var(--hill-2) 0 52%, transparent 53%),
+    radial-gradient(120% 50% at 90% 115%, var(--hill-1) 0 52%, transparent 53%),
+    linear-gradient(to bottom, var(--sky-top), var(--sky) 60%);
+}
+body::after {
+  content: ""; position: fixed; left: 0; top: 0; width: 100%; height: 45%; z-index: -1; pointer-events: none; overflow: hidden;
+  background:
+    radial-gradient(60px 26px at 12% 14%, var(--cloud) 98%, transparent),
+    radial-gradient(44px 22px at 16% 11%, var(--cloud) 98%, transparent),
+    radial-gradient(70px 28px at 52% 24%, var(--cloud) 98%, transparent),
+    radial-gradient(48px 22px at 56% 20%, var(--cloud) 98%, transparent),
+    radial-gradient(56px 24px at 84% 9%, var(--cloud) 98%, transparent);
+  /* Die Wolken ziehen langsam vorbei, ohne die Seite breiter zu machen */
+  animation: drift 120s linear infinite;
+}
+@keyframes drift { to { background-position: 100vw 0; } }
+@media (prefers-reduced-motion: reduce) { body::after { animation: none; } }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 
@@ -103,7 +129,7 @@ button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 }
 
 /* Allgemeine Bausteine */
-.sheet { background: var(--paper); border: 2px solid var(--line); border-radius: 22px; padding: 18px; }
+.sheet { background: var(--paper); border: 2px solid var(--line); border-radius: 24px; padding: 18px; box-shadow: 0 6px 0 color-mix(in srgb, var(--line) 75%, transparent); }
 .label { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); font-weight: 700; margin: 0 0 10px; }
 h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1.1; margin: 0; text-wrap: balance; }
 .muted { color: var(--ink-soft); margin: 0; }
@@ -272,6 +298,25 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .shop-item b { font-family: var(--display); font-size: 19px; line-height: 1.1; }
 .buy { display: inline-flex; align-items: center; gap: 4px; border: 0; border-radius: 999px; padding: 6px 16px 6px 10px; background: var(--sun); color: var(--sun-ink); font-family: var(--display); font-weight: 800; font-size: 19px; box-shadow: 0 3px 0 color-mix(in srgb, var(--sun) 55%, #000); }
 .buy svg { width: 16px; height: 24px; }
+.buy.wear { background: var(--grass); color: #fff; box-shadow: 0 3px 0 var(--grass-deep); padding: 6px 14px; font-size: 17px; }
+.mode.album-tile { background: color-mix(in srgb, var(--petal-2) 12%, var(--paper)); border-color: color-mix(in srgb, var(--petal-2) 45%, var(--line)); box-shadow: 0 5px 0 color-mix(in srgb, var(--petal-2) 45%, var(--line)); }
+.album { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.album-slot { display: grid; justify-items: center; gap: 6px; padding: 10px 6px; border-radius: 18px; border: 2px dashed var(--line); background: color-mix(in srgb, var(--paper) 70%, transparent); text-align: center; }
+.album-slot b { font-size: 14px; line-height: 1.2; color: var(--ink-soft); }
+.album-slot.has { border-style: solid; background: var(--paper); box-shadow: 0 4px 0 var(--line); }
+.album-slot.has b { color: var(--ink); }
+.sticker { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; padding: 8px; font: 800 28px var(--display); color: var(--line);
+  background: var(--key); }
+.album-slot.has .sticker { background: color-mix(in srgb, var(--sun) 22%, var(--paper)); border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .15); transform: rotate(-4deg); }
+.sticker svg { width: 100%; height: 100%; }
+.sticker.ghost svg { filter: grayscale(1); opacity: .28; }
+.mode { min-width: 0; }
+.mode b { overflow-wrap: break-word; hyphens: auto; max-width: 100%; }
+.sticker.big { width: 140px; height: 140px; padding: 18px; background: color-mix(in srgb, var(--sun) 25%, var(--paper)); border: 5px solid #fff; box-shadow: 0 4px 14px rgba(0, 0, 0, .2); animation: stick .7s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes stick { from { transform: scale(0) rotate(-40deg); } }
+.sticker-toast { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 24px; background: rgba(10, 30, 35, .45); }
+.sticker-card { background: var(--paper); border-radius: 28px; padding: 22px 24px; display: grid; justify-items: center; gap: 12px; width: min(340px, 100%); text-align: center; box-shadow: 0 8px 0 var(--line); }
+.sticker-card b { font: 800 26px var(--display); }
 .buy:disabled { background: var(--key); color: var(--ink-soft); box-shadow: 0 3px 0 var(--line); cursor: default; }
 .shop-item small { color: var(--ink-soft); font-size: 13px; }
 .have { color: var(--ok); font-weight: 700; }
@@ -386,7 +431,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   background: var(--sky); color: var(--ink); display: inline-block;
 }
 .slot.filled { border-style: solid; border-color: var(--blue); }
-.slot.right { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, var(--paper)); }
+.slot.right { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, var(--paper)); animation: boing .45s cubic-bezier(.3, 1.8, .5, 1); }
+@keyframes boing { 40% { transform: scale(1.25) rotate(-3deg); } }
 .slot.wrong { border-color: var(--oops); animation: shake .35s; }
 @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 .task.is-text { display: grid; justify-items: center; gap: 14px; font-family: var(--body); font-weight: 700; font-size: 22px; line-height: 1.35; }
@@ -517,12 +563,13 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
 .pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .key {
-  border: 2px solid var(--line); background: var(--paper); border-radius: 16px;
-  min-height: 60px; font-family: var(--display); font-size: 30px; font-weight: 800;
-  box-shadow: 0 4px 0 var(--line); transition: transform .06s ease, box-shadow .06s ease;
+  border: 3px solid var(--line); background: var(--paper); border-radius: 20px;
+  min-height: 62px; font-family: var(--display); font-size: 32px; font-weight: 800;
+  box-shadow: 0 5px 0 var(--line); transition: transform .06s ease, box-shadow .06s ease;
 }
 .key:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); background: var(--key-press); }
-.key.ok { background: var(--grass); border-color: var(--grass-deep); color: #fff; box-shadow: 0 4px 0 var(--grass-deep); }
+.key.ok { background: var(--grass); border-color: var(--grass-deep); color: #fff; box-shadow: 0 5px 0 var(--grass-deep); }
+.key.del { background: color-mix(in srgb, var(--petal-3) 14%, var(--paper)); }
 .key.del { font-size: 22px; }
 .key:disabled { opacity: .5; }
 
@@ -535,7 +582,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 .meadow .spot { display: grid; place-items: end center; height: 100%; }
 .meadow .spot > div { width: 100%; display: grid; place-items: end center; }
 .meadow .spot svg { width: 30px; max-width: 100%; height: 52px; margin-bottom: 4px; }
-.meadow .spot.now::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--sun); margin-bottom: 8px; animation: pulse 1s infinite alternate; }
+.meadow .spot.now { place-items: end center; }
+.meadow .mini-bee { width: min(30px, 100%); margin-bottom: 18px; animation: bob 1.4s ease-in-out infinite; }
+.meadow .mini-bee svg { display: block; width: 100%; height: auto; }
 @keyframes pulse { to { transform: scale(1.5); } }
 .grow { transform-origin: 50% 100%; animation: grow .5s cubic-bezier(.3,1.6,.5,1); }
 @keyframes grow { from { transform: scale(0); } }
@@ -640,7 +689,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       <button class="mode game" id="memoryBtn" type="button"><span class="tag">Spiel</span><span id="iconMemory"></span><b>Zahlen-Memory</b><small>Finde Aufgabe und Ergebnis</small></button>
       <button class="mode" id="startBtn" type="button"><span class="tag">Üben</span><span id="iconFlower"></span><b>Blumen-Runde</b><small>10 Aufgaben, Blumen sammeln</small></button>
       <button class="mode" id="tricksBtn" type="button"><span class="tag">Lernen</span><span id="iconTricks"></span><b>Rechentricks</b><small>So geht Rechnen leichter</small></button>
-      <button class="mode school wide" id="schoolBtn" type="button"><span class="tag">Wie in der Schule</span><span id="iconSchool"></span><b>Übungsblatt</b><small>Alle Aufgaben wie in der Lernzielkontrolle. In Ruhe, ohne Zeit.</small></button>
+      <button class="mode school" id="schoolBtn" type="button"><span class="tag">Wie in der Schule</span><span id="iconSchool"></span><b>Übungsblatt</b><small>Wie die Lernzielkontrolle, ohne Zeit</small></button>
+      <button class="mode album-tile" id="albumBtn" type="button"><span class="tag">Sammeln</span><span id="iconAlbum"></span><b>Sticker-Album</b><small id="albumInfo"></small></button>
       <button class="mode garden-tile wide" id="gardenBtn" type="button"><span class="tag">Belohnung</span><span id="iconGarden"></span><b>Mein Garten</b><small id="gardenInfo"></small></button>
     </div>
     <button class="settings-chip" id="settingsChip" type="button"><span id="settingsText"></span><b>Ändern</b></button>
@@ -673,6 +723,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       <div class="bubble"><p id="gardenSay"></p><button class="speak" type="button" data-speak-el="gardenSay">Vorlesen</button></div>
     </section>
     <div class="scene" id="scene" aria-label="Dein Garten"></div>
+    <p class="label" style="margin:6px 0 0">Summis Kleiderschrank: Verkleide Summi</p>
+    <div class="shop" id="wardrobe"></div>
     <p class="label" style="margin:6px 0 0">Gartenladen: Bezahle mit deinen Blumen</p>
     <div class="shop" id="shop"></div>
   </main>
@@ -793,6 +845,20 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     <div class="meadow" id="meadow" aria-label="Deine Blumen in dieser Runde"></div>
   </main>
 
+  <!-- Sticker-Album -->
+  <main id="albumView" hidden style="display:grid; gap:14px;">
+    <div class="bar">
+      <button class="back" id="albumBack" type="button">← Zurück</button>
+      <span class="where">Sticker-Album</span>
+      <span class="count" id="albumCount"></span>
+    </div>
+    <section class="sheet hello">
+      <div class="bee" id="albumBee"></div>
+      <div class="bubble"><p id="albumSay"></p><button class="speak" type="button" data-speak-el="albumSay">Vorlesen</button></div>
+    </section>
+    <div class="album" id="album"></div>
+  </main>
+
   <!-- Summis Stimme aufnehmen (für Eltern) -->
   <main id="recordView" hidden style="display:grid; gap:14px;">
     <div class="bar">
@@ -876,6 +942,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
 </div>
 <canvas id="fx" aria-hidden="true"></canvas>
+<div class="sticker-toast" id="stickerToast" hidden role="dialog" aria-label="Neuer Sticker">
+  <div class="sticker-card"><p class="label" style="margin:0">Neuer Sticker!</p><div class="sticker big" id="toastArt"></div>
+    <b id="toastName"></b><button class="go" id="toastOk" type="button">Ins Album kleben</button></div>
+</div>
 
 <!-- Eigene Aufnahmen für Summis Stimme (erzeugt von app/stimme/verarbeiten.py) -->
 <script src="stimme/stimme.js"></script>
@@ -1753,6 +1823,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     name: store.get("rw-name", ""),       // freiwillig, damit Summi das Kind ansprechen kann
     solved: store.get("rw-solved", 0),    // alle richtig gelösten Aufgaben
     milestone: 0,                         // gerade erreichter Meilenstein, wird am Spielende gefeiert
+    outfit: store.get("rw-outfit", ""),   // was Summi gerade trägt
+    stats: store.get("rw-stats", {}),     // Zähler für Sticker: Runden, perfekte Runden, Übungsblätter …
+    stickers: store.get("rw-stickers", []),
     daily: store.get("rw-daily", { date: "", done: 0, bonus: false }),
     days: store.get("rw-days", { last: "", count: 0 }),   // Tage in Folge
     lastScores: store.get("rw-last", {}),  // letztes Ergebnis je Auswahl, für "Du hast dich verbessert"
@@ -1849,7 +1922,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   })();
 
   // ---------- Ansichten ----------
-  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView", "pathView", "gardenView", "parentView", "recordView"];
+  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView", "pathView", "gardenView", "parentView", "recordView", "albumView"];
   function show(view) {
     if (view !== "recordView") cancelRecording();
     for (const id of VIEWS) $(id).hidden = id !== view;
@@ -1869,7 +1942,37 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // ---------- Summi, die Rechenbiene ----------
   let beeCount = 0;
-  function beeSVG() {
+  // Kleine Biene ohne Verkleidung, z. B. auf der Wiese über der aktuellen Aufgabe
+  const MINI_BEE = '<svg viewBox="0 0 40 34" aria-hidden="true"><ellipse cx="11" cy="11" rx="9" ry="6" fill="var(--wing)" stroke="var(--line)" stroke-width="1.5" transform="rotate(-20 11 11)"/>' +
+    '<ellipse cx="29" cy="11" rx="9" ry="6" fill="var(--wing)" stroke="var(--line)" stroke-width="1.5" transform="rotate(20 29 11)"/><ellipse cx="20" cy="21" rx="12" ry="11" fill="var(--sun)"/>' +
+    '<path d="M15 12v17M25 12v17" stroke="var(--bee-ink)" stroke-width="3"/><circle cx="16" cy="18" r="1.8" fill="var(--bee-ink)"/></svg>';
+
+  // Summis Verkleidungen, gekauft mit Blumen im Garten
+  const OUTFITS = [
+    { id: "hut", name: "Partyhut", art: "den", price: 6 },
+    { id: "schleife", name: "Schleife", art: "die", price: 8 },
+    { id: "brille", name: "Sonnenbrille", art: "die", price: 10 },
+    { id: "kranz", name: "Blumenkranz", art: "den", price: 12 },
+    { id: "krone", name: "Krone", art: "die", price: 20 },
+    { id: "zauber", name: "Zauberhut", art: "den", price: 25 },
+  ];
+  function outfitSVG(id) {
+    switch (id) {
+      case "hut": return '<path d="M38 31L53 2L65 29Z" fill="var(--petal-2)"/><path d="M43 22l17 4M48 12l10 2" stroke="#fff" stroke-width="3"/><circle cx="53" cy="3" r="4.5" fill="var(--sun)"/>';
+      case "schleife": return '<path d="M67 30L55 21V39Z M67 30L79 21V39Z" fill="var(--petal-1)"/><circle cx="67" cy="30" r="4.5" fill="var(--red)"/>';
+      case "brille": return '<rect x="28" y="42" width="21" height="14" rx="6" fill="#1d2b3a"/><rect x="51" y="42" width="21" height="14" rx="6" fill="#1d2b3a"/>' +
+        '<path d="M48 47h4" stroke="#1d2b3a" stroke-width="3"/><path d="M32 46h6M55 46h6" stroke="#fff" stroke-width="2" opacity=".6" stroke-linecap="round"/>';
+      case "kranz": return [[33, 35, 1], [41, 30, 2], [50, 28, 3], [59, 30, 4], [67, 35, 1]].map(([x, y, c]) =>
+        `<circle cx="${x}" cy="${y}" r="5.5" fill="var(--petal-${c})"/><circle cx="${x}" cy="${y}" r="2" fill="var(--sun)"/>`).join("");
+      case "krone": return '<path d="M34 33L36 13L44 23L50 8L56 23L64 13L66 33Z" fill="#f6c84a" stroke="#c99a1c" stroke-width="2" stroke-linejoin="round"/>' +
+        '<circle cx="50" cy="11" r="2.6" fill="var(--red)"/><circle cx="36" cy="15" r="2" fill="var(--blue)"/><circle cx="64" cy="15" r="2" fill="var(--blue)"/>';
+      case "zauber": return '<path d="M30 32L55 0L70 32Z" fill="var(--blue)"/><path d="M25 33Q50 27 75 33" stroke="var(--blue)" stroke-width="6" stroke-linecap="round" fill="none"/>' +
+        '<path d="M52 12l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5z" fill="var(--sun)"/>';
+    }
+    return "";
+  }
+
+  function beeSVG(outfit = state.outfit) {
     const id = `beeBody${beeCount++}`;
     return `<svg viewBox="0 0 100 92" aria-hidden="true"><g class="float">
       <path d="M42 26Q36 10 27 9M58 26Q64 10 73 9" stroke="var(--bee-ink)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
@@ -1883,6 +1986,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       <circle cx="40" cy="50" r="3.6" fill="var(--bee-ink)"/><circle cx="62" cy="50" r="3.6" fill="var(--bee-ink)"/>
       <circle cx="31" cy="59" r="4" fill="var(--petal-1)" opacity=".55"/><circle cx="69" cy="59" r="4" fill="var(--petal-1)" opacity=".55"/>
       <path d="M43 59Q50 65 57 59" stroke="var(--bee-ink)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      ${outfitSVG(outfit)}
     </g></svg>`;
   }
   function beeMood(id, mood = "") {
@@ -2575,6 +2679,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   function renderHome(text) {
     $("homeSay").textContent = text;
+    $("albumInfo").textContent = `${state.stickers.length} von ${STICKERS.length} Stickern`;
     const d = playedToday(), k = streakDays();
     $("today").innerHTML =
       `<div class="goal${d >= DAILY_GOAL ? " done" : ""}"><b>Tagesziel</b><span class="dots" aria-hidden="true">${
@@ -2649,11 +2754,13 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     "Geschafft! Jedes Übungsblatt macht dich sicherer."];
   function finishSchool() {
     const r = state.round;
+    setTimeout(checkStickers, 0);
     const per = SCHOOL.map((sec, i) => {
       const own = r.tasks.map((t, k) => (t.sec === i ? r.scores[k] || 0 : null)).filter((x) => x !== null);
       return own.length ? { short: sec.short, max: sec.points, got: Math.round(sec.points * own.reduce((a, b) => a + b, 0) / own.length * 2) / 2 } : null;
     }).filter(Boolean);
     const total = per.reduce((sum, p) => sum + p.got, 0), maxPoints = per.reduce((sum, p) => sum + p.max, 0);
+    bumpStats({ sheets: 1, bestSheet: (v) => Math.max(v || 0, total) });
     r.results.forEach((x, i) => {
       if (x === "first") state.garden.push("f" + (i % 4));
       else if (x === "second") state.garden.push("b" + (i % 4));
@@ -2833,7 +2940,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       if (res === "first") html += `<div class="spot"><div class="${cls}">${flowerSVG("flower", PETALS[i % 4])}</div></div>`;
       else if (res === "second") html += `<div class="spot"><div class="${cls}">${flowerSVG("bud", PETALS[i % 4])}</div></div>`;
       else if (res === "missed") html += `<div class="spot"><div class="${cls}">${flowerSVG("sprout")}</div></div>`;
-      else html += `<div class="spot${i === r.i ? " now" : ""}"></div>`;
+      else html += i === r.i ? `<div class="spot now"><div class="mini-bee">${MINI_BEE}</div></div>` : '<div class="spot"></div>';
     }
     $("meadow").innerHTML = html;
   }
@@ -2965,6 +3072,75 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     return withName(fromDeck("praise", PRAISE));
   }
 
+  // ---------- Sticker-Album ----------
+  // Sticker gibt es für Dranbleiben, Mut und Üben, nicht nur für Schnelligkeit
+  const STICKERS = [
+    { id: "runde1", name: "Erste Runde", hint: "Spiele eine Blumen-Runde zu Ende.", art: () => decoSVG("pilz"), ok: (s2) => s2.rounds >= 1 },
+    { id: "sterne3", name: "Drei Sterne", hint: "Hol 3 Sterne in einer Runde.", art: () => STAR.replace("<svg", '<svg fill="var(--sun)"'), ok: (s2) => s2.three >= 1 },
+    { id: "perfekt", name: "Alles richtig", hint: "Löse alle 10 Aufgaben gleich beim ersten Versuch.", art: () => flowerSVG("gold"), ok: (s2) => s2.perfect >= 1 },
+    { id: "dranbleiben", name: "Nicht aufgegeben", hint: "Verbessere 10 Aufgaben beim zweiten Versuch.", art: () => decoSVG("schnecke"), ok: (s2) => s2.second >= 10 },
+    { id: "hilfe", name: "Mutig Hilfe geholt", hint: "Löse 5 Aufgaben mit der Hilfe.", art: () => decoSVG("kaefer"), ok: (s2) => s2.helped >= 5 },
+    { id: "a10", name: "10 Aufgaben", hint: "Löse 10 Aufgaben.", art: () => decoSVG("sonnenblume"), ok: () => state.solved >= 10 },
+    { id: "a50", name: "50 Aufgaben", hint: "Löse 50 Aufgaben.", art: () => decoSVG("schmetterling"), ok: () => state.solved >= 50 },
+    { id: "a100", name: "100 Aufgaben", hint: "Löse 100 Aufgaben.", art: () => decoSVG("bienenstock"), ok: () => state.solved >= 100 },
+    { id: "a250", name: "250 Aufgaben", hint: "Löse 250 Aufgaben.", art: () => decoSVG("vogelhaus"), ok: () => state.solved >= 250 },
+    { id: "a500", name: "500 Aufgaben", hint: "Löse 500 Aufgaben.", art: () => decoSVG("regenbogen"), ok: () => state.solved >= 500 },
+    { id: "tagesziel", name: "Tagesziel", hint: "Schaffe einmal dein Tagesziel: 3 Spiele an einem Tag.", art: () => flowerSVG("flower", "var(--petal-2)"), ok: (s2) => s2.daily >= 1 },
+    { id: "tage3", name: "3 Tage in Folge", hint: "Übe an 3 Tagen hintereinander.", art: () => MINI_BEE, ok: () => state.days.count >= 3 },
+    { id: "tage7", name: "7 Tage in Folge", hint: "Übe an 7 Tagen hintereinander.", art: () => decoSVG("zwerg"), ok: () => state.days.count >= 7 },
+    { id: "blatt", name: "Übungsblatt", hint: "Mach ein ganzes Übungsblatt.", art: () => $("iconSchool").innerHTML, ok: (s2) => s2.sheets >= 1 },
+    { id: "superblatt", name: "Super-Blatt", hint: "Hol 30 Punkte auf einem Übungsblatt.", art: () => `<svg viewBox="20 0 60 40" aria-hidden="true">${outfitSVG("krone")}</svg>`, ok: (s2) => s2.bestSheet >= 30 },
+    { id: "ballon", name: "Ballon-Profi", hint: "Triff 15 Ballons in einem Spiel.", art: () => balloonSVG("var(--petal-4)"), ok: (s2) => s2.bjHits >= 15 },
+    { id: "memory", name: "Memory-Meister", hint: "Finde alle Paare in höchstens 10 Zügen.", art: () => $("iconMemory").innerHTML, ok: (s2) => s2.memMoves > 0 && s2.memMoves <= 10 },
+    { id: "level4", name: "Abenteurer", hint: "Schaffe 4 Level auf dem Abenteuer-Pfad.", art: () => decoSVG("teich"), ok: () => state.path.done >= 4 },
+    { id: "roboter", name: "Roboter-Profi", hint: "Löse 10 Aufgaben mit dem Rechenroboter.", ok: (s2) => s2["t-familie"] >= 10,
+      art: () => '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="10" y="14" width="44" height="40" rx="10" fill="var(--blue)"/><circle cx="24" cy="30" r="8" fill="#fff"/><circle cx="40" cy="30" r="8" fill="#fff"/>' +
+        '<rect x="22" y="42" width="20" height="7" rx="3" fill="#fff"/><path d="M22 14V6M42 14V6" stroke="var(--blue)" stroke-width="4" stroke-linecap="round"/></svg>' },
+    { id: "zehner", name: "Zehner-Freund", hint: "Rechne 10 Aufgaben geschickt mit dem vollen Zehner.", ok: (s2) => s2["t-geschickt"] >= 10,
+      art: () => '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28" fill="var(--grass)"/><text x="32" y="42" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="28" fill="#fff">10</text></svg>' },
+    { id: "pfad", name: "Pfad geschafft", hint: "Schaffe alle 12 Level auf dem Abenteuer-Pfad.", art: () => $("iconPath").innerHTML, ok: () => state.path.done >= 12 },
+  ];
+  const STICKER_SAY = ["Neuer Sticker für dein Album!"];
+  function bumpStats(change) {
+    const st = state.stats;
+    for (const [k, v] of Object.entries(change)) st[k] = typeof v === "function" ? v(st[k]) : (st[k] || 0) + v;
+    store.set("rw-stats", st);
+  }
+  // Neue Sticker vergeben und nacheinander zeigen
+  let toastQueue = [];
+  function checkStickers() {
+    const fresh = STICKERS.filter((x) => !state.stickers.includes(x.id) && x.ok(state.stats));
+    if (!fresh.length) return;
+    state.stickers.push(...fresh.map((x) => x.id));
+    store.set("rw-stickers", state.stickers);
+    toastQueue.push(...fresh);
+    setTimeout(nextToast, 1600);   // erst das Ergebnis ansehen, dann der Sticker
+  }
+  function nextToast() {
+    if (!$("stickerToast").hidden || !toastQueue.length) return;
+    const x = toastQueue.shift();
+    $("toastArt").innerHTML = x.art();
+    $("toastName").textContent = x.name;
+    $("stickerToast").hidden = false;
+    $("toastOk").focus();
+    beep(SOUND_PERFECT);
+    fx.show(3);
+    autoRead(`${STICKER_SAY[0]} ${x.name}!`);
+  }
+  function renderAlbum() {
+    const n = state.stickers.length;
+    $("albumCount").textContent = `${n} / ${STICKERS.length}`;
+    $("albumSay").textContent = n === STICKERS.length ? "Wow, dein Album ist voll! Du hast alle Sticker gesammelt."
+      : n ? `Du hast schon ${n} von ${STICKERS.length} Stickern. Tippe auf ein leeres Feld, dann sage ich dir, wie du es füllst.`
+      : "Hier sammelst du Sticker. Tippe auf ein Feld, dann sage ich dir, wie du den Sticker bekommst.";
+    $("album").innerHTML = STICKERS.map((x) => {
+      const has = state.stickers.includes(x.id);
+      return `<button class="album-slot${has ? " has" : ""}" type="button" data-sticker="${x.id}">` +
+        `<span class="sticker${has ? "" : " ghost"}">${x.art()}</span><b>${x.name}</b></button>`;
+    }).join("");
+  }
+  function openAlbum() { renderAlbum(); show("albumView"); beeMood("albumBee", "happy"); }
+
   // ---------- Tagesziel, Tage in Folge, Meilensteine ----------
   const DAILY_GOAL = 3;
   const MILESTONES = [10, 25, 50, 100, 150, 200, 300, 400, 500, 750, 1000, 1500, 2000, 3000, 5000];
@@ -2994,6 +3170,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       for (let k = 0; k < 5; k++) state.garden.push("f" + (k % 4));
       store.set("rw-garden", state.garden);
       msgs.push(`Tagesziel geschafft! Dafür bekommst du 5 Bonus-Blumen.`);
+      bumpStats({ daily: 1 });
     }
     store.set("rw-daily", state.daily);
     if (state.milestone) { msgs.push(`Wow, du hast schon ${fmt(state.milestone)} Aufgaben gelöst!`); state.milestone = 0; }
@@ -3068,6 +3245,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // Aufgabe gelöst: Lob, Blume, weiter
   function solveTask(r, t) {
+    bumpStats({ second: r.tries > 0 ? 1 : 0, helped: r.helped ? 1 : 0, ["t-" + t.topic]: 1 });
     r.results[r.i] = r.tries === 0 ? "first" : "second";
     r.scores[r.i] = t.steps ? r.stepScore / t.steps.length : r.tries === 0 ? 1 : 0.5;
     r.locked = true;
@@ -3087,7 +3265,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderTask("right");
     renderMeadow(r.i);
     renderStreak(party);
-    if (party) fx.pop($("task"), r.streak >= 6 ? 3 : 2);
+    fx.pop($("slot") || $("task"), party ? (r.streak >= 6 ? 3 : 2) : 1);
     setPadEnabled(false);
     setTimeout(() => { if (state.round === r) nextTask(); }, party ? 1700 : t.steps ? 1800 : 1100);
   }
@@ -3633,6 +3811,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   function gameOver(lastText, won = false) {
     stopBalloons();
+    bumpStats({ bjHits: (v) => Math.max(v || 0, bj.hits) });
+    setTimeout(checkStickers, 0);
     const best = store.get("rw-bj-best", 0);
     const record = bj.score > best;
     if (record) store.set("rw-bj-best", bj.score);
@@ -3834,7 +4014,37 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
              : `<button class="buy" type="button" data-buy="${it.id}"${can ? "" : " disabled"} aria-label="${it.name} für ${it.price} Blumen kaufen">${flowerSVG("flower", "var(--petal-1)")}${it.price}</button>` +
                (can ? "" : `<small>Noch ${it.price - bal} ${it.price - bal === 1 ? "Blume" : "Blumen"} sammeln</small>`)) + "</div>";
     }).join("");
+    $("wardrobe").innerHTML = OUTFITS.map((o) => {
+      const own = state.owned.includes("o-" + o.id), on = state.outfit === o.id, can = bal >= o.price;
+      return `<div class="shop-item${on ? " owned" : ""}"><div class="shop-icon">${beeSVG(o.id)}</div><b>${o.name}</b>` +
+        (on ? `<button class="buy wear" type="button" data-wear="">Trägt Summi ✓</button>`
+          : own ? `<button class="buy wear" type="button" data-wear="${o.id}">Anziehen</button>`
+          : `<button class="buy" type="button" data-outfit="${o.id}"${can ? "" : " disabled"} aria-label="${o.name} für ${o.price} Blumen kaufen">${flowerSVG("flower", "var(--petal-1)")}${o.price}</button>` +
+            (can ? "" : `<small>Noch ${o.price - bal} ${o.price - bal === 1 ? "Blume" : "Blumen"} sammeln</small>`)) + "</div>";
+    }).join("");
     renderHeader();
+  }
+
+  // Verkleidung kaufen oder anziehen. Ohne Auswahl ("") zieht Summi alles aus.
+  function wearOutfit(id, bought = false) {
+    state.outfit = id;
+    store.set("rw-outfit", id);
+    paintBees();
+    const o = OUTFITS.find((x) => x.id === id);
+    renderGarden(o ? `${bought ? "Juhu! " : ""}Summi trägt jetzt ${o.art} ${o.name}. Steht ihr super!` : "Summi hat sich wieder umgezogen.");
+    autoRead($("gardenSay").textContent);
+    beeMood("gardenBee", "happy");
+  }
+  function buyOutfit(id) {
+    const o = OUTFITS.find((x) => x.id === id);
+    if (!o || state.owned.includes("o-" + id) || balance() < o.price) return;
+    state.owned.push("o-" + id);
+    state.spent += o.price;
+    store.set("rw-owned", state.owned);
+    store.set("rw-spent", state.spent);
+    beep(SOUND_PERFECT);
+    wearOutfit(id, true);
+    fx.pop($("gardenBee"), 3);
   }
 
   function buy(id) {
@@ -3950,6 +4160,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
 
   function memoryWon() {
+    bumpStats({ memMoves: (v) => (v ? Math.min(v, mem.moves) : mem.moves) });
+    setTimeout(checkStickers, 0);
     const best = store.get("rw-mem-best", 0);
     const record = !best || mem.moves < best;
     if (record) store.set("rw-mem-best", mem.moves);
@@ -3976,12 +4188,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function finish() {
     if (state.round.school) return finishSchool();
     $("againBtn").textContent = "Nochmal spielen";
+    setTimeout(checkStickers, 0);   // nach dem Zählen unten
     const r = state.round;
     const first = r.results.filter((x) => x === "first").length;
     const second = r.results.filter((x) => x === "second").length;
     const missed = r.results.filter((x) => x === "missed").length;
     const stars = first >= 9 ? 3 : first + second >= 7 ? 2 : 1;
     const perfect = first === 10;
+    bumpStats({ rounds: 1, three: first >= 9 ? 1 : 0, perfect: perfect ? 1 : 0 });
 
     const key = `${state.grade}-${r.N}-${selectionKey(r.sel)}`;
     state.best[key] = Math.max(state.best[key] || 0, stars);
@@ -4123,6 +4337,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("gardenBtn").addEventListener("click", openGarden);
   $("gardenBack").addEventListener("click", () => goHome());
   $("shop").addEventListener("click", (e) => { const b = e.target.closest("[data-buy]"); if (b) buy(b.dataset.buy); });
+  $("wardrobe").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-outfit], [data-wear]");
+    if (!b) return;
+    if (b.dataset.outfit) buyOutfit(b.dataset.outfit); else wearOutfit(b.dataset.wear);
+  });
   $("memAgain").addEventListener("click", startMemory);
   $("memBack").addEventListener("click", () => {
     if (!$("memGrid").hidden && mem.moves > 0 && !reallyLeave((t) => { $("memSay").textContent = t; beeMood("memBee", "think"); })) return;
@@ -4170,6 +4389,16 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("startBtn").addEventListener("click", () => { state.level = null; setLevelButtons(); startRound(); });
   $("againBtn").addEventListener("click", () => (state.lastMode === "school" ? startSchool() : startRound()));
   $("schoolBtn").addEventListener("click", startSchool);
+  $("albumBtn").addEventListener("click", openAlbum);
+  $("albumBack").addEventListener("click", () => goHome());
+  $("album").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-sticker]");
+    if (!b) return;
+    const x = STICKERS.find((y) => y.id === b.dataset.sticker), has = state.stickers.includes(x.id);
+    $("albumSay").textContent = has ? `${x.name}: Den hast du dir verdient!` : `So bekommst du diesen Sticker: ${x.hint}`;
+    speak($("albumSay").textContent);
+  });
+  $("toastOk").addEventListener("click", () => { $("stickerToast").hidden = true; setTimeout(nextToast, 300); });
   // Antippen: Zahlen bei "Geschickt rechnen", Antworten bei Fragen und Rechenzeichen
   $("task").addEventListener("click", (e) => {
     const r = state.round;
@@ -4209,12 +4438,18 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     }
   });
 
-  for (const id of ["setupBee", "homeBee", "gameBee", "memBee", "pathBee", "gardenBee"]) $(id).innerHTML = beeSVG();
+  // Alle Bienen neu zeichnen, z. B. wenn Summi etwas Neues anzieht
+  function paintBees() {
+    for (const id of ["setupBee", "homeBee", "gameBee", "memBee", "pathBee", "gardenBee", "albumBee"]) $(id).innerHTML = beeSVG();
+  }
+  paintBees();
   $("iconPath").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 54C24 54 14 36 32 34S44 16 54 14" stroke="var(--sun)" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="2 8"/><circle cx="10" cy="54" r="6" fill="var(--grass)"/><circle cx="32" cy="34" r="6" fill="var(--grass)"/><path d="M54 6V30" stroke="var(--bee-ink)" stroke-width="3"/><path d="M54 6L68 11L54 16Z" fill="var(--red)" transform="translate(-4 0)"/></svg>';
   $("iconGarden").innerHTML = decoSVG("pilz");
   $("iconBalloon").innerHTML = balloonSVG("var(--petal-1)");
   $("iconMemory").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="12" width="28" height="38" rx="5" fill="var(--grass)" transform="rotate(-10 20 31)"/><rect x="28" y="10" width="28" height="38" rx="5" fill="var(--paper)" stroke="var(--blue)" stroke-width="3" transform="rotate(8 42 29)"/><text x="42" y="36" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="18" fill="var(--blue)" transform="rotate(8 42 29)">12</text></svg>';
   $("iconFlower").innerHTML = flowerSVG("flower", "var(--petal-2)");
+  $("iconAlbum").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="8" width="48" height="50" rx="6" fill="var(--petal-2)"/><rect x="14" y="14" width="36" height="38" rx="4" fill="var(--paper)"/>' +
+    '<circle cx="25" cy="26" r="7" fill="var(--sun)"/><circle cx="40" cy="26" r="7" fill="var(--petal-1)"/><circle cx="25" cy="41" r="7" fill="var(--petal-4)"/><circle cx="40" cy="41" r="7" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 3"/></svg>';
   $("iconSchool").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="6" width="40" height="52" rx="4" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="3"/>' +
     '<path d="M20 20h16M20 30h20M20 40h12" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/><path d="M38 40l4 5 9-12" stroke="var(--ok)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   $("iconTricks").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="26" r="17" fill="var(--sun)"/><rect x="24" y="42" width="16" height="10" rx="3" fill="var(--ink-soft)"/><path d="M26 30l6-8 6 8" stroke="var(--sun-ink)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 4v4M10 26H6M58 26h-4M15 10l3 3M49 10l-3 3" stroke="var(--sun)" stroke-width="3" stroke-linecap="round"/></svg>';
@@ -4222,7 +4457,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   if (isApp && cap.addListener) {
     try {
       const BACK = { setupView: "setupBack", gameView: "backBtn", resultView: "menuBtn", tricksView: "tricksBack",
-        balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack", recordView: "recordBack" };
+        balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack", recordView: "recordBack", albumView: "albumBack" };
       cap.addListener("App", "backButton", () => {
         const btn = $(BACK[VIEWS.find((id) => !$(id).hidden)] || "");
         if (btn && !btn.hidden) btn.click();
