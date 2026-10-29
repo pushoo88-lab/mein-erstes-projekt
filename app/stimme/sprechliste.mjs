@@ -36,6 +36,8 @@ const fixed = (list) => list.map((text) => {
 const PRAISE = grab("PRAISE"), CONTEXT_PRAISE = grab("CONTEXT_PRAISE"), HELPED = grab("HELPED");
 const TRY_AGAIN = grab("TRY_AGAIN"), SECOND_TRY = grab("SECOND_TRY"), MISSED = grab("MISSED"), STREAK = grab("STREAK");
 const HIT_WORDS = grab("HIT_WORDS"), HOME_SAY = grab("HOME_SAY"), LEVEL_PLACES = grab("LEVEL_PLACES"), TYPE_NAME = grab("TYPE_NAME");
+// Lob für Themen, die nach der ersten Sprechliste dazukamen
+const NEU = ["familie", "geschickt"];
 const targets = [...new Set(LEVEL_PLACES.map((_, i) => 6 + Math.floor(i / 4) * 2).filter((_, i) => i % 4 === 1))];
 
 const teile = [
@@ -61,7 +63,7 @@ const teile = [
     ["Nach der Lösung", MISSED.map((m) => m.replace(/^Die Lösung ist \{x\}\. /, ""))],
   ] },
   { titel: "Teil 2: Spiele und Belohnungen", gruppen: [
-    ["Passendes Lob", Object.values(CONTEXT_PRAISE).flat()],
+    ["Passendes Lob", Object.entries(CONTEXT_PRAISE).filter(([k]) => !NEU.includes(k)).flatMap(([, v]) => v)],
     ["Serien", [3, 6, 9].flatMap((n) => STREAK.map((s) => s.replace("{n}", n)))],
     ["Wiederholen", fixed(["Die kennst du schon von vorhin. Jetzt klappt sie bestimmt!", "Diese Aufgabe hattest du schon mal. Zeig, was du gelernt hast!"])],
     ["Ergebnis", fixed([
@@ -88,6 +90,8 @@ const teile = [
       ...fixed(["Du hast 3 Leben für falsche Ballons.", "Finde alle 6 Paare.", "Du hast den ganzen Pfad geschafft! Du kannst jedes Level nochmal spielen."]),
     ]],
     ["Garten", fixed(["Such dir im Laden etwas Schönes für deinen Garten aus!", "Sammle Blumen beim Spielen und Üben. Dann kannst du hier einkaufen!"])],
+    // Später dazugekommen: am Ende, damit sich die Nummern der Aufnahmen davor nicht verschieben
+    ["Rechenroboter und geschickt rechnen", NEU.flatMap((k) => CONTEXT_PRAISE[k])],
   ] },
 ];
 

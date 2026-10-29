@@ -1270,6 +1270,48 @@
    "block": 22,
    "gruppe": "Garten",
    "text": "Sammle Blumen beim Spielen und Üben. Dann kannst du hier einkaufen!"
+  },
+  {
+   "id": 182,
+   "teil": 2,
+   "block": 23,
+   "gruppe": "Rechenroboter und geschickt rechnen",
+   "text": "Super! Der Rechenroboter ist vollständig."
+  },
+  {
+   "id": 183,
+   "teil": 2,
+   "block": 23,
+   "gruppe": "Rechenroboter und geschickt rechnen",
+   "text": "Klasse! Du kennst die ganze Aufgabenfamilie."
+  },
+  {
+   "id": 184,
+   "teil": 2,
+   "block": 23,
+   "gruppe": "Rechenroboter und geschickt rechnen",
+   "text": "Toll! Plus und Minus gehören zusammen, das weißt du."
+  },
+  {
+   "id": 185,
+   "teil": 2,
+   "block": 23,
+   "gruppe": "Rechenroboter und geschickt rechnen",
+   "text": "Super geschickt gerechnet!"
+  },
+  {
+   "id": 186,
+   "teil": 2,
+   "block": 23,
+   "gruppe": "Rechenroboter und geschickt rechnen",
+   "text": "Klasse! Du hast den vollen Zehner gefunden."
+  },
+  {
+   "id": 187,
+   "teil": 2,
+   "block": 23,
+   "gruppe": "Rechenroboter und geschickt rechnen",
+   "text": "Toll! Mit dem Zehner geht es ganz leicht."
   }
  ]
 }

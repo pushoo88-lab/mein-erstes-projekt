@@ -407,6 +407,23 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 .streak.pop { animation: grow .5s cubic-bezier(.3,1.6,.5,1); }
 #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
 .task.is-wall { font-size: clamp(22px, 6.5vw, 34px); }
+/* Rechenroboter: zwei Augen, ein Mund */
+.task.is-robo, .task.is-table { display: grid; justify-items: center; gap: 12px; font-size: clamp(26px, 7.5vw, 38px); }
+.robo { position: relative; display: grid; justify-items: center; gap: 12px; padding: 18px 20px 14px; margin-top: 12px; border-radius: 22px;
+  background: color-mix(in srgb, var(--blue) 16%, var(--paper)); border: 3px solid color-mix(in srgb, var(--blue) 55%, var(--line)); }
+.robo::before, .robo::after { content: ""; position: absolute; top: -14px; width: 4px; height: 12px; border-radius: 2px; background: color-mix(in srgb, var(--blue) 55%, var(--line)); }
+.robo::before { left: 28%; } .robo::after { right: 28%; }
+.robo-eyes { display: flex; gap: 14px; }
+.robo .eye { min-width: 2.1em; min-height: 2.1em; padding: 0 .25em; border-radius: 999px; display: grid; place-items: center; background: var(--paper); border: 3px solid color-mix(in srgb, var(--blue) 55%, var(--line)); }
+.robo .mouth { min-width: 3.2em; padding: 2px 12px; border-radius: 10px; background: var(--paper); border: 3px solid color-mix(in srgb, var(--blue) 55%, var(--line)); text-align: center; }
+.robo .slot, .optab .slot { min-width: 1.5em; border-width: 3px; padding: 0 .1em; }
+.robo-hint { margin: 0; font-family: var(--body); font-size: 18px; font-weight: 700; color: var(--ink-soft); max-width: 28ch; text-wrap: balance; }
+.robo-eq { display: flex; align-items: center; gap: .25em; flex-wrap: wrap; justify-content: center; }
+/* Rechentabelle */
+.optab { display: grid; grid-template-columns: auto auto; border: 3px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); }
+.optab-head { grid-column: 1 / -1; text-align: center; font-size: .7em; padding: 2px 12px; background: var(--key); color: var(--grass-deep); }
+.optab .cell { min-width: 2.6em; padding: 6px 10px; text-align: center; border-top: 2px solid var(--line); }
+.optab .cell:nth-of-type(odd) { border-left: 2px solid var(--line); }
 .wall { display: grid; justify-items: center; gap: 4px; }
 .wall.big { font-size: 17px; }
 .wall-row { display: flex; gap: 4px; }
@@ -850,6 +867,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     stellen: { name: "Zehner & Einer",  sym: "ZE", small: true },
     nachbar: { name: "Nachbar\u00ADzahlen", sym: "±1", small: true },
     mauer:   { name: "Zahlen\u00ADmauer",  sym: "▦" },
+    familie: { name: "Rechen\u00ADroboter", sym: "◉◉", small: true },
+    geschickt: { name: "Geschickt rechnen", sym: "+10", small: true },
     text:    { name: "Text\u00ADaufgaben",    sym: "Abc", small: true },
     luecke:  { name: "Lücken\u00ADaufgaben",  sym: "□" },
     geld:    { name: "Geld",            sym: "€" },
@@ -869,7 +888,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // cfg = { N: größte Zahl, mal: Mal und Geteilt schon gelernt? }
   const opsFor = (cfg) => (cfg.mal ? ["plus", "minus", "mal", "geteilt"] : ["plus", "minus"]);
   // Themen nach den Lehrplänen der Grundschule (Zahl und Operation, Muster, Größen)
-  const topicsFor = (cfg) => [...opsFor(cfg), "verdoppeln", ...(cfg.N >= 20 ? ["stellen"] : []), "nachbar", "mauer", "text", "luecke", "geld", "uhr"];
+  const topicsFor = (cfg) => [...opsFor(cfg), "verdoppeln", ...(cfg.N >= 20 ? ["stellen"] : []), "nachbar", "mauer", "familie", ...(cfg.N >= 20 ? ["geschickt"] : []), "text", "luecke", "geld", "uhr"];
   // Name einer Auswahl, z. B. "Plus" oder "Mix: Plus, Minus, Mal"
   const selectionName = (sel, N) => (sel.length === 1 ? topicName(sel[0], N)
     : sel.length === 2 ? sel.map((t) => topicName(t, N)).join(" + ") : "Bunt gemischt");
@@ -1145,6 +1164,67 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       tip: r < rows.length - 1 ? "Rechne die beiden Steine direkt darunter zusammen." : "Rechne rückwärts: der Stein darüber minus der Nachbarstein." };
   }
 
+  // Rechenroboter (in der Schule z. B. "Pluminos"): Die beiden Augen ergeben zusammen den Mund.
+  // Dazu gehören vier Aufgaben, die Aufgabenfamilie: zwei Plus-Aufgaben (Tauschaufgabe) und zwei Minus-Aufgaben (Umkehraufgaben).
+  function familyTask(N) {
+    const { a, b, c } = plusTask(N);
+    const family = `${fmt(a)} + ${fmt(b)} = ${fmt(c)}, ${fmt(b)} + ${fmt(a)} = ${fmt(c)}, ${fmt(c)} − ${fmt(b)} = ${fmt(a)} und ${fmt(c)} − ${fmt(a)} = ${fmt(b)}`;
+    const v = pick(["mund", "auge", "auge", "aufgabe", "aufgabe"]);
+    if (v === "mund") {
+      return { kind: "family", nums: [a, b, c], miss: 2, answer: c, key: `f${a}+${b}m`,
+        tip: `Rechne die beiden Augen zusammen: ${fmt(a)} + ${fmt(b)}.` };
+    }
+    if (v === "auge") {
+      const miss = R(0, 1), known = miss ? a : b, want = miss ? b : a;
+      return { kind: "family", nums: [a, b, c], miss, answer: want, key: `f${a}+${b}a${miss}`,
+        tip: `Wie viel fehlt von ${fmt(known)} bis ${fmt(c)}? Rechne die Umkehraufgabe: ${fmt(c)} − ${fmt(known)}.` };
+    }
+    // Eine Aufgabe aus der Familie: der Roboter zeigt alle drei Zahlen
+    const eq = pick([[a, "+", b, c], [b, "+", a, c], [c, "−", b, a], [c, "−", a, b]]);
+    return { kind: "family", nums: [a, b, c], miss: -1, eq, answer: eq[3], key: `f${eq.join("")}`,
+      tip: `Alle Zahlen stehen am Roboter. Zur Familie gehören: ${family}.` };
+  }
+
+  // Geschickt rechnen: zwei Zahlen ergeben zusammen einen vollen Zehner, die rechnet man zuerst
+  function smartTask(N) {
+    N = Math.max(N, 20);
+    for (;;) {
+      const u = R(1, 9), kind = pick(["plus", "plus", "minus10", "minusZehner"]);
+      const tensMax = Math.floor((N - 12) / 10);
+      if (kind === "plus") {
+        const x = (N >= 50 && Math.random() < 0.5 ? R(1, Math.max(1, Math.min(9, tensMax))) * 10 : 0) + u, y = 10 - u, z = R(2, 9);
+        if (x + y + z > N) continue;
+        const nums = pick([[x, z, y], [x, y, z], [z, x, y], [y, z, x]]);
+        return { kind: "parts", parts: [fmt(nums[0]), "+", fmt(nums[1]), "+", fmt(nums[2]), "=", "§"], answer: x + y + z, key: `g${nums.join("+")}`,
+          tip: `Such zwei Zahlen, die zusammen einen vollen Zehner ergeben: ${fmt(x)} + ${fmt(y)} = ${fmt(x + y)}. Dann rechne die dritte Zahl dazu.` };
+      }
+      if (kind === "minus10") {   // 14 − 6 − 4: die beiden Minus-Zahlen ergeben zusammen 10
+        const a = R(11, Math.min(N, 99)), b = u, c = 10 - u;
+        return { kind: "parts", parts: [fmt(a), "−", fmt(b), "−", fmt(c), "=", "§"], answer: a - 10, key: `g${a}-${b}-${c}`,
+          tip: `${fmt(b)} und ${fmt(c)} sind zusammen 10. Nimm also gleich 10 weg: ${fmt(a)} − 10.` };
+      }
+      // 16 − 6 − 7: erst zum vollen Zehner, dann weiter
+      if (tensMax < 1) continue;
+      const a = R(1, Math.min(9, tensMax)) * 10 + u, c = R(2, 9);
+      if (a - u - c < 1) continue;
+      return { kind: "parts", parts: [fmt(a), "−", fmt(u), "−", fmt(c), "=", "§"], answer: a - u - c, key: `g${a}-${u}-${c}`,
+        tip: `Erst ${fmt(a)} − ${fmt(u)} = ${fmt(a - u)}. Von dem vollen Zehner aus geht es leicht weiter.` };
+    }
+  }
+
+  // Rechentabelle: "+ 6" macht aus jeder Zahl links die Zahl rechts. Fehlt links etwas, rückwärts rechnen.
+  function tableTask(N, op) {
+    const step = Math.min(R(2, 9), N - 2);
+    const row = () => { const x = R(1, N - step); return op === "plus" ? [x, x + step] : [x + step, x]; };
+    const ex = row();
+    let ask = row();
+    for (let k = 0; k < 9 && ask[0] === ex[0]; k++) ask = row();
+    const miss = Math.random() < 0.5 ? 0 : 1, sign = op === "plus" ? "+" : "−";
+    return { kind: "table", sign, step, ex, ask, miss, answer: ask[miss], key: `t${sign}${step}-${ask.join(",")}${miss}`,
+      tip: miss ? `Rechne ${fmt(ask[0])} ${sign} ${step}.`
+        : `Fehlt die Zahl links, rechne rückwärts: ${fmt(ask[1])} ${op === "plus" ? "−" : "+"} ${step}. Probe: Ergebnis ${sign} ${step} muss ${fmt(ask[1])} geben.` };
+  }
+
   // Geld: Münzen und Scheine
   function coinSVG(v) {
     if (v >= 500) {
@@ -1253,7 +1333,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // Zahlenraum für ein Thema: am Anfang ein Teil des eingetippten Zahlenraums, mit wachsendem Können mehr
   function adaptN(topic, N) {
     if (topic === "uhr") return N;
-    const d = skill(topic).d, min = topic === "stellen" ? 20 : MIN_N, x = N * (0.4 + 0.6 * d);
+    const d = skill(topic).d, min = topic === "stellen" || topic === "geschickt" ? 20 : MIN_N, x = N * (0.4 + 0.6 * d);
     let n = Math.round(x);
     if (N > 20) { const st = 10 ** Math.max(0, String(n).length - 2); n = Math.round(x / st) * st; }
     return Math.max(min, Math.min(N, n));
@@ -1295,10 +1375,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (topic === "verdoppeln") return { ...doubleTask(N), topic };
     if (topic === "nachbar") return { ...neighborTask(N), topic };
     if (topic === "mauer") return { ...wallTask(N), topic };
+    if (topic === "familie") return { ...familyTask(N), topic };
+    if (topic === "geschickt") return { ...smartTask(N), topic };
     if (topic === "geld") return { ...moneyTask(N), topic };
     if (topic === "uhr") return { ...clockTask(cfg.grade || 2), topic };
     if (topic !== "luecke") return { ...MAKERS[topic](N, cfg), topic };
-    // Lückenaufgabe: eine bekannte Aufgabe nehmen und eine Zahl verstecken
+    // Lückenaufgabe: eine bekannte Aufgabe nehmen und eine Zahl verstecken. Manchmal als Rechentabelle.
+    const tableOps = basic.filter((o) => o === "plus" || o === "minus");
+    if (tableOps.length && N >= 12 && Math.random() < 0.3) return { ...tableTask(N, pick(tableOps)), topic: "luecke" };
     const t = MAKERS[pick(basic)](N, cfg);
     t.topic = "luecke";
     t.blank = pick(["a", "b"]);
@@ -1665,6 +1749,15 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const word = { "+": "plus", "−": "minus", "·": "mal", ":": "geteilt durch", "=": "gleich" };
     if (t.kind === "text") return t.text;
     if (t.kind === "wall") return "Zahlenmauer. Zwei Steine nebeneinander ergeben zusammen den Stein darüber. Welche Zahl fehlt?";
+    if (t.kind === "family") {
+      if (t.eq) return `Rechne mit den Zahlen vom Roboter: ${fmt(t.eq[0])} ${word[t.eq[1]]} ${fmt(t.eq[2])} gleich wie viel?`;
+      return t.miss === 2 ? `Die Augen zeigen ${fmt(t.nums[0])} und ${fmt(t.nums[1])}. Welche Zahl gehört in den Mund?`
+        : `Ein Auge zeigt ${fmt(t.nums[1 - t.miss])}, der Mund zeigt ${fmt(t.nums[2])}. Welche Zahl fehlt im anderen Auge?`;
+    }
+    if (t.kind === "table") {
+      return `Rechentabelle: ${t.sign === "+" ? "plus" : "minus"} ${t.step}. Aus ${fmt(t.ex[0])} wird ${fmt(t.ex[1])}. ` +
+        (t.miss ? `Was wird aus ${fmt(t.ask[0])}?` : `Welche Zahl wird zu ${fmt(t.ask[1])}?`);
+    }
     if (t.kind === "parts") {
       return t.parts.map((p) => (p === "§" ? "wie viel" : word[p] || p.replace(/ Z$/, " Zehner").replace(/ E$/, " Einer"))).join(" ");
     }
@@ -1912,6 +2005,24 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function drawTask(el, t, slot) {
     el.classList.toggle("is-text", t.kind === "text");
     el.classList.toggle("is-wall", t.kind === "wall");
+    el.classList.toggle("is-robo", t.kind === "family");
+    el.classList.toggle("is-table", t.kind === "table");
+    if (t.kind === "family") {
+      const n = (k) => (k === t.miss ? slot : fmt(t.nums[k]));
+      const robo = `<div class="robo" aria-hidden="true"><div class="robo-eyes"><span class="eye">${n(0)}</span><span class="eye">${n(1)}</span></div>` +
+        `<span class="mouth">${n(2)}</span></div>`;
+      const eq = t.eq ? `<div class="robo-eq">${fmt(t.eq[0])} <span class="op">${t.eq[1]}</span> ${fmt(t.eq[2])} <span class="op">=</span> ${slot}</div>` : "";
+      el.innerHTML = robo + `<p class="robo-hint">${t.eq ? "Rechne mit den Zahlen vom Roboter." : "Die beiden Augen ergeben zusammen den Mund."}</p>` + eq;
+      el.setAttribute("aria-label", spokenTask(t));
+      return;
+    }
+    if (t.kind === "table") {
+      const cell = (row, k, isAsk) => `<span class="cell">${isAsk && k === t.miss ? slot : fmt(row[k])}</span>`;
+      el.innerHTML = `<div class="optab"><span class="optab-head">${t.sign} ${t.step} →</span>` +
+        cell(t.ex, 0) + cell(t.ex, 1) + cell(t.ask, 0, true) + cell(t.ask, 1, true) + `</div><p class="robo-hint">Welche Zahl fehlt?</p>`;
+      el.setAttribute("aria-label", spokenTask(t));
+      return;
+    }
     if (t.kind === "wall") {
       const big = Math.max(...t.rows.flat()) >= 100000;
       el.innerHTML = `<div class="wall${big ? " big" : ""}">${t.rows.map((row, r) => `<div class="wall-row">${row.map((v, c) =>
@@ -1969,7 +2080,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       say(msg);
       autoRead(msg, true);
     }
-    if (t.kind === "text" || t.kind === "wall") autoRead(spokenTask(t), true);
+    if (["text", "wall", "family", "table"].includes(t.kind)) autoRead(spokenTask(t), true);
   }
 
   function resetTaskUi() {
@@ -2019,6 +2130,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     nachbar: ["Super! Du kennst dich auf dem Zahlenstrahl aus.", "Klasse! Die Nachbarn hast du gefunden.", "Toll! Du weißt genau, wo die Zahl wohnt."],
     mauer: ["Super! Die Zahlenmauer steht.", "Klasse gebaut! Jeder Stein passt.", "Toll! Du hast den fehlenden Stein gefunden."],
     geld: ["Super! Du kannst gut mit Geld rechnen.", "Klasse! Damit kannst du schon einkaufen.", "Toll! Das Geld hast du richtig gezählt."],
+    familie: ["Super! Der Rechenroboter ist vollständig.", "Klasse! Du kennst die ganze Aufgabenfamilie.", "Toll! Plus und Minus gehören zusammen, das weißt du."],
+    geschickt: ["Super geschickt gerechnet!", "Klasse! Du hast den vollen Zehner gefunden.", "Toll! Mit dem Zehner geht es ganz leicht."],
     uhr: ["Super! Du kannst die Uhr lesen.", "Klasse! Die Zeiger hast du richtig gedeutet.", "Toll! Jetzt weißt du, wie spät es ist."],
   };
   const HELPED = ["Super, du hast die Hilfe genutzt und es geschafft!", "Toll! Mit dem Tipp hast du es selbst gerechnet.", "Klasse! Hilfe holen ist schlau, und jetzt stimmt es."];
@@ -2393,6 +2506,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     { id: "luecke", title: "Lückenaufgaben", cards: [
       { h: "Rückwärts rechnen", p: "Bei einer Lücke hilft die Umkehraufgabe. Aus Plus wird Minus, aus Mal wird Geteilt.",
         ex: ex("7 + ? = 12", "12 − 7 = 5", "Probe: 7 + 5 = 12. Stimmt!") },
+      { h: "Lücke ganz vorne", p: "Auch wenn die Lücke vorne steht, hilft die Umkehraufgabe. Prüfe danach, ob die Rechnung stimmt.",
+        ex: ex("? − 5 = 6", "6 + 5 = 11", "Probe: 11 − 5 = 6. Stimmt!") },
+      { h: "Rechentabelle", p: "Oben steht, was mit jeder Zahl passiert. Fehlt links eine Zahl, rechnest du rückwärts.",
+        ex: ex("+ 6 →", "4 wird zu 10", "? wird zu 11: 11 − 6 = 5") },
     ] },
     { id: "verdoppeln", title: "Verdoppeln & Halbieren", cards: [
       { h: "Verdoppeln", p: "Verdoppeln heißt: die Zahl plus sich selbst. Bei großen Zahlen verdoppelst du Zehner und Einer einzeln.",
@@ -2410,6 +2527,25 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       { h: "So funktioniert die Mauer", p: "Zwei Steine nebeneinander ergeben zusammen den Stein darüber.",
         ex: ex("4 + 6 = 10", "Fehlt unten ein Stein, rechne rückwärts: 10 − 4 = 6."),
         pic: () => `<div class="task is-wall"><div class="wall"><div class="wall-row"><span class="brick">10</span></div><div class="wall-row"><span class="brick">4</span><span class="brick">6</span></div></div></div>` },
+    ] },
+    { id: "familie", title: "Rechenroboter", cards: [
+      { h: "Augen und Mund", p: "Die beiden Augen ergeben zusammen den Mund. In der Schule heißen die Roboter zum Beispiel Pluminos.",
+        ex: ex("Augen 16 und 4", "16 + 4 = 20", "Mund: 20"),
+        pic: () => `<div class="task is-robo"><div class="robo"><div class="robo-eyes"><span class="eye">16</span><span class="eye">4</span></div><span class="mouth">20</span></div></div>` },
+      { h: "Ein Auge fehlt", p: "Rechne rückwärts: der Mund minus das Auge, das du kennst.",
+        ex: ex("Auge 5, Mund 14", "14 − 5 = 9", "Probe: 9 + 5 = 14. Stimmt!") },
+      { h: "Die Aufgabenfamilie", p: "Zu jedem Roboter gehören vier Aufgaben: die Tauschaufgabe und die zwei Umkehraufgaben.",
+        ex: ex("16 + 4 = 20", "4 + 16 = 20", "20 − 4 = 16", "20 − 16 = 4") },
+    ] },
+    { id: "geschickt", title: "Geschickt rechnen", cards: [
+      { h: "Zehnerfreunde zuerst", p: "Bei drei Zahlen suchst du zuerst zwei, die zusammen 10 ergeben. Die rechnest du zuerst.",
+        ex: ex("7 + 8 + 3 = ?", "7 + 3 = 10", "10 + 8 = 18") },
+      { h: "Zehnerfreunde", p: "Diese Paare ergeben zusammen 10. Wer sie auswendig kann, rechnet blitzschnell.",
+        ex: ex("1 + 9, 2 + 8, 3 + 7", "4 + 6, 5 + 5") },
+      { h: "Bei Minus auch", p: "Ergeben die beiden Zahlen, die du wegnimmst, zusammen 10, nimm gleich 10 weg.",
+        ex: ex("14 − 6 − 4 = ?", "6 + 4 = 10", "14 − 10 = 4") },
+      { h: "Erst zum vollen Zehner", p: "Nimm zuerst so viel weg, dass ein voller Zehner übrig bleibt.",
+        ex: ex("16 − 6 − 7 = ?", "16 − 6 = 10", "10 − 7 = 3") },
     ] },
     { id: "geld", title: "Geld", cards: [
       { h: "Münzen zusammenzählen", p: "Lege die Münzen nach der Größe: erst die großen, dann die kleinen. Rechne sie nacheinander dazu.",
@@ -2526,7 +2662,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const t = generate(bj.cfg, pick(bj.sel), bj.sel);
     drawTask($("bjTask"), t, '<span class="slot">?</span>');
     fitSky();   // nach dem Anzeigen der Aufgabe, denn deren Höhe ändert sich
-    if (t.kind === "text") autoRead(spokenTask(t), true);
+    if (["text", "family", "table"].includes(t.kind)) autoRead(spokenTask(t), true);
     const sky = $("bjSky");
     sky.querySelectorAll(".balloon, .level-up").forEach((n) => n.remove());
     const W = sky.clientWidth, H = sky.clientHeight, lane = W / 4, size = Math.min(lane - 8, 96);
@@ -2551,6 +2687,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const N = bj.cfg.N;
     let d = N <= 20 ? 10 : N <= 100 ? 14 : N <= 1000 ? 16 : 18;
     if (t.kind === "text") d += 7;
+    if (t.kind === "family" || t.kind === "table") d += 4;
     return d;
   }
 
@@ -2889,7 +3026,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     for (let guard = 0; pairs.length < 6 && guard < 800; guard++) {
       const strict = guard < 300;   // bei kleinen Zahlenräumen gibt es zu wenige Zahlen, dann lockerer
       const t = guard < 600 ? generate(cfg, pick(use), use) : { ...plusTask(cfg.N), topic: "plus" };
-      if (t.kind === "text" || t.kind === "wall") continue;
+      if (["text", "wall", "family", "table"].includes(t.kind)) continue;
       if (t.topic === "stellen") {   // Stellenwert-Karte, z. B. "3 H + 4 Z + 7 E"
         const k = String(cfg.N - 1).length, n = R(10 ** (k - 1), cfg.N - 1);
         const heads = PLACES.slice(0, k).reverse();
@@ -2901,7 +3038,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       }
       // Auf Karten nur "Aufgabe = ?" zeigen: Lücken werden zur normalen Aufgabe, bei Stellenwerten nur "4 Z + 7 E"
       if (!t.kind && t.blank !== "c") { t.blank = "c"; t.answer = t.c; }
-      if (t.kind === "parts" && !/ Z$/.test(t.parts[0])) continue;
+      if (t.kind === "parts" && !/ Z$/.test(t.parts[0]) && t.topic !== "geschickt") continue;
       const label = cardLabel(t);
       // Keine Zahl darf doppelt vorkommen, sonst passt eine Karte scheinbar zu zwei anderen
       if (answers.has(t.answer)) continue;

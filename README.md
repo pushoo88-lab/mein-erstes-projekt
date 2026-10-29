@@ -72,9 +72,9 @@ Es ist nichts vorausgewählt. Über „Ändern“ auf der Startseite lässt sich
 
 | Bereich | Themen |
 |---|---|
-| Rechnen | Plus, Minus, Mal und Geteilt (wenn freigeschaltet), Lückenaufgaben |
+| Rechnen | Plus, Minus, Mal und Geteilt (wenn freigeschaltet), Lückenaufgaben (auch Platzhalter vorne und Rechentabellen wie „+ 6 →“), Geschickt rechnen (Zehnerfreunde zuerst: 7 + 8 + 3, 14 − 6 − 4) |
 | Zahlen verstehen | Zehner & Einer bzw. Stellenwerte, Nachbarzahlen und Zahlenstrahl, Verdoppeln & Halbieren |
-| Muster | Zahlenmauern |
+| Muster | Zahlenmauern, Rechenroboter (Augen ergeben zusammen den Mund, wie die „Pluminos“ in der Schule) mit Tausch- und Umkehraufgaben |
 | Sachrechnen | Textaufgaben (Zahlenrätsel und kleine Sachaufgaben) |
 | Größen | Geld (Münzen zählen, bis 1 Euro ergänzen, Rückgeld) und Uhrzeit (volle Stunden, Minuten, Zeitspannen) |
 
