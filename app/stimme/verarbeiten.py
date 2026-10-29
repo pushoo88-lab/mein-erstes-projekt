@@ -134,7 +134,7 @@ def find_sentences(chunks, saetze, max_parts=4):
 
 
 def choose(found_per_file):
-    """Pro Satz eine Stelle wählen. Längere Sätze zuerst, damit kurze ("Super!") nicht aus langen geklaut werden.
+    """Pro Satz eine Stelle wählen. Jede Stelle gehört nur einem Satz.
     Bei fast gleich guten Versuchen gewinnt der spätere: Wer sich verspricht, sagt den Satz einfach nochmal."""
     by_id = {}
     for f_index, found in enumerate(found_per_file):
@@ -142,7 +142,8 @@ def choose(found_per_file):
             by_id.setdefault(c["id"], []).append(dict(c, datei=f_index))
     used = set()
     chosen = {}
-    for sid in sorted(by_id, key=lambda i: -max(len(c["gehoert"]) for c in by_id[i])):
+    # Wer am besten passt, wählt zuerst ("Jawohl, das stimmt!" vor "Hurra, das stimmt!"), bei Gleichstand der längere Satz
+    for sid in sorted(by_id, key=lambda i: (-round(max(c["score"] for c in by_id[i]), 2), -max(len(c["gehoert"]) for c in by_id[i]))):
         options = [c for c in by_id[sid]
                    if c["score"] >= ACCEPT and not any((c["datei"], k) in used for k in range(c["von"], c["bis"] + 1))]
         if not options:
