@@ -1275,43 +1275,78 @@
    "id": 182,
    "teil": 2,
    "block": 23,
-   "gruppe": "Rechenroboter und geschickt rechnen",
+   "gruppe": "Neue Aufgaben und Übungsblatt",
    "text": "Super! Der Rechenroboter ist vollständig."
   },
   {
    "id": 183,
    "teil": 2,
    "block": 23,
-   "gruppe": "Rechenroboter und geschickt rechnen",
+   "gruppe": "Neue Aufgaben und Übungsblatt",
    "text": "Klasse! Du kennst die ganze Aufgabenfamilie."
   },
   {
    "id": 184,
    "teil": 2,
    "block": 23,
-   "gruppe": "Rechenroboter und geschickt rechnen",
+   "gruppe": "Neue Aufgaben und Übungsblatt",
    "text": "Toll! Plus und Minus gehören zusammen, das weißt du."
   },
   {
    "id": 185,
    "teil": 2,
    "block": 23,
-   "gruppe": "Rechenroboter und geschickt rechnen",
+   "gruppe": "Neue Aufgaben und Übungsblatt",
    "text": "Super geschickt gerechnet!"
   },
   {
    "id": 186,
    "teil": 2,
    "block": 23,
-   "gruppe": "Rechenroboter und geschickt rechnen",
+   "gruppe": "Neue Aufgaben und Übungsblatt",
    "text": "Klasse! Du hast den vollen Zehner gefunden."
   },
   {
    "id": 187,
    "teil": 2,
    "block": 23,
-   "gruppe": "Rechenroboter und geschickt rechnen",
+   "gruppe": "Neue Aufgaben und Übungsblatt",
    "text": "Toll! Mit dem Zehner geht es ganz leicht."
+  },
+  {
+   "id": 188,
+   "teil": 2,
+   "block": 23,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Nicht schlimm! Schau dir die Lösung genau an, dann klappt es beim nächsten Mal."
+  },
+  {
+   "id": 189,
+   "teil": 2,
+   "block": 23,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Geschafft! Ein paar Felder hat Summi für dich ausgefüllt. So lernst du dazu."
+  },
+  {
+   "id": 190,
+   "teil": 2,
+   "block": 23,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Super! Du hast das ganze Übungsblatt geschafft!"
+  },
+  {
+   "id": 191,
+   "teil": 2,
+   "block": 23,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Klasse! Das Übungsblatt ist fertig. Du hast lange durchgehalten!"
+  },
+  {
+   "id": 192,
+   "teil": 2,
+   "block": 23,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Geschafft! Jedes Übungsblatt macht dich sicherer."
   }
  ]
 }

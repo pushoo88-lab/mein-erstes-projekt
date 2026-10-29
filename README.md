@@ -65,6 +65,7 @@ Es ist nichts vorausgewählt. Über „Ändern“ auf der Startseite lässt sich
 | **Ballonjagd** (Spiel) | Ballons mit Antworten steigen auf, der richtige wird angetippt. 3 Leben, Punkte, alle 5 Treffer eine neue Stufe, Rekord. Die Ballons lassen sich Zeit (10 bis 25 Sekunden, je nach Zahlenraum und Aufgabe). |
 | **Zahlen-Memory** (Spiel) | 12 Karten: immer eine Aufgabe und ihr Ergebnis bilden ein Paar. Züge zählen, Rekord, 3 Blumen pro Spiel. |
 | **Blumen-Runde** (Üben) | 10 Aufgaben mit Zahlenfeld. Jede richtige Antwort lässt eine Blume wachsen, Hilfe mit Bildern und Tipps. |
+| **Übungsblatt** (Wie in der Schule) | Ein Blatt wie die Lernzielkontrolle in Klasse 2, in derselben Reihenfolge: Kopfrechnen, Rechenroboter mit allen vier Aufgaben der Familie, Zahlenmauern und Rechentabellen mit mehreren Lücken, Platzhalter mit Probe, Tabelle „das Doppelte“, geschickt rechnen (erst die beiden Startzahlen antippen), Zahlenrätsel mit Rechnung und Antwortsatz, Sachaufgabe mit Frage, Rechnung und Antwort. Summi liest nicht automatisch vor (Selbstlesen üben), am Ende gibt es Punkte wie in der Schule: von 35 Punkten. |
 | **Rechentricks** (Lernen) | Kindgerechte Erklärungen, wie man am besten rechnet, z. B. „Erst bis zur 10“, Tauschaufgabe, Signalwörter. |
 | **Mein Garten** (Belohnung) | Alle gesammelten Blumen wachsen in einem Garten-Bild. Im Gartenladen bezahlt das Kind mit Blumen und kauft Schnecke, Pilz, Schmetterling, Gartenzwerg, Teich, Bienenstock, Regenbogen und mehr (4 bis 30 Blumen). |
 

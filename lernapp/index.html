@@ -419,6 +419,43 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 .robo .slot, .optab .slot { min-width: 1.5em; border-width: 3px; padding: 0 .1em; }
 .robo-hint { margin: 0; font-family: var(--body); font-size: 18px; font-weight: 700; color: var(--ink-soft); max-width: 28ch; text-wrap: balance; }
 .robo-eq { display: flex; align-items: center; gap: .25em; flex-wrap: wrap; justify-content: center; }
+/* Arbeitsblatt-Aufgaben mit mehreren Feldern */
+.task.is-sheet { display: grid; justify-items: center; gap: 10px; font-size: clamp(24px, 6.8vw, 32px); }
+.task.is-sheet .slot { min-width: 1.7em; border-width: 3px; padding: 0 .1em; border-radius: 10px; }
+.slot.done { border-style: solid; border-color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, var(--paper)); }
+.slot.later { opacity: .45; }
+.slot.later::after { content: "\00a0"; }
+.task .rows { display: grid; gap: 8px; justify-items: center; }
+.task .row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .25em; }
+.task .row.probe { font-size: .85em; }
+.task .pick { font: inherit; color: var(--ink); background: var(--paper); border: 3px solid var(--line); border-radius: 999px; min-width: 1.9em; padding: 0 .3em; cursor: pointer; }
+.task .pick.picked, .task .circled { border: 3px solid var(--red); border-radius: 999px; padding: 0 .3em; background: color-mix(in srgb, var(--red) 10%, var(--paper)); }
+.task .choices { display: grid; gap: 8px; width: 100%; }
+.task .choices.inline { display: inline-flex; width: auto; gap: 6px; }
+.task .choice-btn { font: 700 18px/1.3 var(--body); color: var(--ink); text-align: left; background: var(--paper); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; box-shadow: 0 3px 0 var(--line); }
+.task .choices.inline .choice-btn { font: 800 1em/1 var(--display); text-align: center; min-width: 1.6em; padding: 4px 8px; }
+.task .choice-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line); }
+.task .choice-btn:focus-visible, .task .pick:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.task.is-story { justify-items: stretch; text-align: left; }
+.task.is-story .story { font: 700 20px/1.4 var(--body); max-width: none; }
+.task .sach-part { display: grid; gap: 6px; }
+.task .sach-part > b { font: 700 15px var(--body); color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; }
+.task .chosen { margin: 0; font: 700 19px/1.35 var(--body); }
+.task .sach-part .row { justify-content: flex-start; }
+.task .sach-say { margin: 0; font: 700 20px/1.6 var(--body); }
+.task .sach-say .slot { font-family: var(--display); font-size: 1.3em; }
+.dtab-wrap { max-width: 100%; overflow-x: auto; }
+.dtab { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.dtab { font-size: 22px; }
+.dtab th, .dtab td { border: 2px solid var(--line); padding: 4px 3px; text-align: center; }
+.dtab th { font: 700 13px/1.2 var(--body); color: var(--ink-soft); background: var(--key); text-align: left; width: 4.2em; hyphens: auto; }
+.dtab td { min-width: 1.6em; }
+.task.is-sheet .dtab .slot { min-width: 1.35em; border-radius: 8px; }
+.sheet-head { margin: 0; padding: 10px 14px; border-radius: 14px; background: var(--key); font: 700 17px/1.35 var(--body); color: var(--ink); }
+.school-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; width: 100%; text-align: left; }
+.school-points li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 10px; border-radius: 10px; background: var(--key); }
+.school-points b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mode.school { background: color-mix(in srgb, var(--petal-3) 12%, var(--paper)); border-color: color-mix(in srgb, var(--petal-3) 45%, var(--line)); box-shadow: 0 5px 0 color-mix(in srgb, var(--petal-3) 45%, var(--line)); }
 /* Rechentabelle */
 .optab { display: grid; grid-template-columns: auto auto; border: 3px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); }
 .optab-head { grid-column: 1 / -1; text-align: center; font-size: .7em; padding: 2px 12px; background: var(--key); color: var(--grass-deep); }
@@ -583,6 +620,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       <button class="mode game" id="memoryBtn" type="button"><span class="tag">Spiel</span><span id="iconMemory"></span><b>Zahlen-Memory</b><small>Finde Aufgabe und Ergebnis</small></button>
       <button class="mode" id="startBtn" type="button"><span class="tag">Üben</span><span id="iconFlower"></span><b>Blumen-Runde</b><small>10 Aufgaben, Blumen sammeln</small></button>
       <button class="mode" id="tricksBtn" type="button"><span class="tag">Lernen</span><span id="iconTricks"></span><b>Rechentricks</b><small>So geht Rechnen leichter</small></button>
+      <button class="mode school wide" id="schoolBtn" type="button"><span class="tag">Wie in der Schule</span><span id="iconSchool"></span><b>Übungsblatt</b><small>Alle Aufgaben wie in der Lernzielkontrolle. In Ruhe, ohne Zeit.</small></button>
       <button class="mode garden-tile wide" id="gardenBtn" type="button"><span class="tag">Belohnung</span><span id="iconGarden"></span><b>Mein Garten</b><small id="gardenInfo"></small></button>
     </div>
     <button class="settings-chip" id="settingsChip" type="button"><span id="settingsText"></span><b>Ändern</b></button>
@@ -714,6 +752,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       <span class="streak" id="streak" hidden></span>
       <span class="count" id="count"></span>
     </div>
+    <p class="sheet-head" id="sheetHead" hidden></p>
     <section class="sheet task-card">
       <div class="task" id="task" aria-live="polite"></div>
       <div class="hello mini"><div class="bee" id="gameBee"></div><p class="say" id="say" aria-live="assertive"></p></div>
@@ -1225,6 +1264,202 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         : `Fehlt die Zahl links, rechne rückwärts: ${fmt(ask[1])} ${op === "plus" ? "−" : "+"} ${step}. Probe: Ergebnis ${sign} ${step} muss ${fmt(ask[1])} geben.` };
   }
 
+  // ---------- Aufgaben wie auf dem Arbeitsblatt: mehrere Felder nacheinander ----------
+  // steps: ein Feld nach dem anderen. "num" = Zahl eintippen, "pick2" = zwei Zahlen antippen, "choice" = eine Antwort wählen.
+  const NUM = (answer, tip) => ({ type: "num", answer, tip });
+
+  // Rechenroboter mit der ganzen Aufgabenfamilie: erst die fehlende Zahl, dann vier Aufgaben aufschreiben
+  function familyFullTask(N, start = pick(["mund", "auge"])) {
+    const { a, b, c } = plusTask(N);
+    const miss = start === "mund" ? 2 : R(0, 1);
+    const steps = [NUM([a, b, c][miss], miss === 2 ? `Rechne die beiden Augen zusammen: ${fmt(a)} + ${fmt(b)}.`
+      : `Rechne rückwärts: ${fmt(c)} − ${fmt(miss ? a : b)}.`)];
+    const rowTip = ["Erste Plusaufgabe: ein Auge plus das andere Auge ergibt den Mund.", "Tauschaufgabe: die Augen in der anderen Reihenfolge.",
+      "Umkehraufgabe: Fang mit dem Mund an und nimm ein Auge weg.", "Zweite Umkehraufgabe: der Mund minus das andere Auge."];
+    for (let row = 0; row < 4; row++) for (let k = 0; k < 3; k++) steps.push({ type: "num", tip: rowTip[row] });
+    return { kind: "family4", nums: [a, b, c], miss, steps, answer: c, key: `F${a}+${b}-${miss}`,
+      tip: `Zum Roboter gehören vier Aufgaben: ${fmt(a)} + ${fmt(b)} = ${fmt(c)}, ${fmt(b)} + ${fmt(a)} = ${fmt(c)}, ${fmt(c)} − ${fmt(b)} = ${fmt(a)}, ${fmt(c)} − ${fmt(a)} = ${fmt(b)}.` };
+  }
+
+  // Roboter, bei dem nur der Mund steht: Viele Lösungen sind richtig
+  function freeRobotTask(N) {
+    const c = R(Math.max(4, Math.ceil(Math.min(N, 100) / 2)), Math.min(N, 100));
+    return { kind: "robofree", nums: [null, null, c], answer: c, key: `O${c}`,
+      steps: [{ type: "num", tip: `Denk dir eine Zahl für das erste Auge aus, die nicht größer als ${fmt(c)} ist.` },
+        { type: "num", tip: `Wie viel fehlt vom ersten Auge bis ${fmt(c)}? Rechne ${fmt(c)} minus das erste Auge.` }],
+      tip: `Die beiden Augen müssen zusammen ${fmt(c)} ergeben. Es gibt viele richtige Lösungen.` };
+  }
+
+  // Zahlenmauer mit mehreren Lücken. Die Reihenfolge der Felder ist immer lösbar.
+  function wallMultiTask(N) {
+    const st = N <= 100 ? 1 : N <= 1000 ? 10 : N <= 10000 ? 100 : 1000, lim = Math.max(1, Math.floor(N / 4 / st));
+    const [x, y, z] = [R(1, lim) * st, R(1, lim) * st, R(1, lim) * st];
+    const rows = [[x + 2 * y + z], [x + y, y + z], [x, y, z]];
+    const cells = [[0, 0], [1, 0], [1, 1], [2, 0], [2, 1], [2, 2]];
+    const val = ([r, c]) => rows[r][c];
+    // Jede Beziehung: der Stein oben = die beiden Steine darunter
+    const rel = [[[0, 0], [1, 0], [1, 1]], [[1, 0], [2, 0], [2, 1]], [[1, 1], [2, 1], [2, 2]]];
+    const id = ([r, c]) => `${r}${c}`;
+    for (;;) {
+      const known = new Set(shuffle(cells.map(id)).slice(0, 3)), order = [], tips = {};
+      for (let changed = true; changed;) {
+        changed = false;
+        for (const [top, l, rr] of rel) {
+          const miss = [top, l, rr].filter((q) => !known.has(id(q)));
+          if (miss.length !== 1) continue;
+          const m = miss[0];
+          tips[id(m)] = m === top ? `Rechne die beiden Steine darunter zusammen: ${fmt(val(l))} + ${fmt(val(rr))}.`
+            : `Rechne rückwärts: ${fmt(val(top))} − ${fmt(val(m === l ? rr : l))}.`;
+          known.add(id(m)); order.push(m); changed = true;
+        }
+      }
+      if (known.size < 6) continue;
+      return { kind: "wall3", rows, order, answer: val(order[order.length - 1]), key: `W${rows.flat().join(",")}-${order.map(id).join("")}`,
+        steps: order.map((m) => NUM(val(m), tips[id(m)])), tip: "Zwei Steine nebeneinander ergeben zusammen den Stein darüber." };
+    }
+  }
+
+  // Rechentabelle mit vier Zeilen, vorwärts und rückwärts gemischt
+  function tableMultiTask(N, op) {
+    const step = Math.min(R(2, 9), N - 2), sign = op === "plus" ? "+" : "−", xs = new Set();
+    while (xs.size < Math.min(4, N - step)) xs.add(R(1, N - step));
+    const rows = [...xs].map((x) => (op === "plus" ? [x, x + step] : [x + step, x]));
+    const miss = shuffle([0, 0, 1, 1]).slice(0, rows.length);
+    return { kind: "table4", sign, step, rows, miss, answer: rows[rows.length - 1][miss[rows.length - 1]], key: `T${sign}${step}-${rows.flat().join(",")}`,
+      steps: rows.map((row, i) => NUM(row[miss[i]], miss[i] ? `Rechne ${fmt(row[0])} ${sign} ${step}.`
+        : `Rückwärts: ${fmt(row[1])} ${op === "plus" ? "−" : "+"} ${step}.`)),
+      tip: `Mit jeder Zahl links passiert dasselbe: ${sign} ${step}. Fehlt links eine Zahl, rechnest du rückwärts.` };
+  }
+
+  // Tabelle "die Zahl / das Doppelte" wie auf dem Arbeitsblatt
+  function doubleTableTask(N) {
+    const max = Math.max(2, Math.min(Math.floor(N / 2), N <= 100 ? 50 : 500)), xs = new Set();
+    while (xs.size < Math.min(5, max)) xs.add(R(1, max));
+    const cols = [...xs], miss = shuffle(["d", "d", "d", "z", "z"]).slice(0, cols.length);
+    return { kind: "doubletab", cols, miss, answer: 2 * cols[0], key: `D${cols.join(",")}${miss.join("")}`,
+      steps: cols.map((x, i) => (miss[i] === "d" ? NUM(2 * x, `Das Doppelte von ${fmt(x)}: ${fmt(x)} + ${fmt(x)}.`)
+        : NUM(x, `Welche Zahl plus sich selbst ergibt ${fmt(2 * x)}? Das ist die Hälfte von ${fmt(2 * x)}.`))),
+      tip: "Das Doppelte heißt: die Zahl plus sich selbst. Fehlt oben die Zahl, suchst du die Hälfte." };
+  }
+
+  // Geschickt rechnen in zwei Schritten: erst die beiden Zahlen antippen, mit denen man anfängt
+  function smartPickTask(N) {
+    const t = smartTask(N), num = (x) => Number(x.replace(/\./g, ""));
+    const nums = [num(t.parts[0]), num(t.parts[2]), num(t.parts[4])], ops = [t.parts[1], t.parts[3]];
+    const pairs = [];
+    if (ops[0] === "+") { for (const [i, j] of [[0, 1], [0, 2], [1, 2]]) if ((nums[i] + nums[j]) % 10 === 0) pairs.push(`${i},${j}`); }
+    else {
+      if (nums[1] + nums[2] === 10) pairs.push("1,2");
+      if ((nums[0] - nums[1]) % 10 === 0 && nums[0] > nums[1]) pairs.push("0,1");
+    }
+    return { kind: "smart2", nums, ops, answer: t.answer, key: `S${t.key}`,
+      steps: [{ type: "pick2", options: pairs, tip: ops[0] === "+" ? "Welche zwei Zahlen ergeben zusammen einen vollen Zehner?"
+        : "Welche zwei Zahlen ergeben zusammen 10? Oder: Welche Zahl führt dich zu einem vollen Zehner?" }, NUM(t.answer, t.tip)],
+      tip: t.tip };
+  }
+
+  // Sachaufgabe wie in der Schule: Frage finden, Rechnung, Antwortsatz
+  const SACH_KIDS = [["Sina", "Sie", "ihrem"], ["Ben", "Er", "seinem"], ["Lena", "Sie", "ihrem"], ["Emil", "Er", "seinem"],
+    ["Emma", "Sie", "ihrem"], ["Paul", "Er", "seinem"], ["Lina", "Sie", "ihrem"], ["Finn", "Er", "seinem"]];
+  const SACH = {
+    minus: [
+      ([n, er, sein], a, b) => ({ text: `${n} hat ${a} Bonbons. ${er} schenkt ${sein} Freund ${b} Bonbons.`, q: `Wie viele Bonbons hat ${n} jetzt noch?`,
+        wrong: [`Wie viele Bonbons hatte ${n} am Anfang?`, `Wie alt ist ${n}?`], say: `${n} hat noch § Bonbons.` }),
+      (_, a, b) => ({ text: `Im Bus sitzen ${a} Kinder. An der Haltestelle steigen ${b} Kinder aus.`, q: "Wie viele Kinder sitzen jetzt noch im Bus?",
+        wrong: ["Wie viele Kinder steigen aus?", "Wohin fährt der Bus?"], say: "Jetzt sitzen noch § Kinder im Bus." }),
+      ([n, er], a, b) => ({ text: `${n} hat ${a} Kekse gebacken. ${er} isst ${b} Kekse.`, q: "Wie viele Kekse sind noch übrig?",
+        wrong: [`Wie viele Kekse hat ${n} gegessen?`, "Wie lange backen die Kekse?"], say: "Es sind noch § Kekse übrig." }),
+      (_, a, b) => ({ text: `Auf dem Baum sitzen ${a} Vögel. ${b} Vögel fliegen weg.`, q: "Wie viele Vögel sitzen noch auf dem Baum?",
+        wrong: ["Wie viele Vögel fliegen weg?", "Wie hoch ist der Baum?"], say: "Es sitzen noch § Vögel auf dem Baum." }),
+    ],
+    plus: [
+      ([n, er], a, b) => ({ text: `${n} hat ${a} Murmeln. ${er} gewinnt ${b} Murmeln dazu.`, q: `Wie viele Murmeln hat ${n} jetzt?`,
+        wrong: [`Wie viele Murmeln hat ${n} gewonnen?`, "Welche Farbe haben die Murmeln?"], say: `${n} hat jetzt § Murmeln.` }),
+      (_, a, b) => ({ text: `Im Bus sitzen ${a} Kinder. An der Haltestelle steigen ${b} Kinder ein.`, q: "Wie viele Kinder sitzen jetzt im Bus?",
+        wrong: ["Wie viele Kinder steigen ein?", "Wohin fährt der Bus?"], say: "Jetzt sitzen § Kinder im Bus." }),
+      (_, a, b) => ({ text: `In der Klasse sind ${a} Mädchen und ${b} Jungen.`, q: "Wie viele Kinder sind in der Klasse?",
+        wrong: ["Wie viele Mädchen sind in der Klasse?", "Wie heißt die Lehrerin?"], say: "In der Klasse sind § Kinder." }),
+    ],
+  };
+  function sachTask(N, ops = ["plus", "minus"]) {
+    const allowed = ops.filter((o) => o === "plus" || o === "minus");
+    const op = pick(allowed.length ? allowed : ["plus", "minus"]);
+    let t;
+    do t = plusTask(Math.min(N, 1000)); while (t.a < 2 || t.b < 2);
+    const [a, b, c] = op === "plus" ? [t.a, t.b, t.c] : [t.c, t.b, t.a];   // Minus: a − b = c
+    const story = pick(SACH[op])(pick(SACH_KIDS), fmt(a), fmt(b));
+    const options = shuffle([story.q, ...story.wrong]);
+    const sign = op === "plus" ? "+" : "−";
+    return { kind: "sach", text: story.text, options, nums: [a, b, c], sign, say: story.say, answer: c, key: `A${story.text}`,
+      idx: { q: 0, a: 1, s: 2, b: 3, c: 4, say: 5 },
+      steps: [
+        { type: "choice", options, answer: options.indexOf(story.q), tip: "Die Frage muss zur Geschichte passen. Ihre Antwort darf noch nicht im Text stehen." },
+        { type: "num", tip: "Mit welcher Zahl fängt die Rechnung an?" },
+        { type: "choice", options: ["+", "−"], answer: op === "plus" ? 0 : 1, tip: op === "plus" ? "Kommt etwas dazu oder wird es weniger?" : "Wird es mehr oder weniger?" },
+        { type: "num", tip: "Welche Zahl kommt dazu oder weg?" },
+        NUM(c, `Rechne ${fmt(a)} ${sign} ${fmt(b)}.`),
+        NUM(c, "Schreibe das Ergebnis der Rechnung in den Antwortsatz."),
+      ],
+      tip: `Lies genau: Kommt etwas dazu, rechnest du plus. Geht etwas weg, rechnest du minus.` };
+  }
+
+  // Zahlenrätsel wie in der Schule: Rechnung mit der Umkehraufgabe und Antwortsatz
+  function riddleTask(N) {
+    let t;
+    do t = plusTask(N); while (t.a < 2 || t.b < 2);
+    const plusRiddle = Math.random() < 0.6;
+    // "zu meiner Zahl 6 dazu, erhalte 13": 13 − 6 = 7. "von meiner Zahl 6 weg, erhalte 7": 7 + 6 = 13.
+    const text = plusRiddle ? `Wenn ich zu meiner Zahl ${fmt(t.b)} dazuzähle, erhalte ich ${fmt(t.c)}.`
+      : `Wenn ich von meiner Zahl ${fmt(t.b)} wegnehme, erhalte ich ${fmt(t.a)}.`;
+    const [a, sign, b, c] = plusRiddle ? [t.c, "−", t.b, t.a] : [t.a, "+", t.b, t.c];
+    return { kind: "sach", riddle: true, text, question: "Wie heißt die Zahl?", nums: [a, b, c], sign, say: "Die Zahl heißt §.", answer: c,
+      key: `Z${text}`, idx: { q: -1, a: 0, s: 1, b: 2, c: 3, say: 4 },
+      steps: [
+        { type: "num", tip: "Denk an die Umkehraufgabe: Fang mit der Zahl an, die du erhältst." },
+        { type: "choice", options: ["+", "−"], answer: sign === "+" ? 0 : 1, tip: plusRiddle ? "Es wurde etwas dazugezählt. Die Umkehraufgabe nimmt es wieder weg." : "Es wurde etwas weggenommen. Die Umkehraufgabe zählt es wieder dazu." },
+        { type: "num", tip: "Welche Zahl wurde dazugezählt oder weggenommen?" },
+        NUM(c, `Rechne ${fmt(a)} ${sign} ${fmt(b)}.`),
+        NUM(c, "Schreibe deine Zahl in den Antwortsatz."),
+      ],
+      tip: plusRiddle ? `Rechne rückwärts: ${fmt(t.c)} − ${fmt(t.b)}.` : `Rechne rückwärts: ${fmt(t.a)} + ${fmt(t.b)}.` };
+  }
+
+  // Platzhalteraufgabe mit Probe: erst die Lücke, dann prüfen, ob die Rechnung stimmt
+  function probeTask(N, op = pick(["plus", "minus"])) {
+    const t = MAKERS[op](N), blank = pick(["a", "b"]);
+    const base = { ...t, blank, answer: t[blank] };
+    return { kind: "probe", a: t.a, b: t.b, c: t.c, op: t.op, blank, answer: t[blank], key: `P${t.a}${t.op}${t.b}${blank}`,
+      steps: [NUM(t[blank], tipFor(base)), NUM(t.c, `Setze deine Zahl ein und rechne: Kommt wieder ${fmt(t.c)} heraus, stimmt die Rechnung.`)],
+      tip: tipFor(base) };
+  }
+
+  // Welche Antworten sind in diesem Feld richtig? vals = die schon ausgefüllten Felder davor
+  function stepOptions(t, k, vals) {
+    const st = t.steps[k];
+    if (st.options && st.type === "pick2") return st.options;
+    if (st.answer !== undefined) return [st.answer];
+    if (t.kind === "family4") {
+      const [a, b, c] = t.nums, row = Math.floor((k - 1) / 3), col = (k - 1) % 3, v = (rr, cc) => vals[1 + rr * 3 + cc];
+      if (row < 2) {   // Plus: ein Auge + anderes Auge = Mund, in Zeile 2 getauscht
+        if (col === 0) return row === 1 ? [c - v(0, 0)] : [a, b];
+        return col === 1 ? [c - v(row, 0)] : [c];
+      }
+      if (col === 0) return [c];   // Minus: Mund − ein Auge = anderes Auge
+      if (col === 1) return row === 3 ? [c - v(2, 1)] : [a, b];
+      return [c - v(row, 1)];
+    }
+    if (t.kind === "robofree") {
+      const c = t.nums[2];
+      return k === 0 ? Array.from({ length: c + 1 }, (_, i) => i) : [c - vals[0]];
+    }
+    if (t.kind === "sach") {   // Plus darf man in beiden Reihenfolgen rechnen
+      const [a, b] = t.nums, I = t.idx;
+      if (k === I.a) return t.sign === "+" ? [a, b] : [a];
+      if (k === I.b) return t.sign === "+" ? [a + b - vals[I.a]] : [b];
+    }
+    return [];
+  }
+
   // Geld: Münzen und Scheine
   function coinSVG(v) {
     if (v >= 500) {
@@ -1371,18 +1606,26 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const chosenOps = sel.filter((t) => opsFor(cfg).includes(t));
     const basic = chosenOps.length ? chosenOps : opsFor(cfg);
     if (topic === "stellen") return { ...placeTask(N), topic };
+    // Arbeitsblatt-Aufgaben mit mehreren Feldern kommen nur in der Blumen-Runde (nicht in Ballonjagd und Memory)
+    const sheet = !cfg.single && Math.random();
+    if (topic === "text" && sheet && sheet < 0.4 && basic.some((o) => o === "plus" || o === "minus")) {
+      return { ...(sheet < 0.25 ? sachTask(N, basic) : riddleTask(N)), topic };
+    }
     if (topic === "text") return textTask(cfg, basic);
-    if (topic === "verdoppeln") return { ...doubleTask(N), topic };
+    if (topic === "verdoppeln") return { ...(sheet && sheet < 0.3 ? doubleTableTask(N) : doubleTask(N)), topic };
     if (topic === "nachbar") return { ...neighborTask(N), topic };
-    if (topic === "mauer") return { ...wallTask(N), topic };
-    if (topic === "familie") return { ...familyTask(N), topic };
-    if (topic === "geschickt") return { ...smartTask(N), topic };
+    if (topic === "mauer") return { ...(sheet && sheet < 0.4 && N >= 20 ? wallMultiTask(N) : wallTask(N)), topic };
+    if (topic === "familie") return { ...(sheet && sheet < 0.25 ? familyFullTask(N) : sheet && sheet < 0.35 ? freeRobotTask(N) : familyTask(N)), topic };
+    if (topic === "geschickt") return { ...(sheet && sheet < 0.5 ? smartPickTask(N) : smartTask(N)), topic };
     if (topic === "geld") return { ...moneyTask(N), topic };
     if (topic === "uhr") return { ...clockTask(cfg.grade || 2), topic };
     if (topic !== "luecke") return { ...MAKERS[topic](N, cfg), topic };
     // Lückenaufgabe: eine bekannte Aufgabe nehmen und eine Zahl verstecken. Manchmal als Rechentabelle.
     const tableOps = basic.filter((o) => o === "plus" || o === "minus");
-    if (tableOps.length && N >= 12 && Math.random() < 0.3) return { ...tableTask(N, pick(tableOps)), topic: "luecke" };
+    if (tableOps.length && N >= 12 && Math.random() < 0.3) {
+      return { ...(sheet && sheet < 0.6 ? tableMultiTask(N, pick(tableOps)) : tableTask(N, pick(tableOps))), topic: "luecke" };
+    }
+    if (tableOps.length && sheet && sheet < 0.3) return { ...probeTask(N, pick(tableOps)), topic: "luecke" };
     const t = MAKERS[pick(basic)](N, cfg);
     t.topic = "luecke";
     t.blank = pick(["a", "b"]);
@@ -1452,6 +1695,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
   const SOUND_RIGHT = [[660, .12], [880, .18]];
   const SOUND_WRONG = [[330, .2]];
+  const SOUND_STEP = [[784, .07], [988, .09]];
   const SOUND_DONE = [[523, .14], [659, .14], [784, .14], [1047, .3]];
   const SOUND_STREAK = [[784, .1], [988, .1], [1175, .22]];
   const SOUND_PERFECT = [[523, .12], [659, .12], [784, .12], [1047, .2], [784, .12], [1047, .4]];
@@ -1754,6 +1998,17 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       return t.miss === 2 ? `Die Augen zeigen ${fmt(t.nums[0])} und ${fmt(t.nums[1])}. Welche Zahl gehört in den Mund?`
         : `Ein Auge zeigt ${fmt(t.nums[1 - t.miss])}, der Mund zeigt ${fmt(t.nums[2])}. Welche Zahl fehlt im anderen Auge?`;
     }
+    if (t.kind === "family4") return "Rechenroboter. Die beiden Augen ergeben zusammen den Mund. Rechne die fehlende Zahl aus. Dann schreibe alle vier Aufgaben auf: zwei Plusaufgaben und zwei Minusaufgaben.";
+    if (t.kind === "robofree") return `Der Mund zeigt ${fmt(t.nums[2])}. Welche zwei Zahlen passen in die Augen? Es gibt viele richtige Lösungen.`;
+    if (t.kind === "wall3") return "Zahlenmauer. Zwei Steine nebeneinander ergeben zusammen den Stein darüber. Fülle alle Lücken aus.";
+    if (t.kind === "table4") return `Rechentabelle: ${t.sign === "+" ? "plus" : "minus"} ${t.step}. Fülle alle Lücken aus.`;
+    if (t.kind === "doubletab") return "Berechne das Doppelte. Oben steht die Zahl, unten das Doppelte. Fülle alle Lücken aus.";
+    if (t.kind === "smart2") return `Rechne geschickt: ${fmt(t.nums[0])} ${word[t.ops[0]]} ${fmt(t.nums[1])} ${word[t.ops[1]]} ${fmt(t.nums[2])}. Tippe zuerst die beiden Zahlen an, mit denen du anfängst.`;
+    if (t.kind === "sach") return `${t.text} ${t.idx.q >= 0 ? "Welche Frage passt?" : t.question} Schreibe die Rechnung und die Antwort.`;
+    if (t.kind === "probe") {
+      const v = (k) => (t.blank === k ? "wie viel" : fmt(t[k]));
+      return `${v("a")} ${word[t.op]} ${v("b")} gleich ${fmt(t.c)}. Danach mach die Probe.`;
+    }
     if (t.kind === "table") {
       return `Rechentabelle: ${t.sign === "+" ? "plus" : "minus"} ${t.step}. Aus ${fmt(t.ex[0])} wird ${fmt(t.ex[1])}. ` +
         (t.miss ? `Was wird aus ${fmt(t.ask[0])}?` : `Welche Zahl wird zu ${fmt(t.ask[1])}?`);
@@ -1975,18 +2230,102 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     return false;
   }
 
+  // ---------- Übungsblatt wie die Lernzielkontrolle (Klasse 2) ----------
+  // Gleiche Reihenfolge, gleiche Aufgabenarten und gleiche Punkte wie auf dem Blatt aus der Schule
+  function riddleOrText(N) { return { ...riddleTask(N), topic: "text" }; }
+  const SCHOOL = [
+    { title: "Kopfrechnen: Schreibe nur das Ergebnis!", short: "Kopfrechnen", points: 3,
+      make: (N) => Array.from({ length: 6 }, () => { const op = pick(["plus", "minus"]); return { ...MAKERS[op](N), topic: op }; }) },
+    { title: "Berechne die Rechenroboter!", short: "Rechenroboter", points: 7,
+      make: (N) => [familyFullTask(N, "mund"), familyFullTask(N, "auge"), freeRobotTask(N)].map((t) => ({ ...t, topic: "familie" })) },
+    { title: "Fülle die Lücken aus!", short: "Lücken füllen", points: 7,
+      make: (N) => [{ ...(N >= 20 ? wallMultiTask(N) : wallTask(N)), topic: "mauer" }, { ...(N >= 20 ? wallMultiTask(N) : wallTask(N)), topic: "mauer" },
+        { ...tableMultiTask(N, "plus"), topic: "luecke" }, { ...tableMultiTask(N, "minus"), topic: "luecke" }] },
+    { title: "Berechne die Platzhalteraufgaben! Überprüfe danach, ob die Rechnung stimmt.", short: "Platzhalter mit Probe", points: 4,
+      make: (N) => ["plus", "minus", "plus", "minus"].map((op) => ({ ...probeTask(N, op), topic: "luecke" })) },
+    { title: "Berechne das Doppelte!", short: "Das Doppelte", points: 3, make: (N) => [{ ...doubleTableTask(N), topic: "verdoppeln" }] },
+    { title: "Rechne geschickt! Tippe zuerst die beiden Zahlen an, mit denen du beginnst.", short: "Geschickt rechnen", points: 4,
+      make: (N) => [0, 1, 2].map(() => ({ ...smartPickTask(N), topic: "geschickt" })) },
+    { title: "Löse das Zahlenrätsel! Denke an die Umkehraufgabe.", short: "Zahlenrätsel", points: 3.5, make: (N) => [riddleOrText(N)] },
+    { title: "Löse die Sachaufgabe!", short: "Sachaufgabe", points: 3.5, make: (N) => [{ ...sachTask(N), topic: "text" }] },
+  ];
+  const SCHOOL_MAX = SCHOOL.reduce((sum, sec) => sum + sec.points, 0);
+  const half = (x) => fmt(x).replace(".", ",");
+
+  function startSchool() {
+    if (!ready()) return;
+    const N = config().N;
+    state.level = null;
+    setLevelButtons();
+    const tasks = SCHOOL.flatMap((sec, i) => sec.make(N).map((t) => ({ ...t, sec: i })));
+    state.round = { school: true, tasks, sel: [...state.topics], N, i: 0, input: "", tries: 0, results: [], scores: [], locked: false, streak: 0 };
+    freshTask(state.round);
+    state.lastMode = "school";
+    $("where").textContent = `Übungsblatt · bis ${rangeLabel(N)}`;
+    renderStreak();
+    resetTaskUi();
+    show("gameView");
+    renderTask();
+    announceTask();
+  }
+
+  // Ergebnis wie unter der Lernzielkontrolle: Punkte je Aufgabe und insgesamt
+  const SCHOOL_DONE = ["Super! Du hast das ganze Übungsblatt geschafft!", "Klasse! Das Übungsblatt ist fertig. Du hast lange durchgehalten!",
+    "Geschafft! Jedes Übungsblatt macht dich sicherer."];
+  function finishSchool() {
+    const r = state.round;
+    const per = SCHOOL.map((sec, i) => {
+      const own = r.tasks.map((t, k) => (t.sec === i ? r.scores[k] || 0 : null)).filter((x) => x !== null);
+      return { short: sec.short, max: sec.points, got: Math.round(sec.points * own.reduce((a, b) => a + b, 0) / own.length * 2) / 2 };
+    });
+    const total = per.reduce((sum, p) => sum + p.got, 0);
+    r.results.forEach((x, i) => {
+      if (x === "first") state.garden.push("f" + (i % 4));
+      else if (x === "second") state.garden.push("b" + (i % 4));
+    });
+    state.garden = state.garden.slice(-5000);
+    store.set("rw-garden", state.garden);
+    const last = store.get("rw-school", null);
+    store.set("rw-school", { total, date: dayString() });
+    const pct = total / SCHOOL_MAX, stars = pct >= 0.85 ? 3 : pct >= 0.6 ? 2 : 1;
+    const better = last && total > last.total ? `Letztes Mal hattest du ${half(last.total)} Punkte, heute ${half(total)}. Du hast dich verbessert!` : "";
+    const weak = per.filter((p) => p.got / p.max < 0.75).sort((a, b) => a.got / a.max - b.got / b.max)[0];
+    const extra = afterGame();
+    $("resultTitle").textContent = stars === 3 ? "Super Übungsblatt!" : "Übungsblatt geschafft!";
+    $("bigStars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= stars ? "on grow" : "off"}">${STAR}</span>`).join("");
+    $("bigStars").setAttribute("aria-label", `${stars} von 3 Sternen`);
+    $("resultText").textContent = `Von ${half(SCHOOL_MAX)} Punkten hast du ${half(total)} erreicht.` + (better ? " " + better : "") +
+      (weak ? ` Das üben wir noch: ${weak.short}.` : "") + (extra ? " " + extra : "");
+    $("tally").innerHTML = `<ul class="school-points">${per.map((p, i) =>
+      `<li><span>${i + 1}. ${p.short}</span><b>${half(p.got)} / ${half(p.max)}</b></li>`).join("")}</ul>`;
+    state.round = null;
+    renderHeader();
+    $("againBtn").textContent = "Neues Übungsblatt";
+    show("resultView");
+    autoRead([fromDeck("schooldone", SCHOOL_DONE), better, extra].filter(Boolean).join(" "));
+    if (stars === 3) { beep(SOUND_PERFECT); fx.show(6); } else { beep(SOUND_DONE); if (stars === 2) fx.pop($("bigStars"), 2); }
+    $("againBtn").focus();
+  }
+
   // ---------- Spiel ----------
   function startRound() {
     if (!ready()) return;
     const N = config().N;
     const sel = [...state.topics];
-    state.round = { tasks: makeRound(config(), sel), sel, N, i: 0, input: "", tries: 0, results: [], locked: false, streak: 0 };
+    state.round = { tasks: makeRound(config(), sel), sel, N, i: 0, input: "", tries: 0, results: [], scores: [], locked: false, streak: 0 };
+    freshTask(state.round);
+    state.lastMode = "round";
     $("where").textContent = state.level ? `Level ${state.level.i + 1} · ${LEVELS[state.level.i].place}` : `Bis ${rangeLabel(N)} · ${selectionName(sel, N)}`;
     renderStreak();
     resetTaskUi();
     show("gameView");
     renderTask();
     announceTask();
+  }
+
+  // Zustand für Aufgaben mit mehreren Feldern: aktuelles Feld, ausgefüllte Werte, angetippte Zahlen
+  function freshTask(r) {
+    Object.assign(r, { step: 0, vals: [], picks: [], stepTries: 0, gaveUp: false, stepScore: 0 });
   }
 
   function num(n, cls = "") { return `<span class="${cls}">${fmt(n)}</span>`; }
@@ -1997,20 +2336,77 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const slotCls = `slot${r.input ? " filled" : ""}${mark ? " " + mark : ""}`;
     const slot = `<span class="${slotCls}" id="slot">${slotText}</span>`;
     $("count").textContent = `${r.i + 1} / ${r.tasks.length}`;
-    drawTask($("task"), t, slot);
+    drawTask($("task"), t, slot, r);
+    if (t.steps && !r.locked) setPadEnabled(!!t.steps[r.step] && t.steps[r.step].type === "num");
     renderMeadow();
   }
 
+  const robot = (e0, e1, m) => `<div class="robo"><div class="robo-eyes"><span class="eye">${e0}</span><span class="eye">${e1}</span></div><span class="mouth">${m}</span></div>`;
+
+  // Aufgaben mit mehreren Feldern: fertige Felder grün, das aktuelle Feld zum Eintippen, spätere Felder leer
+  function drawSteps(el, t, slot, ss) {
+    const at = (k) => (k < ss.step ? `<span class="slot done">${fmt(ss.vals[k])}</span>` : k === ss.step ? slot : '<span class="slot later"></span>');
+    const choiceAt = (k, inline = false) => {
+      const st = t.steps[k];
+      if (k < ss.step) return inline ? `<span class="op">${st.options[ss.vals[k]]}</span>` : `<p class="chosen">${st.options[ss.vals[k]]}</p>`;
+      if (k > ss.step) return inline ? '<span class="slot later"></span>' : "";
+      return `<span class="choices${inline ? " inline" : ""}">${st.options.map((o, i) =>
+        `<button class="choice-btn" type="button" data-choice="${i}">${o}</button>`).join("")}</span>`;
+    };
+    let html = "";
+    if (t.kind === "family4") {
+      const n = (i) => (i === t.miss ? at(0) : fmt(t.nums[i]));
+      html = robot(n(0), n(1), n(2)) + '<p class="robo-hint">Schreibe alle vier Aufgaben auf.</p><div class="rows">' +
+        [0, 1, 2, 3].map((row) => `<div class="row">${at(1 + row * 3)}<span class="op">${row < 2 ? "+" : "−"}</span>${at(2 + row * 3)}` +
+          `<span class="op">=</span>${at(3 + row * 3)}</div>`).join("") + "</div>";
+    } else if (t.kind === "robofree") {
+      html = robot(at(0), at(1), fmt(t.nums[2])) + '<p class="robo-hint">Welche zwei Zahlen passen in die Augen? Es gibt viele richtige Lösungen.</p>';
+    } else if (t.kind === "wall3") {
+      const idx = (r, c) => t.order.findIndex(([rr, cc]) => rr === r && cc === c);
+      html = `<div class="wall">${t.rows.map((row, r) => `<div class="wall-row">${row.map((v, c) =>
+        `<span class="brick">${idx(r, c) >= 0 ? at(idx(r, c)) : fmt(v)}</span>`).join("")}</div>`).join("")}</div>`;
+    } else if (t.kind === "table4") {
+      html = `<div class="optab"><span class="optab-head">${t.sign} ${t.step} →</span>${t.rows.map((row, i) => [0, 1].map((c) =>
+        `<span class="cell">${c === t.miss[i] ? at(i) : fmt(row[c])}</span>`).join("")).join("")}</div>`;
+    } else if (t.kind === "doubletab") {
+      const cells = (want, val) => t.cols.map((x, i) => `<td>${t.miss[i] === want ? at(i) : fmt(val(x))}</td>`).join("");
+      html = `<div class="dtab-wrap"><table class="dtab"><tr><th>die Zahl</th>${cells("z", (x) => x)}</tr>` +
+        `<tr><th>das Doppelte</th>${cells("d", (x) => 2 * x)}</tr></table></div>`;
+    } else if (t.kind === "smart2") {
+      const picking = ss.step === 0, chosen = picking ? ss.picks : String(ss.vals[0] || "").split(",").map(Number);
+      const n = (i) => (picking ? `<button class="pick${chosen.includes(i) ? " picked" : ""}" type="button" data-pick="${i}">${fmt(t.nums[i])}</button>`
+        : `<span class="${chosen.includes(i) ? "circled" : ""}">${fmt(t.nums[i])}</span>`);
+      html = `<div class="row">${n(0)}<span class="op">${t.ops[0]}</span>${n(1)}<span class="op">${t.ops[1]}</span>${n(2)}<span class="op">=</span>` +
+        `${picking ? '<span class="slot later"></span>' : at(1)}</div>` +
+        `<p class="robo-hint">${picking ? "Tippe die beiden Zahlen an, mit denen du anfängst." : "Jetzt rechne aus."}</p>`;
+    } else if (t.kind === "sach") {
+      const I = t.idx;
+      html = `<p class="story">${t.text}</p><div class="sach-part"><b>Frage:</b>${I.q >= 0 ? choiceAt(I.q) : `<p class="chosen">${t.question}</p>`}</div>` +
+        (ss.step > I.q ? `<div class="sach-part"><b>Rechnung:</b><div class="row">${at(I.a)}${choiceAt(I.s, true)}${at(I.b)}<span class="op">=</span>${at(I.c)}</div></div>` : "") +
+        (ss.step >= I.say ? `<div class="sach-part"><b>Antwort:</b><p class="sach-say">${t.say.replace("§", at(I.say))}</p></div>` : "");
+    } else if (t.kind === "probe") {
+      const part = (k) => (t.blank === k ? at(0) : fmt(t[k]));
+      const pv = (k) => (t.blank === k ? fmt(ss.vals[0]) : fmt(t[k]));
+      html = `<div class="row">${part("a")}<span class="op">${t.op}</span>${part("b")}<span class="op">=</span>${fmt(t.c)}</div>` +
+        (ss.step >= 1 ? `<p class="robo-hint">Probe: Stimmt die Rechnung?</p><div class="row probe">${pv("a")}<span class="op">${t.op}</span>${pv("b")}` +
+          `<span class="op">=</span>${at(1)}</div>` : "");
+    }
+    el.innerHTML = html;
+    el.setAttribute("aria-label", spokenTask(t));
+  }
+
   // Zeichnet eine Aufgabe in ein Element; slot ist das Antwortfeld
-  function drawTask(el, t, slot) {
+  function drawTask(el, t, slot, ss) {
     el.classList.toggle("is-text", t.kind === "text");
-    el.classList.toggle("is-wall", t.kind === "wall");
+    el.classList.toggle("is-wall", t.kind === "wall" || t.kind === "wall3");
+    el.classList.toggle("is-sheet", !!t.steps);
+    el.classList.toggle("is-story", t.kind === "sach");
+    if (t.steps) return drawSteps(el, t, slot, ss || { step: 0, vals: [], picks: [] });
     el.classList.toggle("is-robo", t.kind === "family");
     el.classList.toggle("is-table", t.kind === "table");
     if (t.kind === "family") {
       const n = (k) => (k === t.miss ? slot : fmt(t.nums[k]));
-      const robo = `<div class="robo" aria-hidden="true"><div class="robo-eyes"><span class="eye">${n(0)}</span><span class="eye">${n(1)}</span></div>` +
-        `<span class="mouth">${n(2)}</span></div>`;
+      const robo = robot(n(0), n(1), n(2));
       const eq = t.eq ? `<div class="robo-eq">${fmt(t.eq[0])} <span class="op">${t.eq[1]}</span> ${fmt(t.eq[2])} <span class="op">=</span> ${slot}</div>` : "";
       el.innerHTML = robo + `<p class="robo-hint">${t.eq ? "Rechne mit den Zahlen vom Roboter." : "Die beiden Augen ergeben zusammen den Mund."}</p>` + eq;
       el.setAttribute("aria-label", spokenTask(t));
@@ -2055,7 +2451,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function renderMeadow(growIndex = -1) {
     const r = state.round;
     let html = "";
-    for (let i = 0; i < 10; i++) {
+    $("meadow").style.gridTemplateColumns = `repeat(${r.tasks.length}, 1fr)`;
+    for (let i = 0; i < r.tasks.length; i++) {
       const res = r.results[i];
       const cls = i === growIndex ? "grow" : "";
       if (res === "first") html += `<div class="spot"><div class="${cls}">${flowerSVG("flower", PETALS[i % 4])}</div></div>`;
@@ -2075,12 +2472,17 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // Textaufgaben liest Summi gleich vor, damit langsames Lesen nicht bremst
   function announceTask() {
     const t = state.round.tasks[state.round.i];
+    $("sheetHead").hidden = !state.round.school;
+    if (state.round.school) {
+      $("sheetHead").textContent = `Aufgabe ${t.sec + 1}: ${SCHOOL[t.sec].title}`;
+      return;   // Auf dem Übungsblatt liest das Kind selbst. "Vorlesen" hilft auf Wunsch.
+    }
     if (t.again || t.review) {
       const msg = t.again ? "Die kennst du schon von vorhin. Jetzt klappt sie bestimmt!" : "Diese Aufgabe hattest du schon mal. Zeig, was du gelernt hast!";
       say(msg);
       autoRead(msg, true);
     }
-    if (["text", "wall", "family", "table"].includes(t.kind)) autoRead(spokenTask(t), true);
+    if (["text", "wall", "family", "table"].includes(t.kind) || t.steps) autoRead(spokenTask(t), true);
   }
 
   function resetTaskUi() {
@@ -2095,6 +2497,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function type(d) {
     const r = state.round;
     if (!r || r.locked) return;
+    const t = r.tasks[r.i];
+    if (t.steps && t.steps[r.step].type !== "num") return;   // hier wird angetippt, nicht getippt
     if (d === "del") r.input = r.input.slice(0, -1);
     else if (d === "ok") return check();
     else if (r.input.length < String(r.N).length) r.input = (r.input === "0" ? "" : r.input) + d;
@@ -2227,30 +2631,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function check() {
     const r = state.round, t = r.tasks[r.i];
     if (!r.input) { say("Tippe zuerst deine Antwort ein.", "oops"); return; }
-    if (Number(r.input) === t.answer) {
-      r.results[r.i] = r.tries === 0 ? "first" : "second";
-      r.locked = true;
-      r.streak = r.tries === 0 ? r.streak + 1 : 0;
-      const party = r.streak >= 3 && r.streak % 3 === 0;   // bei 3, 6 und 9 richtig hintereinander
-      if (party) {
-        beep(SOUND_STREAK);
-        cheer(withName(fromDeck("streak", STREAK).replace("{n}", r.streak)), "ok");
-      } else {
-        beep(SOUND_RIGHT);
-        cheer(praiseFor(t, r), "ok");
-      }
-      addSolved();
-      recordResult(t.topic, r.tries === 0 ? 1 : 0.5);
-      if (t.review || t.again) reviewAnswered(t, r.tries === 0);
-      if (r.tries > 0) rememberMistake(t);
-      renderTask("right");
-      renderMeadow(r.i);
-      renderStreak(party);
-      if (party) fx.pop($("task"), r.streak >= 6 ? 3 : 2);
-      setPadEnabled(false);
-      setTimeout(() => { if (state.round === r) nextTask(); }, party ? 1700 : 1100);
-      return;
-    }
+    if (t.steps) return checkStep(Number(r.input));
+    if (Number(r.input) === t.answer) return solveTask(r, t);
     r.tries++;
     r.streak = 0;
     renderStreak();
@@ -2263,16 +2645,89 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       setTimeout(() => { if (state.round === r && !r.locked && r.tasks[r.i] === t) renderTask(); }, 400);
       return;
     }
-    r.results[r.i] = "missed";
-    r.locked = true;
     r.input = String(t.answer);
+    missTask(r, t);
+  }
+
+  // Ein Feld einer Arbeitsblatt-Aufgabe prüfen. v ist eine Zahl, die Nummer einer Auswahl oder "0,2" für zwei angetippte Zahlen.
+  const STEP_OK = ["Richtig! Weiter geht's.", "Stimmt! Und jetzt das nächste Feld.", "Genau! Weiter so.", "Prima, das passt!"];
+  const MULTI_MISSED = ["Nicht schlimm! Schau dir die Lösung genau an, dann klappt es beim nächsten Mal.",
+    "Geschafft! Ein paar Felder hat Summi für dich ausgefüllt. So lernst du dazu."];
+  function checkStep(v) {
+    const r = state.round;
+    if (!r || r.locked) return;
+    const t = r.tasks[r.i], st = t.steps[r.step];
+    const opts = stepOptions(t, r.step, r.vals);
+    r.input = ""; r.picks = [];
+    if (opts.includes(v)) {
+      r.stepScore += r.stepTries ? 0.5 : 1;
+      r.vals[r.step] = v; r.step++; r.stepTries = 0;
+      if (r.step < t.steps.length) {
+        beep(SOUND_STEP);
+        say(pick(STEP_OK), "ok");
+        $("help").hidden = true;
+        renderTask();
+        return;
+      }
+      return r.gaveUp ? missTask(r, t, true) : solveTask(r, t);
+    }
+    r.tries++; r.stepTries++; r.streak = 0;
+    renderStreak();
+    beep(SOUND_WRONG);
+    if (r.stepTries === 1) {
+      renderTask("wrong");
+      cheer(fromDeck("try", TRY_AGAIN), "oops");
+      showHelp(false, true);
+      setTimeout(() => { if (state.round === r && !r.locked && r.tasks[r.i] === t) renderTask(); }, 400);
+      return;
+    }
+    // Zweimal daneben: Summi trägt dieses Feld ein, dann geht es weiter
+    const right = opts[0];
+    const shown = st.type === "choice" ? `„${st.options[right]}“` : st.type === "pick2" ? right.split(",").map((i) => fmt(t.nums[i])).join(" und ") : fmt(right);
+    r.gaveUp = true; r.vals[r.step] = right; r.step++; r.stepTries = 0;
+    if (r.step >= t.steps.length) return missTask(r, t, true);
+    cheer(`Hier gehört ${shown} hin. Schau es dir an, dann geht es weiter.`, "oops");
+    renderTask();
+  }
+
+  // Aufgabe gelöst: Lob, Blume, weiter
+  function solveTask(r, t) {
+    r.results[r.i] = r.tries === 0 ? "first" : "second";
+    r.scores[r.i] = t.steps ? r.stepScore / t.steps.length : r.tries === 0 ? 1 : 0.5;
+    r.locked = true;
+    r.streak = r.tries === 0 ? r.streak + 1 : 0;
+    const party = r.streak >= 3 && r.streak % 3 === 0;   // bei 3, 6 und 9 richtig hintereinander
+    if (party) {
+      beep(SOUND_STREAK);
+      cheer(withName(fromDeck("streak", STREAK).replace("{n}", r.streak)), "ok");
+    } else {
+      beep(SOUND_RIGHT);
+      cheer(praiseFor(t, r), "ok");
+    }
+    addSolved();
+    recordResult(t.topic, r.tries === 0 ? 1 : 0.5);
+    if (t.review || t.again) reviewAnswered(t, r.tries === 0);
+    if (r.tries > 0) rememberMistake(t);
     renderTask("right");
     renderMeadow(r.i);
-    cheer(fromDeck("missed", MISSED).replace("{x}", fmt(t.answer)), "oops");
+    renderStreak(party);
+    if (party) fx.pop($("task"), r.streak >= 6 ? 3 : 2);
+    setPadEnabled(false);
+    setTimeout(() => { if (state.round === r) nextTask(); }, party ? 1700 : t.steps ? 1800 : 1100);
+  }
+
+  // Aufgabe nicht geschafft: Lösung zeigen, Tipp dazu, später nochmal
+  function missTask(r, t, multi = false) {
+    r.results[r.i] = "missed";
+    r.scores[r.i] = t.steps ? r.stepScore / t.steps.length : 0;
+    r.locked = true;
+    renderTask("right");
+    renderMeadow(r.i);
+    cheer(multi ? fromDeck("multimissed", MULTI_MISSED) : fromDeck("missed", MISSED).replace("{x}", fmt(t.answer)), "oops");
     recordResult(t.topic, 0);
     rememberMistake(t);
-    // Dieselbe Aufgabe kommt 3 Aufgaben später nochmal: so übt das Gedächtnis
-    if (!t.again && r.i + 3 < r.tasks.length) r.tasks[r.i + 3] = { ...t, again: true };
+    // Dieselbe Aufgabe kommt 3 Aufgaben später nochmal: so übt das Gedächtnis (nicht auf dem Übungsblatt)
+    if (!r.school && !t.again && r.i + 3 < r.tasks.length) r.tasks[r.i + 3] = { ...t, again: true };
     showHelp(true);
     setPadEnabled(false);
     $("helpBtn").hidden = true;
@@ -2285,6 +2740,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (!r || state.round !== r) return;
     r.i++;
     r.input = ""; r.tries = 0; r.locked = false; r.helped = false;
+    freshTask(r);
     if (r.i >= r.tasks.length) return finish();
     resetTaskUi();
     renderTask();
@@ -2426,7 +2882,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const listen = (txt) => (canSpeak ? `<button class="speak" type="button" data-speak-text="${encodeURIComponent(txt)}">${SPEAKER}Tipp vorlesen</button>` : "");
     if (t.kind) {
       const pic = auto && t.topic === "stellen" ? "" : t.helpPic || "";
-      $("help").innerHTML = `${pic}<p>${afterMiss ? "So geht's: " : "Tipp: "}${t.tip}</p>${listen(t.tip)}${more}`;
+      const st = t.steps && t.steps[state.round.step];
+      const tip = (!afterMiss && st && st.tip) || t.tip;
+      $("help").innerHTML = `${pic}<p>${afterMiss ? "So geht's: " : "Tipp: "}${tip}</p>${listen(tip)}${more}`;
       revealHelp();
       return;
     }
@@ -2502,6 +2960,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
           <b>:</b><span>gerecht verteilen, die Hälfte</span></div>` },
       { h: "Welche Zahl bin ich?", p: "Rechne rückwärts. Wurde etwas dazugezählt, nimmst du es wieder weg.",
         ex: ex("Meine Zahl + 9 = 19", "19 − 9 = 10", "Ich bin die 10.") },
+      { h: "Frage, Rechnung, Antwort", p: "In der Schule schreibst du bei einer Sachaufgabe drei Dinge auf. Die Frage muss zur Geschichte passen, ihre Antwort steht noch nicht im Text.",
+        ex: ex("Sina hat 15 Bonbons. Sie schenkt ihrem Freund 6.", "Frage: Wie viele Bonbons hat Sina noch?", "Rechnung: 15 − 6 = 9", "Antwort: Sina hat noch 9 Bonbons.") },
     ] },
     { id: "luecke", title: "Lückenaufgaben", cards: [
       { h: "Rückwärts rechnen", p: "Bei einer Lücke hilft die Umkehraufgabe. Aus Plus wird Minus, aus Mal wird Geteilt.",
@@ -2659,7 +3119,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   function nextWave() {
     if (!bj.running) return;
-    const t = generate(bj.cfg, pick(bj.sel), bj.sel);
+    const t = generate({ ...bj.cfg, single: true }, pick(bj.sel), bj.sel);
     drawTask($("bjTask"), t, '<span class="slot">?</span>');
     fitSky();   // nach dem Anzeigen der Aufgabe, denn deren Höhe ändert sich
     if (["text", "family", "table"].includes(t.kind)) autoRead(spokenTask(t), true);
@@ -3025,7 +3485,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const numbersIn = (label) => (label.match(/\d[\d.]*/g) || []).map((x) => Number(x.replace(/\./g, "")));
     for (let guard = 0; pairs.length < 6 && guard < 800; guard++) {
       const strict = guard < 300;   // bei kleinen Zahlenräumen gibt es zu wenige Zahlen, dann lockerer
-      const t = guard < 600 ? generate(cfg, pick(use), use) : { ...plusTask(cfg.N), topic: "plus" };
+      const t = guard < 600 ? generate({ ...cfg, single: true }, pick(use), use) : { ...plusTask(cfg.N), topic: "plus" };
       if (["text", "wall", "family", "table"].includes(t.kind)) continue;
       if (t.topic === "stellen") {   // Stellenwert-Karte, z. B. "3 H + 4 Z + 7 E"
         const k = String(cfg.N - 1).length, n = R(10 ** (k - 1), cfg.N - 1);
@@ -3129,6 +3589,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // ---------- Ergebnis ----------
   function finish() {
+    if (state.round.school) return finishSchool();
+    $("againBtn").textContent = "Nochmal spielen";
     const r = state.round;
     const first = r.results.filter((x) => x === "first").length;
     const second = r.results.filter((x) => x === "second").length;
@@ -3303,7 +3765,20 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderSetup();
   });
   $("startBtn").addEventListener("click", () => { state.level = null; setLevelButtons(); startRound(); });
-  $("againBtn").addEventListener("click", startRound);
+  $("againBtn").addEventListener("click", () => (state.lastMode === "school" ? startSchool() : startRound()));
+  $("schoolBtn").addEventListener("click", startSchool);
+  // Antippen: Zahlen bei "Geschickt rechnen", Antworten bei Fragen und Rechenzeichen
+  $("task").addEventListener("click", (e) => {
+    const r = state.round;
+    if (!r || r.locked) return;
+    const choice = e.target.closest("[data-choice]"), pickBtn = e.target.closest("[data-pick]");
+    if (choice) return checkStep(Number(choice.dataset.choice));
+    if (!pickBtn) return;
+    const k = Number(pickBtn.dataset.pick);
+    r.picks = r.picks.includes(k) ? r.picks.filter((x) => x !== k) : [...r.picks, k];
+    if (r.picks.length < 2) return renderTask();
+    checkStep([...r.picks].sort((a, b) => a - b).join(","));
+  });
   $("menuBtn").addEventListener("click", leaveGame);
   $("backBtn").addEventListener("click", () => {
     if (state.round && state.round.results.length && !reallyLeave((t) => say(t, "oops"))) return;
@@ -3337,6 +3812,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("iconBalloon").innerHTML = balloonSVG("var(--petal-1)");
   $("iconMemory").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="12" width="28" height="38" rx="5" fill="var(--grass)" transform="rotate(-10 20 31)"/><rect x="28" y="10" width="28" height="38" rx="5" fill="var(--paper)" stroke="var(--blue)" stroke-width="3" transform="rotate(8 42 29)"/><text x="42" y="36" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="18" fill="var(--blue)" transform="rotate(8 42 29)">12</text></svg>';
   $("iconFlower").innerHTML = flowerSVG("flower", "var(--petal-2)");
+  $("iconSchool").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="6" width="40" height="52" rx="4" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="3"/>' +
+    '<path d="M20 20h16M20 30h20M20 40h12" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/><path d="M38 40l4 5 9-12" stroke="var(--ok)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   $("iconTricks").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="26" r="17" fill="var(--sun)"/><rect x="24" y="42" width="16" height="10" rx="3" fill="var(--ink-soft)"/><path d="M26 30l6-8 6 8" stroke="var(--sun-ink)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 4v4M10 26H6M58 26h-4M15 10l3 3M49 10l-3 3" stroke="var(--sun)" stroke-width="3" stroke-linecap="round"/></svg>';
   // Android-Zurück-Taste: einen Schritt zurück statt die App zu schließen
   if (isApp && cap.addListener) {
