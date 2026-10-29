@@ -84,7 +84,11 @@ def transcribe(path, prompt):
     from faster_whisper import WhisperModel
     if _model is None:
         _model = WhisperModel(os.environ.get("WHISPER_MODELL", "small"), device="cpu", compute_type="int8")
-    segments, _ = _model.transcribe(path, language="de", word_timestamps=True, initial_prompt=prompt,
+    # Ton selbst mit ffmpeg lesen (16 kHz) und als Zahlenreihe übergeben, statt die Lade-Funktion von Whisper zu nutzen
+    pcm = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", path, "-ac", "1", "-ar", "16000", "-f", "f32le", "-"],
+                         check=True, capture_output=True).stdout
+    audio = np.frombuffer(pcm, dtype=np.float32).copy()
+    segments, _ = _model.transcribe(audio, language="de", word_timestamps=True, initial_prompt=prompt,
                                     vad_filter=True, vad_parameters={"min_silence_duration_ms": 400},
                                     condition_on_previous_text=False, beam_size=5)
     return [(w.start, w.end, w.word) for s in segments for w in (s.words or [])]
@@ -210,9 +214,7 @@ def process(files, saetze, out_web, report_path, words_file=None):
         if words_file:
             words = [tuple(w) for w in preset[name]]
         else:
-            wav16 = os.path.join(work, "asr.wav")
-            ffmpeg("-i", path, "-ac", "1", "-ar", "16000", wav16)
-            words = transcribe(wav16, prompt)
+            words = transcribe(path, prompt)
         chunks = chunks_from(words, levels(raw), floor)
         found = find_sentences(chunks, saetze)
         per_file.append(found)
