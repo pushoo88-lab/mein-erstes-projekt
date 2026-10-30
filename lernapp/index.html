@@ -520,6 +520,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 .rec-meter i { display: block; height: 100%; width: 3%; border-radius: 999px; background: var(--line); transition: width .08s linear; }
 .rec-meter i.on { background: var(--ok); }
 .rec-note { margin: 0; min-height: 1.4em; color: var(--ink-soft); max-width: 34ch; }
+#backupNote.bad { color: var(--oops); font-weight: 700; }
 .rec-note.bad { color: var(--oops); font-weight: 700; }
 .rec-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
 .rec-nav .tool { padding-inline: 4px; white-space: nowrap; }
@@ -790,6 +791,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         </ol>
         <button class="go secondary" id="voiceInstall" type="button" hidden>Weitere Stimmen installieren</button>
       </div>
+    </section>
+    <section class="sheet" style="display:grid; gap:10px;">
+      <h2 style="font-size:21px">Sichern</h2>
+      <p class="muted">Speichert alle eingesprochenen Sätze und den Fortschritt (Garten, Sticker, Lernstand) in einer Datei. Legen Sie sie zum Beispiel in Google Drive ab oder schicken Sie sie sich per E-Mail. Dann geht nichts verloren, auch nicht bei einem neuen Handy.</p>
+      <button class="go secondary" id="backupSave" type="button">Sicherung speichern</button>
+      <button class="go secondary" id="backupLoad" type="button">Sicherung wiederherstellen</button>
+      <input type="file" id="backupFile" hidden>
+      <p class="muted" id="backupNote" aria-live="polite"></p>
     </section>
     <section class="sheet parent-tips">
       <h2 style="font-size:21px">So helfen Sie beim Lernen</h2>
@@ -2452,6 +2461,102 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       ownClips = {};
       recMap = null;
     }).catch(() => {});
+  }
+
+  // ---------- Sicherung: Aufnahmen und Fortschritt in einer Datei ----------
+  // Aufbau der Datei: "RWSICH1", 4 Byte Länge, Beschreibung als JSON, dann die Aufnahmen (WAV) hintereinander
+  const BACKUP_MAGIC = "RWSICH1";
+  function backupNote(text, bad = false) {
+    $("backupNote").textContent = text;
+    $("backupNote").classList.toggle("bad", bad);
+  }
+  function makeBackup() {
+    const clips = window.indexedDB ? recStore("readonly", (st) => st.getAll()).catch(() => []) : Promise.resolve([]);
+    return clips.then((all) => {
+      all = all || [];
+      const progress = {};
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.indexOf("rw-") === 0) progress[k] = localStorage.getItem(k);
+        }
+      } catch { /* ohne Speicher: nur die Aufnahmen */ }
+      const meta = { made: new Date().toISOString(), progress, clips: all.map((c) => ({ id: c.id, text: c.text, dur: c.dur, size: c.blob.size })) };
+      const head = new TextEncoder().encode(JSON.stringify(meta)), len = new Uint8Array(4);
+      new DataView(len.buffer).setUint32(0, head.length);
+      return { blob: new Blob([BACKUP_MAGIC, len, head, ...all.map((c) => c.blob)], { type: "application/octet-stream" }), count: all.length };
+    });
+  }
+  function readBackup(buf) {
+    const bytes = new Uint8Array(buf);
+    if (new TextDecoder().decode(bytes.slice(0, 7)) !== BACKUP_MAGIC) throw new Error("keine Rechenwiese-Sicherung");
+    const n = new DataView(buf, 7, 4).getUint32(0), meta = JSON.parse(new TextDecoder().decode(bytes.slice(11, 11 + n)));
+    let pos = 11 + n;
+    const clips = meta.clips.map((c) => {
+      const blob = new Blob([bytes.slice(pos, pos + c.size)], { type: "audio/wav" });
+      pos += c.size;
+      return { id: c.id, text: c.text, dur: c.dur, blob };
+    });
+    return { meta, clips };
+  }
+  const blobToBase64 = (blob) => new Promise((ok, fail) => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result).split(",")[1] || "");
+    r.onerror = () => fail(r.error);
+    r.readAsDataURL(blob);
+  });
+  // Android: Datei in Stücken in den Zwischenspeicher schreiben (große Dateien auf einmal wären zu viel für die Brücke)
+  function writeAppFile(name, b64) {
+    const size = 1 << 21;   // 2 MB je Stück, durch 4 teilbar, damit jedes Stück für sich gültiges Base64 ist
+    let p = nativeCall("Filesystem", "writeFile", { path: name, data: b64.slice(0, size), directory: "CACHE" });
+    for (let i = size; i < b64.length; i += size) {
+      const part = b64.slice(i, i + size);
+      p = p.then(() => nativeCall("Filesystem", "appendFile", { path: name, data: part, directory: "CACHE" }));
+    }
+    return p.then(() => nativeCall("Filesystem", "getUri", { path: name, directory: "CACHE" })).then((r) => r.uri);
+  }
+  function saveBackup() {
+    const name = `Rechenwiese-Sicherung-${dayString()}.rwsich`;
+    backupNote("Die Sicherung wird erstellt …");
+    makeBackup().then(({ blob, count }) => {
+      const done = () => backupNote(`Sicherung erstellt: ${count} ${count === 1 ? "Aufnahme" : "Aufnahmen"} und der Fortschritt. Bitte gut aufheben, zum Beispiel in Google Drive.`);
+      if (isApp) {
+        return blobToBase64(blob).then((b64) => writeAppFile(name, b64)).then((uri) => nativeCall("Share", "share", {
+          title: "Rechenwiese-Sicherung", text: "Sicherung der Rechenwiese: Aufnahmen und Fortschritt", files: [uri], dialogTitle: "Sicherung speichern, z. B. in Google Drive",
+        })).then(done);
+      }
+      const file = typeof File === "function" ? new File([blob], name, { type: blob.type }) : null;
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) return navigator.share({ files: [file], title: "Rechenwiese-Sicherung" }).then(done);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+      done();
+    }).catch((e) => {
+      const msg = String((e && e.message) || e);
+      if (/cancel|abort/i.test(msg)) backupNote("Sicherung abgebrochen. Es wurde nichts gespeichert.");
+      else backupNote("Die Sicherung hat leider nicht geklappt. Bitte nochmal versuchen.", true);
+    });
+  }
+  function restoreBackup(file) {
+    backupNote("Die Sicherung wird gelesen …");
+    const reader = new FileReader();
+    reader.onerror = () => backupNote("Die Datei ließ sich nicht lesen.", true);
+    reader.onload = () => {
+      let data;
+      try { data = readBackup(reader.result); } catch { return backupNote("Das ist keine Sicherung der Rechenwiese. Bitte die Datei mit der Endung .rwsich wählen.", true); }
+      const clipsDone = window.indexedDB && data.clips.length
+        ? recStore("readwrite", (st) => { for (const c of data.clips) st.put(c); return null; }) : Promise.resolve();
+      clipsDone.then(() => {
+        try { for (const [k, v] of Object.entries(data.meta.progress || {})) localStorage.setItem(k, v); } catch { /* Fortschritt nicht speicherbar */ }
+        backupNote(`Wiederhergestellt: ${data.clips.length} ${data.clips.length === 1 ? "Aufnahme" : "Aufnahmen"} und der Fortschritt. Die App startet gleich neu.`);
+        setTimeout(() => location.reload(), 1800);
+      }).catch(() => backupNote("Wiederherstellen hat nicht geklappt. Ist der Speicher des Geräts voll?", true));
+    };
+    reader.readAsArrayBuffer(file);
   }
 
   // Rechenaufgabe so, wie man sie laut sagt: "7 plus 5 gleich wie viel"
@@ -4314,6 +4419,13 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   });
   $("voiceTest").addEventListener("click", () => speak(voiceSample()));
   $("recordOpen").addEventListener("click", openRecorder);
+  $("backupSave").addEventListener("click", saveBackup);
+  $("backupLoad").addEventListener("click", () => $("backupFile").click());
+  $("backupFile").addEventListener("change", (e) => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (f) restoreBackup(f);
+  });
   $("recordBack").addEventListener("click", () => { cancelRecording(); show("parentView"); openVoiceSettings(); });
   $("recBtn").addEventListener("click", () => (recState === "recording" ? stopRecording() : recState === "idle" ? startRecording() : null));
   $("recPlay").addEventListener("click", () => playOwn(LISTE[recIdx].id));

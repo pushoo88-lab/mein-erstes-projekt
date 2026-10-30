@@ -102,6 +102,9 @@ Es ist nichts vorausgewählt. Über „Ändern“ auf der Startseite lässt sich
   Summis feste Sätze direkt in der App ein, Satz für Satz. Die App schneidet die Stille weg, entfernt Brummen,
   nutzt die Rauschunterdrückung des Geräts und gleicht die Lautstärke an. Die Aufnahmen bleiben nur auf dem
   Gerät (nichts wird hochgeladen). „Kleine Biene“ spielt sie etwas höher ab.
+- **Sichern:** Unter „Für Eltern“ › „Sichern“ werden alle eingesprochenen Sätze und der Fortschritt
+  (Garten, Sticker, Lernstand) in eine Datei (`.rwsich`) gespeichert. Auf Android öffnet sich das Teilen-Menü,
+  z. B. für Google Drive oder E-Mail. „Sicherung wiederherstellen“ holt alles zurück, auch auf einem neuen Handy.
 - **Eigene Stimme für Summi (alternativ über GitHub):** Eltern können Summis feste Sätze (Lob, Mut-Sätze, Begrüßung, Spiele)
   auch extern einsprechen. Die 181 Sätze stehen in `app/stimme/sprechliste.json`, in 22 kurzen Aufnahmen.
   Aufnahmen (z. B. aus der Sprachrekorder-App) kommen in den Ordner `stimme-aufnahmen/`. Dann läuft der
