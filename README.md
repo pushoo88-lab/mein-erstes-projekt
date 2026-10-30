@@ -128,3 +128,22 @@ Im Ordner `app/` wird die Rechenwiese als Android-App verpackt. GitHub baut bei 
 automatisch eine installierbare `Rechenwiese.apk` (Release „Rechenwiese für Android“).
 Die App läuft offline, liest mit der Sprachausgabe von Android vor und behält bei Updates
 den Fortschritt. Details und Installationsanleitung: [`app/README.md`](app/README.md).
+
+### Tests und Skills
+
+In `app/tests/` liegen automatische Tests, die die ganze App wie ein Kind durchspielen: Aufgaben
+rechnerisch richtig, Luisas Lernzielkontrolle mit genau den Zahlen vom Blatt, Übungsblatt und Prüfung,
+Stimme aufnehmen und abspielen, Sichern und Wiederherstellen, Android mit Zurück-Taste, ohne Internet.
+
+```bash
+cd app && npm ci && npm run build:web
+npm run test:alle                  # alle Tests mit Übersicht
+node tests/alle.mjs pruefung       # nur einzelne Tests
+```
+
+GitHub führt sie bei jeder Änderung aus (Ablauf „Rechenwiese prüfen“), neben dem App-Bau.
+
+Für Claude Code gibt es zwei Skills in `.claude/skills/`:
+
+- **rechenwiese-pruefen** – alle Tests, Sprechliste und Code-Durchsicht, Bericht auf Deutsch.
+- **schulblatt-einbauen** – ein neues Arbeitsblatt aus der Schule (Foto) genau nachbauen, für Übungsblatt und Prüfung.

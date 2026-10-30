@@ -1,0 +1,49 @@
+name: Rechenwiese prüfen
+
+# Spielt die ganze App automatisch durch: Aufgaben, Schulblatt, Prüfung, Aufnahme, Sicherung, Android, ohne Internet.
+# Läuft neben dem App-Bau. Ist hier etwas rot, steht in der Übersicht genau, welche Prüfung nicht stimmt.
+on:
+  push:
+    paths:
+      - 'lernapp/**'
+      - 'app/**'
+      - '.github/workflows/tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Alle Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Abhängigkeiten installieren
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Starttest
+        run: npm run build:web && npm test
+
+      - name: Sprechliste prüfen
+        run: node stimme/sprechliste.mjs --check
+
+      - name: Alle Tests
+        run: npm run test:alle

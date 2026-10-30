@@ -8,7 +8,8 @@ import { fileURLToPath } from "node:url";
 
 const appDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const source = join(appDir, "..", "lernapp", "index.html");
-const www = join(appDir, "www");
+// Ziel: app/www, für Tests auch ein anderer Ordner (node scripts/build-web.mjs <ordner>)
+const www = process.argv[2] || join(appDir, "www");
 
 let html = readFileSync(source, "utf8");
 

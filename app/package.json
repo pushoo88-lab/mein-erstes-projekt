@@ -6,7 +6,8 @@
   "scripts": {
     "build:web": "node scripts/build-web.mjs",
     "sync": "npm run build:web && npx cap sync android",
-    "test": "node scripts/smoke-test.mjs"
+    "test": "node scripts/smoke-test.mjs",
+    "test:alle": "node tests/alle.mjs"
   },
   "dependencies": {
     "@capacitor-community/text-to-speech": "8.0.2",
