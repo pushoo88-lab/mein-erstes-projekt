@@ -301,6 +301,33 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .buy { display: inline-flex; align-items: center; gap: 4px; border: 0; border-radius: 999px; padding: 6px 16px 6px 10px; background: var(--sun); color: var(--sun-ink); font-family: var(--display); font-weight: 800; font-size: 19px; box-shadow: 0 3px 0 color-mix(in srgb, var(--sun) 55%, #000); }
 .buy svg { width: 16px; height: 24px; }
 .buy.wear { background: var(--grass); color: #fff; box-shadow: 0 3px 0 var(--grass-deep); padding: 6px 14px; font-size: 17px; }
+.mode.exam-tile { background: color-mix(in srgb, var(--sun) 14%, var(--paper)); border-color: color-mix(in srgb, var(--sun) 55%, var(--line)); box-shadow: 0 5px 0 color-mix(in srgb, var(--sun) 55%, var(--line)); }
+.count.hurry { color: var(--oops); font-weight: 800; }
+.slot.done.ok { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, var(--paper)); }
+.slot.done.bad { border-color: var(--red); background: color-mix(in srgb, var(--red) 12%, var(--paper)); }
+.slot .fix, .chosen .fix { display: block; font-size: .7em; line-height: 1.1; color: var(--ok); font-weight: 800; }
+.slot .fix::before, .chosen .fix::before { content: "✓ "; }
+.chosen.ok { color: var(--ok); }
+.chosen.bad { color: var(--red); text-decoration: line-through; }
+.chosen.bad .fix { text-decoration: none; }
+.robo-hint.ok { color: var(--ok); }
+.robo-hint.bad { color: var(--red); }
+.corr-sec { display: grid; gap: 10px; }
+.corr-sec h2 { font-size: 19px; }
+.corr-points { margin: 0; font-weight: 800; color: var(--ink-soft); }
+.corr-list { display: grid; gap: 10px; }
+.corr-item { border: 2px solid var(--line); border-left-width: 8px; border-radius: 16px; padding: 10px; }
+.corr-item.ok { border-left-color: var(--ok); }
+.corr-item.bad { border-left-color: var(--red); }
+.corr-item.empty { border-left-color: var(--line); border-style: dashed; }
+.corr-item .task { font-size: 22px !important; }
+.corr-item .task.is-story .story { font-size: 17px; }
+.feel { display: grid; gap: 6px; justify-items: center; width: 100%; }
+.feel p { margin: 0; font-weight: 700; }
+.pots { display: flex; gap: 10px; justify-content: center; }
+.pots button { width: 58px; height: 70px; border-radius: 16px; border: 2px solid var(--line); background: var(--paper); padding: 4px; }
+.pots button.on { border-color: var(--grass-deep); background: color-mix(in srgb, var(--grass) 18%, var(--paper)); }
+.pots svg { width: 100%; height: 100%; }
 .mode.album-tile { background: color-mix(in srgb, var(--petal-2) 12%, var(--paper)); border-color: color-mix(in srgb, var(--petal-2) 45%, var(--line)); box-shadow: 0 5px 0 color-mix(in srgb, var(--petal-2) 45%, var(--line)); }
 .album { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .album-slot { display: grid; justify-items: center; gap: 6px; padding: 10px 6px; border-radius: 18px; border: 2px dashed var(--line); background: color-mix(in srgb, var(--paper) 70%, transparent); text-align: center; }
@@ -692,7 +719,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       <button class="mode" id="startBtn" type="button"><span class="tag">Üben</span><span id="iconFlower"></span><b>Blumen-Runde</b><small>10 Aufgaben, Blumen sammeln</small></button>
       <button class="mode" id="tricksBtn" type="button"><span class="tag">Lernen</span><span id="iconTricks"></span><b>Rechentricks</b><small>So geht Rechnen leichter</small></button>
       <button class="mode school" id="schoolBtn" type="button"><span class="tag">Wie in der Schule</span><span id="iconSchool"></span><b>Übungsblatt</b><small>Wie die Lernzielkontrolle, ohne Zeit</small></button>
-      <button class="mode album-tile" id="albumBtn" type="button"><span class="tag">Sammeln</span><span id="iconAlbum"></span><b>Sticker-Album</b><small id="albumInfo"></small></button>
+      <button class="mode exam-tile" id="examBtn" type="button"><span class="tag">Wie eine echte Arbeit</span><span id="iconExam"></span><b>Prüfung</b><small>Ohne Hilfe, Korrektur am Ende</small></button>
+      <button class="mode album-tile wide" id="albumBtn" type="button"><span class="tag">Sammeln</span><span id="iconAlbum"></span><b>Sticker-Album</b><small id="albumInfo"></small></button>
       <button class="mode garden-tile wide" id="gardenBtn" type="button"><span class="tag">Belohnung</span><span id="iconGarden"></span><b>Mein Garten</b><small id="gardenInfo"></small></button>
     </div>
     <button class="settings-chip" id="settingsChip" type="button"><span id="settingsText"></span><b>Ändern</b></button>
@@ -848,11 +876,22 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         <button class="tool speak-task" type="button" data-speak-task="game">Vorlesen</button>
         <button class="tool" id="helpBtn" type="button">Hilfe</button>
         <button class="tool" id="nextBtn" type="button" hidden>Weiter →</button>
+        <button class="tool" id="skipBtn" type="button" hidden>Überspringen</button>
       </div>
       <div class="help" id="help" hidden></div>
     </section>
     <div class="pad" id="pad"></div>
     <div class="meadow" id="meadow" aria-label="Deine Blumen in dieser Runde"></div>
+  </main>
+
+  <!-- Korrektur der Prüfung -->
+  <main id="correctionView" hidden style="display:grid; gap:14px;">
+    <div class="bar">
+      <button class="back" id="correctionBack" type="button">← Zurück</button>
+      <span class="where">Korrektur</span>
+      <span class="count" id="correctionPoints"></span>
+    </div>
+    <div id="correction" style="display:grid; gap:14px;"></div>
   </main>
 
   <!-- Sticker-Album -->
@@ -952,6 +991,18 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
 </div>
 <canvas id="fx" aria-hidden="true"></canvas>
+<div class="sticker-toast" id="examDialog" hidden role="dialog" aria-label="Prüfung starten">
+  <div class="sticker-card"><b>Prüfung wie in der Schule</b>
+    <p class="muted" style="margin:0">Keine Hilfe und keine Tipps. Erst am Ende siehst du, was richtig war. Weißt du eine Aufgabe nicht, tippe auf „Überspringen“. Sie kommt am Ende nochmal.</p>
+    <p class="label" style="margin:0">Wie viel Zeit hast du?</p>
+    <div class="yesno three" id="examTime" style="width:100%">
+      <button class="choice" type="button" data-min="0">Ohne Zeit</button>
+      <button class="choice" type="button" data-min="30">30 Min.</button>
+      <button class="choice" type="button" data-min="45">45 Min.</button>
+    </div>
+    <button class="go secondary" id="examCancel" type="button">Abbrechen</button>
+  </div>
+</div>
 <div class="sticker-toast" id="stickerToast" hidden role="dialog" aria-label="Neuer Sticker">
   <div class="sticker-card"><p class="label" style="margin:0">Neuer Sticker!</p><div class="sticker big" id="toastArt"></div>
     <b id="toastName"></b><button class="go" id="toastOk" type="button">Ins Album kleben</button></div>
@@ -1936,7 +1987,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   })();
 
   // ---------- Ansichten ----------
-  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView", "pathView", "gardenView", "parentView", "recordView", "albumView"];
+  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView", "pathView", "gardenView", "parentView", "recordView", "albumView", "correctionView"];
   function show(view) {
     if (view !== "recordView") cancelRecording();
     for (const id of VIEWS) $(id).hidden = id !== view;
@@ -2907,6 +2958,190 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("againBtn").focus();
   }
 
+  // ---------- Prüfung wie in der Schule ----------
+  // Dieselben Aufgaben wie das Übungsblatt, aber wie eine echte Arbeit: keine Hilfe, keine Rückmeldung,
+  // Überspringen erlaubt, auf Wunsch mit Zeit. Erst am Ende gibt es Punkte und eine Korrektur.
+  const EXAM_OK = ["Gespeichert. Weiter geht's!", "Notiert. Nächste Aufgabe!", "Gemerkt. Weiter so!"];
+  const EXAM_TIMEUP = ["Die Zeit ist um. Schau dir jetzt die Korrektur an. Beim nächsten Mal schaffst du mehr!"];
+  const EXAM_DONE = ["Geschafft! Die Prüfung ist fertig. Schau dir jetzt die Korrektur an.",
+    "Fertig! Du hast die ganze Prüfung durchgehalten. Jetzt sehen wir, was du schon kannst."];
+  const SOUND_TAP = [[660, .06]];
+  // Antwort auf "Die Prüfung war für mich: sehr schwer … leicht"
+  const FEEL_THANKS = ["Danke! Schwierige Aufgaben üben wir zusammen.", "Danke! Mit Üben wird es leichter.",
+    "Danke! Du bist auf einem guten Weg.", "Danke! Toll, dass es dir leicht fiel."];
+  let lastExam = null;   // für die Korrektur nach der Prüfung
+
+  function openExamDialog() {
+    if (!ready()) return;
+    $("examDialog").hidden = false;
+    $("examTime").querySelector("button").focus();
+  }
+
+  function startExam(minutes) {
+    $("examDialog").hidden = true;
+    const N = config().N;
+    state.level = null;
+    setLevelButtons();
+    const tasks = SCHOOL.flatMap((sec, i) => sec.make(N).map((t) => ({ ...t, sec: i })));
+    const r = state.round = { school: true, exam: true, tasks, sel: [...state.topics], N, i: 0, input: "", tries: 0, results: [], scores: [],
+      answers: [], skipped: [], revisit: null, locked: false, streak: 0, started: Date.now(), minutes, deadline: minutes ? Date.now() + minutes * 60e3 : 0 };
+    freshTask(r);
+    state.lastMode = "exam";
+    $("where").textContent = `Prüfung · bis ${rangeLabel(N)}`;
+    r.timer = setInterval(() => {
+      if (state.round !== r) return clearInterval(r.timer);
+      showExamCount(r);
+      if (r.deadline && Date.now() >= r.deadline) finishExam(r, true);
+    }, 1000);
+    renderStreak();
+    resetTaskUi();
+    show("gameView");
+    renderTask();
+    announceTask();
+  }
+
+  function showExamCount(r) {
+    const left = r.deadline ? Math.max(0, Math.ceil((r.deadline - Date.now()) / 1000)) : 0;
+    $("count").textContent = (r.deadline ? `⏱ ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")} · ` : "") + `${r.i + 1} / ${r.tasks.length}`;
+    $("count").classList.toggle("hurry", !!r.deadline && left <= 120);
+  }
+
+  // Eine Eingabe speichern, ohne zu sagen, ob sie stimmt
+  function examInput(v) {
+    const r = state.round;
+    if (!r || r.locked) return;
+    const t = r.tasks[r.i];
+    r.input = ""; r.picks = [];
+    if (t.steps) {
+      r.vals[r.step] = v;
+      r.step++;
+      if (r.step < t.steps.length) { beep(SOUND_TAP); renderTask(); return; }
+      r.answers[r.i] = r.vals.slice();
+    } else r.answers[r.i] = v;
+    r.skipped = r.skipped.filter((k) => k !== r.i);
+    r.results[r.i] = "second";   // Knospe: beantwortet. Ob es stimmt, zeigt erst die Korrektur.
+    r.locked = true;
+    beep(SOUND_TAP);
+    say(pick(EXAM_OK));
+    setPadEnabled(false);
+    renderTask();
+    renderMeadow(r.i);
+    setTimeout(() => { if (state.round === r) examNext(r); }, 600);
+  }
+
+  function examSkip() {
+    const r = state.round;
+    if (!r || !r.exam || r.locked) return;
+    if (!r.skipped.includes(r.i) && r.answers[r.i] === undefined) r.skipped.push(r.i);
+    examNext(r);
+  }
+
+  // Erst alle Aufgaben der Reihe nach, danach die übersprungenen nochmal
+  function examNext(r) {
+    let n = -1;
+    if (!r.revisit) {
+      n = r.i + 1 < r.tasks.length ? r.i + 1 : -1;
+      if (n < 0 && r.skipped.length) {
+        r.revisit = r.skipped.slice().sort((a, b) => a - b);
+        say("Jetzt kommen die Aufgaben, die du übersprungen hast. Versuch sie ruhig nochmal!");
+      }
+    }
+    if (r.revisit) n = r.revisit.length ? r.revisit.shift() : -1;
+    if (n < 0) return finishExam(r);
+    r.i = n;
+    r.input = ""; r.tries = 0; r.locked = false; r.helped = false;
+    freshTask(r);
+    resetTaskUi();
+    renderTask();
+    announceTask();
+  }
+
+  // Bewertung einer Aufgabe: Anteil der richtigen Felder. Bei Plus darf die Reihenfolge getauscht sein.
+  function solutionOf(t) {
+    if (!t.steps) return [t.answer];
+    const sol = [];
+    for (let k = 0; k < t.steps.length; k++) sol.push(stepOptions(t, k, sol)[0]);
+    return sol;
+  }
+  function gradeTask(t, ans) {
+    if (!t.steps) {
+      const ok = ans !== undefined && ans === t.answer;
+      return { score: ok ? 1 : 0, marks: [ok], vals: [ans], sol: [t.answer] };
+    }
+    const vals = ans || [];
+    const marks = t.steps.map((_, k) => vals[k] !== undefined && stepOptions(t, k, vals).includes(vals[k]));
+    return { score: marks.filter(Boolean).length / t.steps.length, marks, vals, sol: solutionOf(t) };
+  }
+
+  function finishExam(r, timeUp = false) {
+    if (state.round !== r) return;
+    clearInterval(r.timer);
+    const graded = r.tasks.map((t, k) => gradeTask(t, r.answers[k]));
+    const per = SCHOOL.map((sec, i) => {
+      const own = graded.filter((_, k) => r.tasks[k].sec === i).map((g) => g.score);
+      return own.length ? { short: sec.short, title: sec.title, sec: i, max: sec.points, got: Math.round(sec.points * own.reduce((a, b) => a + b, 0) / own.length * 2) / 2 } : null;
+    }).filter(Boolean);
+    const total = per.reduce((sum, p) => sum + p.got, 0), maxPoints = per.reduce((sum, p) => sum + p.max, 0);
+    const minutesUsed = Math.max(1, Math.round((Date.now() - r.started) / 60e3));
+    graded.forEach((g, i) => {
+      if (g.score === 1) state.garden.push("f" + (i % 4));
+      else if (g.score >= 0.5) state.garden.push("b" + (i % 4));
+      recordResult(r.tasks[i].topic, g.score === 1 ? 1 : g.score >= 0.5 ? 0.5 : 0);
+      if (g.score < 1) rememberMistake(r.tasks[i]);
+    });
+    state.garden = state.garden.slice(-5000);
+    store.set("rw-garden", state.garden);
+    const history = store.get("rw-exams", []), last = history[history.length - 1];
+    history.push({ date: dayString(), total, max: maxPoints, minutes: r.minutes, used: minutesUsed });
+    store.set("rw-exams", history.slice(-30));
+    bumpStats({ exams: 1, bestExam: (v) => Math.max(v || 0, total) });
+    setTimeout(checkStickers, 0);
+    lastExam = { tasks: r.tasks, graded, per, total, maxPoints };
+    const pct = total / maxPoints, stars = pct >= 0.85 ? 3 : pct >= 0.6 ? 2 : 1;
+    const better = last && total > last.total ? `Letztes Mal hattest du ${half(last.total)} Punkte, heute ${half(total)}. Du hast dich verbessert!` : "";
+    const blank = graded.filter((g, k) => r.answers[k] === undefined).length;
+    const extra = afterGame();
+    state.round = null;
+    $("resultTitle").textContent = timeUp ? "Die Zeit ist um!" : "Prüfung geschafft!";
+    $("bigStars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= stars ? "on grow" : "off"}">${STAR}</span>`).join("");
+    $("bigStars").setAttribute("aria-label", `${stars} von 3 Sternen`);
+    $("resultText").textContent = `Von ${half(maxPoints)} Punkten hast du ${half(total)} erreicht. Du hast ${minutesUsed} ${minutesUsed === 1 ? "Minute" : "Minuten"} gebraucht.` +
+      (blank ? ` ${blank} ${blank === 1 ? "Aufgabe ist" : "Aufgaben sind"} leer geblieben.` : "") + (better ? " " + better : "") + (extra ? " " + extra : "");
+    $("tally").innerHTML = `<ul class="school-points">${per.map((p) =>
+      `<li><span>${p.sec + 1}. ${p.short}</span><b>${half(p.got)} / ${half(p.max)}</b></li>`).join("")}</ul>` +
+      '<button class="go" id="correctionOpen" type="button">Korrektur ansehen</button>' +
+      `<div class="feel"><p>Die Prüfung war für mich:</p><div class="pots">${["sprout", "bud", "flower", "gold"].map((k, i) =>
+        `<button type="button" data-feel="${i + 1}" aria-label="${["sehr schwer", "eher schwer", "ganz gut", "leicht"][i]}">${flowerSVG(k, PETALS[i])}</button>`).join("")}</div></div>`;
+    $("againBtn").textContent = "Neue Prüfung";
+    renderHeader();
+    show("resultView");
+    autoRead([timeUp ? EXAM_TIMEUP[0] : fromDeck("examdone", EXAM_DONE), better].filter(Boolean).join(" "));
+    if (stars === 3) { beep(SOUND_PERFECT); fx.show(6); } else beep(SOUND_DONE);
+  }
+
+  // Korrektur wie von der Lehrerin: grün richtig, rot falsch mit der richtigen Lösung daneben
+  function openCorrection() {
+    if (!lastExam) return;
+    const E = lastExam;
+    $("correctionPoints").textContent = `${half(E.total)} / ${half(E.maxPoints)}`;
+    $("correction").innerHTML = E.per.map((p) => `<section class="sheet corr-sec"><h2>${p.sec + 1}. ${SCHOOL[p.sec].title}</h2>` +
+      `<p class="corr-points">${half(p.got)} von ${half(p.max)} Punkten</p><div class="corr-list" data-sec="${p.sec}"></div></section>`).join("");
+    E.tasks.forEach((t, k) => {
+      const g = E.graded[k], box = document.createElement("div"), el = document.createElement("div");
+      box.className = `corr-item ${g.score === 1 ? "ok" : g.vals.every((v) => v === undefined) ? "empty" : "bad"}`;
+      el.className = "task";
+      box.append(el);
+      $("correction").querySelector(`[data-sec="${t.sec}"]`).append(box);
+      if (t.steps) drawTask(el, t, "", { step: t.steps.length, vals: g.vals, picks: [], marks: g.marks, sol: g.sol });
+      else drawTask(el, t, markSlot(g.vals[0], g.marks[0], t.answer), null);
+      el.removeAttribute("aria-live");
+    });
+    show("correctionView");
+  }
+  function markSlot(v, ok, right) {
+    return `<span class="slot done ${ok ? "ok" : "bad"}">${v === undefined ? "–" : fmt(v)}${ok ? "" : `<small class="fix">${fmt(right)}</small>`}</span>`;
+  }
+
   // ---------- Spiel ----------
   function startRound() {
     if (!ready()) return;
@@ -2935,7 +3170,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const slotText = r.input ? fmt(Number(r.input)) : "?";
     const slotCls = `slot${r.input ? " filled" : ""}${mark ? " " + mark : ""}`;
     const slot = `<span class="${slotCls}" id="slot">${slotText}</span>`;
-    $("count").textContent = `${r.i + 1} / ${r.tasks.length}`;
+    if (r.exam) showExamCount(r); else $("count").textContent = `${r.i + 1} / ${r.tasks.length}`;
+    if (!r.exam) $("count").classList.remove("hurry");
     drawTask($("task"), t, slot, r);
     if (t.steps && !r.locked) setPadEnabled(!!t.steps[r.step] && t.steps[r.step].type === "num");
     renderMeadow();
@@ -2945,9 +3181,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // Aufgaben mit mehreren Feldern: fertige Felder grün, das aktuelle Feld zum Eintippen, spätere Felder leer
   function drawSteps(el, t, slot, ss) {
-    const at = (k) => (k < ss.step ? `<span class="slot done">${fmt(ss.vals[k])}</span>` : k === ss.step ? slot : '<span class="slot later"></span>');
+    const at = (k) => (k < ss.step ? (ss.marks ? markSlot(ss.vals[k], ss.marks[k], ss.sol[k]) : `<span class="slot done">${fmt(ss.vals[k])}</span>`)
+      : k === ss.step ? slot : '<span class="slot later"></span>');
     const choiceAt = (k, inline = false) => {
       const st = t.steps[k];
+      if (k < ss.step && ss.marks) {   // Korrektur
+        const chosen = ss.vals[k] === undefined ? "–" : st.options[ss.vals[k]], fix = ss.marks[k] ? "" : `<small class="fix">${st.options[ss.sol[k]]}</small>`;
+        return inline ? `<span class="slot done ${ss.marks[k] ? "ok" : "bad"}">${chosen}${fix}</span>` : `<p class="chosen ${ss.marks[k] ? "ok" : "bad"}">${chosen}${fix}</p>`;
+      }
       if (k < ss.step) return inline ? `<span class="op">${st.options[ss.vals[k]]}</span>` : `<p class="chosen">${st.options[ss.vals[k]]}</p>`;
       if (k > ss.step) return inline ? '<span class="slot later"></span>' : "";
       return `<span class="choices${inline ? " inline" : ""}">${st.options.map((o, i) =>
@@ -2978,7 +3219,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         : `<span class="${chosen.includes(i) ? "circled" : ""}">${fmt(t.nums[i])}</span>`);
       html = `<div class="row">${n(0)}<span class="op">${t.ops[0]}</span>${n(1)}<span class="op">${t.ops[1]}</span>${n(2)}<span class="op">=</span>` +
         `${picking ? '<span class="slot later"></span>' : at(1)}</div>` +
-        `<p class="robo-hint">${picking ? "Tippe die beiden Zahlen an, mit denen du anfängst." : "Jetzt rechne aus."}</p>`;
+        (ss.marks ? (ss.marks[0] ? '<p class="robo-hint ok">Richtig angefangen.</p>'
+          : `<p class="robo-hint bad">Geschickt wäre: zuerst ${String(ss.sol[0]).split(",").map((i) => fmt(t.nums[i])).join(" und ")}.</p>`)
+          : `<p class="robo-hint">${picking ? "Tippe die beiden Zahlen an, mit denen du anfängst." : "Jetzt rechne aus."}</p>`);
     } else if (t.kind === "sach") {
       const I = t.idx;
       html = `<p class="story">${t.text}</p><div class="sach-part"><b>Frage:</b>${I.q >= 0 ? choiceAt(I.q) : `<p class="chosen">${t.question}</p>`}</div>` +
@@ -2986,7 +3229,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         (ss.step >= I.say ? `<div class="sach-part"><b>Antwort:</b><p class="sach-say">${t.say.replace("§", at(I.say))}</p></div>` : "");
     } else if (t.kind === "probe") {
       const part = (k) => (t.blank === k ? at(0) : fmt(t[k]));
-      const pv = (k) => (t.blank === k ? fmt(ss.vals[0]) : fmt(t[k]));
+      const pv = (k) => (t.blank === k ? (ss.vals[0] === undefined ? "□" : fmt(ss.vals[0])) : fmt(t[k]));
       html = `<div class="row">${part("a")}<span class="op">${t.op}</span>${part("b")}<span class="op">=</span>${fmt(t.c)}</div>` +
         (ss.step >= 1 ? `<p class="robo-hint">Probe: Stimmt die Rechnung?</p><div class="row probe">${pv("a")}<span class="op">${t.op}</span>${pv("b")}` +
           `<span class="op">=</span>${at(1)}</div>` : "");
@@ -3073,6 +3316,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function announceTask() {
     const t = state.round.tasks[state.round.i];
     $("sheetHead").hidden = !state.round.school;
+    $("helpBtn").hidden = !!state.round.exam;   // in der Prüfung gibt es keine Hilfe
+    $("skipBtn").hidden = !state.round.exam;
     if (state.round.school) {
       $("sheetHead").textContent = `Aufgabe ${t.sec + 1}: ${SCHOOL[t.sec].title}`;
       return;   // Auf dem Übungsblatt liest das Kind selbst. "Vorlesen" hilft auf Wunsch.
@@ -3216,6 +3461,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         '<rect x="22" y="42" width="20" height="7" rx="3" fill="#fff"/><path d="M22 14V6M42 14V6" stroke="var(--blue)" stroke-width="4" stroke-linecap="round"/></svg>' },
     { id: "zehner", name: "Zehner-Freund", hint: "Rechne 10 Aufgaben geschickt mit dem vollen Zehner.", ok: (s2) => s2["t-geschickt"] >= 10,
       art: () => '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28" fill="var(--grass)"/><text x="32" y="42" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="28" fill="#fff">10</text></svg>' },
+    { id: "pruefung", name: "Erste Prüfung", hint: "Mach eine ganze Prüfung.", ok: (s2) => s2.exams >= 1,
+      art: () => $("iconExam").innerHTML },
     { id: "pfad", name: "Pfad geschafft", hint: "Schaffe alle 12 Level auf dem Abenteuer-Pfad.", art: () => $("iconPath").innerHTML, ok: () => state.path.done >= 12 },
   ];
   const STICKER_SAY = ["Neuer Sticker für dein Album!"];
@@ -3306,6 +3553,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function check() {
     const r = state.round, t = r.tasks[r.i];
     if (!r.input) { say("Tippe zuerst deine Antwort ein.", "oops"); return; }
+    if (r.exam) return examInput(Number(r.input));
     if (t.steps) return checkStep(Number(r.input));
     if (Number(r.input) === t.answer) return solveTask(r, t);
     r.tries++;
@@ -3414,6 +3662,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function nextTask() {
     const r = state.round;
     if (!r || state.round !== r) return;
+    if (r.exam) return examNext(r);
     r.i++;
     r.input = ""; r.tries = 0; r.locked = false; r.helped = false;
     freshTask(r);
@@ -4308,6 +4557,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // ---------- Ergebnis ----------
   function finish() {
+    if (state.round.exam) return finishExam(state.round);
     if (state.round.school) return finishSchool();
     $("againBtn").textContent = "Nochmal spielen";
     setTimeout(checkStickers, 0);   // nach dem Zählen unten
@@ -4517,7 +4767,22 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderSetup();
   });
   $("startBtn").addEventListener("click", () => { state.level = null; setLevelButtons(); startRound(); });
-  $("againBtn").addEventListener("click", () => (state.lastMode === "school" ? startSchool() : startRound()));
+  $("againBtn").addEventListener("click", () => (state.lastMode === "school" ? startSchool() : state.lastMode === "exam" ? openExamDialog() : startRound()));
+  $("examBtn").addEventListener("click", openExamDialog);
+  $("examTime").addEventListener("click", (e) => { const b = e.target.closest("[data-min]"); if (b) startExam(Number(b.dataset.min)); });
+  $("examCancel").addEventListener("click", () => { $("examDialog").hidden = true; });
+  $("skipBtn").addEventListener("click", examSkip);
+  $("correctionBack").addEventListener("click", () => show("resultView"));
+  $("tally").addEventListener("click", (e) => {
+    if (e.target.closest("#correctionOpen")) return openCorrection();
+    const f = e.target.closest("[data-feel]");
+    if (!f) return;
+    const h = store.get("rw-exams", []);
+    if (h.length) { h[h.length - 1].feel = Number(f.dataset.feel); store.set("rw-exams", h); }
+    for (const b of $("tally").querySelectorAll("[data-feel]")) b.classList.toggle("on", b === f);
+    say("");
+    speak(FEEL_THANKS[Number(f.dataset.feel) - 1]);
+  });
   $("schoolBtn").addEventListener("click", startSchool);
   $("albumBtn").addEventListener("click", openAlbum);
   $("albumBack").addEventListener("click", () => goHome());
@@ -4534,12 +4799,13 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const r = state.round;
     if (!r || r.locked) return;
     const choice = e.target.closest("[data-choice]"), pickBtn = e.target.closest("[data-pick]");
-    if (choice) return checkStep(Number(choice.dataset.choice));
+    const answer = r.exam ? examInput : checkStep;
+    if (choice) return answer(Number(choice.dataset.choice));
     if (!pickBtn) return;
     const k = Number(pickBtn.dataset.pick);
     r.picks = r.picks.includes(k) ? r.picks.filter((x) => x !== k) : [...r.picks, k];
     if (r.picks.length < 2) return renderTask();
-    checkStep([...r.picks].sort((a, b) => a - b).join(","));
+    answer([...r.picks].sort((a, b) => a - b).join(","));
   });
   $("menuBtn").addEventListener("click", leaveGame);
   $("backBtn").addEventListener("click", () => {
@@ -4578,6 +4844,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("iconBalloon").innerHTML = balloonSVG("var(--petal-1)");
   $("iconMemory").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="12" width="28" height="38" rx="5" fill="var(--grass)" transform="rotate(-10 20 31)"/><rect x="28" y="10" width="28" height="38" rx="5" fill="var(--paper)" stroke="var(--blue)" stroke-width="3" transform="rotate(8 42 29)"/><text x="42" y="36" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="18" fill="var(--blue)" transform="rotate(8 42 29)">12</text></svg>';
   $("iconFlower").innerHTML = flowerSVG("flower", "var(--petal-2)");
+  $("iconExam").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="10" y="6" width="36" height="48" rx="4" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="3"/>' +
+    '<path d="M17 18h18M17 27h14M17 36h18" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/><circle cx="46" cy="44" r="13" fill="var(--sun)"/>' +
+    '<path d="M46 37v8l5 3" stroke="var(--sun-ink)" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
   $("iconAlbum").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="8" width="48" height="50" rx="6" fill="var(--petal-2)"/><rect x="14" y="14" width="36" height="38" rx="4" fill="var(--paper)"/>' +
     '<circle cx="25" cy="26" r="7" fill="var(--sun)"/><circle cx="40" cy="26" r="7" fill="var(--petal-1)"/><circle cx="25" cy="41" r="7" fill="var(--petal-4)"/><circle cx="40" cy="41" r="7" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 3"/></svg>';
   $("iconSchool").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="6" width="40" height="52" rx="4" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="3"/>' +
@@ -4587,9 +4856,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   if (isApp && cap.addListener) {
     try {
       const BACK = { setupView: "setupBack", gameView: "backBtn", resultView: "menuBtn", tricksView: "tricksBack",
-        balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack", recordView: "recordBack", albumView: "albumBack" };
+        balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack", recordView: "recordBack", albumView: "albumBack", correctionView: "correctionBack" };
       cap.addListener("App", "backButton", () => {
         if (!$("stickerToast").hidden) return $("toastOk").click();
+        if (!$("examDialog").hidden) { $("examDialog").hidden = true; return; }
         const btn = $(BACK[VIEWS.find((id) => !$(id).hidden)] || "");
         if (btn && !btn.hidden) btn.click();
         else nativeCall("App", "exitApp").catch(() => {});

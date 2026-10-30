@@ -1354,6 +1354,55 @@
    "block": 23,
    "gruppe": "Neue Aufgaben und Übungsblatt",
    "text": "Neuer Sticker für dein Album!"
+  },
+  {
+   "id": 194,
+   "teil": 2,
+   "block": 24,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Geschafft! Die Prüfung ist fertig. Schau dir jetzt die Korrektur an."
+  },
+  {
+   "id": 195,
+   "teil": 2,
+   "block": 24,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Fertig! Du hast die ganze Prüfung durchgehalten. Jetzt sehen wir, was du schon kannst."
+  },
+  {
+   "id": 196,
+   "teil": 2,
+   "block": 24,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Die Zeit ist um. Schau dir jetzt die Korrektur an. Beim nächsten Mal schaffst du mehr!"
+  },
+  {
+   "id": 197,
+   "teil": 2,
+   "block": 24,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Danke! Schwierige Aufgaben üben wir zusammen."
+  },
+  {
+   "id": 198,
+   "teil": 2,
+   "block": 24,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Danke! Mit Üben wird es leichter."
+  },
+  {
+   "id": 199,
+   "teil": 2,
+   "block": 24,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Danke! Du bist auf einem guten Weg."
+  },
+  {
+   "id": 200,
+   "teil": 2,
+   "block": 24,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Danke! Toll, dass es dir leicht fiel."
   }
  ]
 }
