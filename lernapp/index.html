@@ -442,7 +442,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .task .answer { display: flex; align-items: center; gap: .3em; font-family: var(--display); font-size: clamp(36px, 9vw, 52px); font-weight: 800; }
 .task .unit { font-family: var(--body); font-size: 20px; color: var(--ink-soft); }
 .task .pic { max-width: 100%; overflow-x: auto; }
-.dienes { display: block; height: 120px; width: auto; max-width: 100%; margin: 0 auto; }
+.dienes { display: block; height: 190px; width: auto; max-width: 100%; margin: 0 auto; }
+.help .dienes { height: 140px; }
 .tafel { border-collapse: collapse; font-variant-numeric: tabular-nums; margin: 0 auto; }
 .tafel th, .tafel td { border: 2px solid var(--line); padding: 4px 10px; text-align: center; }
 .tafel th { background: var(--key); font-family: var(--body); font-size: 15px; color: var(--ink-soft); }
@@ -1152,7 +1153,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     let x = 0, out = "";
     for (let i = 0; i < h; i++) { out += piece(x, top, 10 * u, 10 * u, PLACE_COLOR[2], 10, 10); x += 10 * u + 8; }
     if (h) x += 10;
-    for (let i = 0; i < z; i++) { out += piece(x, top, u, 10 * u, PLACE_COLOR[1], 1, 10); x += u + 6 + (i === 4 && z > 5 ? 10 : 0); }
+    for (let i = 0; i < z; i++) { out += piece(x, top, u, 10 * u, PLACE_COLOR[1], 1, 10); x += u + 7 + (i === 4 && z > 5 ? 12 : 0); }
     if (z) x += 14;
     for (let i = 0; i < e; i++) {   // Spalten zu je 5 Würfeln, von unten nach oben
       out += piece(x + Math.floor(i / 5) * (u + 6), top + 10 * u - (i % 5 + 1) * (u + 3) + 3, u, u, PLACE_COLOR[0], 1, 1);
