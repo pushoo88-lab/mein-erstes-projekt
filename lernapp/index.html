@@ -94,19 +94,21 @@ body::before {
     radial-gradient(120% 50% at 90% 115%, var(--hill-1) 0 52%, transparent 53%),
     linear-gradient(to bottom, var(--sky-top), var(--sky) 60%);
 }
-body::after {
-  content: ""; position: fixed; left: 0; top: 0; width: 100%; height: 45%; z-index: -1; pointer-events: none; overflow: hidden;
+/* Wolken: eine doppelt breite Ebene wandert nach links. Nur verschieben (transform), das schont den Akku. */
+.clouds { position: fixed; left: 0; top: 0; width: 100%; height: 45%; z-index: -1; pointer-events: none; overflow: hidden; }
+.clouds i {
+  position: absolute; left: 0; top: 0; width: 200%; height: 100%; will-change: transform;
   background:
     radial-gradient(60px 26px at 12% 14%, var(--cloud) 98%, transparent),
     radial-gradient(44px 22px at 16% 11%, var(--cloud) 98%, transparent),
     radial-gradient(70px 28px at 52% 24%, var(--cloud) 98%, transparent),
     radial-gradient(48px 22px at 56% 20%, var(--cloud) 98%, transparent),
     radial-gradient(56px 24px at 84% 9%, var(--cloud) 98%, transparent);
-  /* Die Wolken ziehen langsam vorbei, ohne die Seite breiter zu machen */
+  background-size: 50% 100%;
   animation: drift 120s linear infinite;
 }
-@keyframes drift { to { background-position: 100vw 0; } }
-@media (prefers-reduced-motion: reduce) { body::after { animation: none; } }
+@keyframes drift { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .clouds i { animation: none; } }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 
@@ -569,8 +571,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 }
 .key:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); background: var(--key-press); }
 .key.ok { background: var(--grass); border-color: var(--grass-deep); color: #fff; box-shadow: 0 5px 0 var(--grass-deep); }
-.key.del { background: color-mix(in srgb, var(--petal-3) 14%, var(--paper)); }
-.key.del { font-size: 22px; }
+.key.del { font-size: 22px; background: color-mix(in srgb, var(--petal-3) 14%, var(--paper)); }
 .key:disabled { opacity: .5; }
 
 .meadow {
@@ -582,10 +583,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 .meadow .spot { display: grid; place-items: end center; height: 100%; }
 .meadow .spot > div { width: 100%; display: grid; place-items: end center; }
 .meadow .spot svg { width: 30px; max-width: 100%; height: 52px; margin-bottom: 4px; }
-.meadow .spot.now { place-items: end center; }
 .meadow .mini-bee { width: min(30px, 100%); margin-bottom: 18px; animation: bob 1.4s ease-in-out infinite; }
 .meadow .mini-bee svg { display: block; width: 100%; height: auto; }
-@keyframes pulse { to { transform: scale(1.5); } }
 .grow { transform-origin: 50% 100%; animation: grow .5s cubic-bezier(.3,1.6,.5,1); }
 @keyframes grow { from { transform: scale(0); } }
 
@@ -632,6 +631,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 <!-- /kopf-ende -->
 </head>
 <body>
+<div class="clouds" aria-hidden="true"><i></i></div>
 <!-- /body -->
 <div class="app" id="app" lang="de">
   <header class="top">
@@ -2318,7 +2318,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("recPlay").disabled = !have || recState !== "idle";
     $("recPrev").disabled = recIdx === 0 || recState !== "idle";
     $("recNext").disabled = recIdx >= LISTE.length - 1 || recState !== "idle";
-    $("recMissing").hidden = ownCount() >= LISTE.length;
+    $("recMissing").hidden = done >= LISTE.length;
     $("recNote").className = "rec-note" + (note && note.bad ? " bad" : "");
     $("recNote").textContent = note ? note.text : recState === "recording" ? "Jetzt sprechen. Die Aufnahme stoppt nach einer kurzen Pause von selbst."
       : recState === "working" ? "Die Aufnahme wird bearbeitet …"
@@ -2362,19 +2362,21 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       an.fftSize = 1024;
       src.connect(an);
       const data = new Float32Array(an.fftSize), t0 = performance.now();
-      let floor = -60, heard = false, lastLoud = 0, raf = 0;
+      // Bei mehreren Sätzen ("Hallo! Ich bin Summi …") darf man zwischendurch Luft holen
+      const quietStop = splitSentences(LISTE[recFor].text).length > 1 ? 2200 : 1300;
+      let floor = Infinity, heard = false, lastLoud = 0, raf = 0;
       const tick = () => {
         if (recState !== "recording") return;
         an.getFloatTimeDomainData(data);
         let sum = 0;
         for (const v of data) sum += v * v;
         const db = 10 * Math.log10(sum / data.length + 1e-12), now = performance.now();
-        if (now - t0 < 400) floor = Math.max(floor, db);   // Grundrauschen am Anfang messen
+        if (now - t0 < 400) floor = Math.min(floor, db);   // Grundrauschen: das Leiseste am Anfang
         const loud = db > Math.max(floor + 15, -50);
         if (loud) { lastLoud = now; if (now - t0 > 300) heard = true; }
         $("recLevel").style.width = `${Math.max(3, Math.min(100, (db + 60) * 2))}%`;
         $("recLevel").classList.toggle("on", loud);
-        if (heard && now - lastLoud > 1300) return stopRecording();
+        if (heard && now - lastLoud > quietStop) return stopRecording();
         raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
@@ -2690,7 +2692,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("settingsText").textContent = `Klasse ${state.grade} · bis ${fmt(state.N)} · ${state.mal ? "mit" : "ohne"} Mal und Geteilt · ${state.topics.map((t) => topicName(t, state.N)).join(", ")}`;
     const done = state.path.done;
     $("pathInfo").textContent = done >= LEVELS.length ? "Alle Level geschafft!" : `Weiter mit Level ${done + 1} von ${LEVELS.length}: ${LEVELS[done].place}`;
-    $("gardenInfo").textContent = `${balance()} Blumen zum Ausgeben · ${state.owned.length} von ${SHOP.length} Sachen im Garten`;
+    $("gardenInfo").textContent = `${balance()} Blumen zum Ausgeben · ${SHOP.filter((it) => state.owned.includes(it.id)).length} von ${SHOP.length} Sachen im Garten`;
     renderHeader();
   }
 
@@ -3116,8 +3118,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     toastQueue.push(...fresh);
     setTimeout(nextToast, 1600);   // erst das Ergebnis ansehen, dann der Sticker
   }
+  // Mitten im Spiel stört der Sticker. Dann wartet er, bis ein Ergebnis oder die Startseite zu sehen ist.
+  const calmView = () => !$("resultView").hidden || !$("startView").hidden || !$("albumView").hidden || !$("gardenView").hidden ||
+    !$("pathView").hidden || (!$("balloonView").hidden && !$("bjOver").hidden) || (!$("memoryView").hidden && !$("memOver").hidden);
   function nextToast() {
     if (!$("stickerToast").hidden || !toastQueue.length) return;
+    if (!calmView()) { setTimeout(nextToast, 1500); return; }
     const x = toastQueue.shift();
     $("toastArt").innerHTML = x.art();
     $("toastName").textContent = x.name;
@@ -4303,7 +4309,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("recPrev").addEventListener("click", () => { recIdx = Math.max(0, recIdx - 1); renderRecorder(); });
   $("recNext").addEventListener("click", () => { recIdx = Math.min(LISTE.length - 1, recIdx + 1); renderRecorder(); });
   $("recMissing").addEventListener("click", () => {
-    const after = LISTE.findIndex((s2, i) => i > recIdx && !ownClips[s2.id]), any = LISTE.findIndex((s2) => !ownClips[s2.id]);
+    const missing = (s2) => !ownClips[s2.id] || ownClips[s2.id].text !== s2.text;
+    const after = LISTE.findIndex((s2, i) => i > recIdx && missing(s2)), any = LISTE.findIndex(missing);
     if (after >= 0 || any >= 0) recIdx = after >= 0 ? after : any;
     renderRecorder();
   });
@@ -4459,6 +4466,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       const BACK = { setupView: "setupBack", gameView: "backBtn", resultView: "menuBtn", tricksView: "tricksBack",
         balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack", recordView: "recordBack", albumView: "albumBack" };
       cap.addListener("App", "backButton", () => {
+        if (!$("stickerToast").hidden) return $("toastOk").click();
         const btn = $(BACK[VIEWS.find((id) => !$(id).hidden)] || "");
         if (btn && !btn.hidden) btn.click();
         else nativeCall("App", "exitApp").catch(() => {});
