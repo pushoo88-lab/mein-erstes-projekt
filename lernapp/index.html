@@ -442,7 +442,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .task .answer { display: flex; align-items: center; gap: .3em; font-family: var(--display); font-size: clamp(36px, 9vw, 52px); font-weight: 800; }
 .task .unit { font-family: var(--body); font-size: 20px; color: var(--ink-soft); }
 .task .pic { max-width: 100%; overflow-x: auto; }
-.dienes { display: block; height: 80px; max-width: 100%; }
+.dienes { display: block; height: 120px; width: auto; max-width: 100%; margin: 0 auto; }
 .tafel { border-collapse: collapse; font-variant-numeric: tabular-nums; margin: 0 auto; }
 .tafel th, .tafel td { border: 2px solid var(--line); padding: 4px 10px; text-align: center; }
 .tafel th { background: var(--key); font-family: var(--body); font-size: 15px; color: var(--ink-soft); }
@@ -1132,36 +1132,40 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   const PLACES = [["E", "Einer"], ["Z", "Zehner"], ["H", "Hunderter"], ["T", "Tausender"], ["ZT", "Zehntausender"], ["HT", "Hunderttausender"]];
 
   // Zehnersystem-Material: Hunderterplatten, Zehnerstangen, Einerwürfel
+  // Farben wie in den meisten Schulbüchern: Einer blau, Zehner rot, Hunderter grün
+  const PLACE_COLOR = ["var(--blue)", "var(--red)", "var(--grass)"];
+
+  // Zehnersystem-Material: Hunderterplatten, Zehnerstangen, Einerwürfel.
+  // Ein Würfel ist genau so groß wie ein Stück der Stange. Nach je 5 Stangen oder Würfeln kommt eine Lücke
+  // (Kraft der Fünf), damit Kinder auf einen Blick sehen, wie viele es sind, statt einzeln zu zählen.
   function dienes(n) {
-    const h = Math.floor(n / 100), z = Math.floor(n / 10) % 10, e = n % 10;
-    const grid = (w, ht, cols, rows) => {
+    const h = Math.floor(n / 100), z = Math.floor(n / 10) % 10, e = n % 10, u = 10, top = 0;
+    const lines = (w, ht, cols, rows) => {
       let d = "";
-      for (let i = 1; i < cols; i++) d += `M${i * 5} 0v${ht}`;
-      for (let j = 1; j < rows; j++) d += `M0 ${j * 5}h${w}`;
+      for (let i = 1; i < cols; i++) d += `M${i * u} 0v${ht}`;
+      for (let j = 1; j < rows; j++) d += `M0 ${j * u}h${w}`;
       return d;
     };
+    const piece = (x, y, w, ht, color, cols, rows) => `<g transform="translate(${x} ${y})"><rect width="${w}" height="${ht}" rx="2" fill="${color}"/>` +
+      `<path d="${lines(w, ht, cols, rows)}" stroke="#fff" stroke-opacity=".75" stroke-width="1.2"/>` +
+      `<rect width="${w}" height="${ht}" rx="2" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1.2"/></g>`;
     let x = 0, out = "";
-    for (let i = 0; i < h; i++) {
-      out += `<g transform="translate(${x} 0)"><rect width="50" height="50" rx="1" fill="var(--petal-2)"/><path d="${grid(50, 50, 10, 10)}" stroke="var(--paper)" stroke-width=".6"/></g>`;
-      x += 56;
+    for (let i = 0; i < h; i++) { out += piece(x, top, 10 * u, 10 * u, PLACE_COLOR[2], 10, 10); x += 10 * u + 8; }
+    if (h) x += 10;
+    for (let i = 0; i < z; i++) { out += piece(x, top, u, 10 * u, PLACE_COLOR[1], 1, 10); x += u + 6 + (i === 4 && z > 5 ? 10 : 0); }
+    if (z) x += 14;
+    for (let i = 0; i < e; i++) {   // Spalten zu je 5 Würfeln, von unten nach oben
+      out += piece(x + Math.floor(i / 5) * (u + 6), top + 10 * u - (i % 5 + 1) * (u + 3) + 3, u, u, PLACE_COLOR[0], 1, 1);
     }
-    if (h) x += 6;
-    for (let i = 0; i < z; i++) {
-      out += `<g transform="translate(${x} 0)"><rect width="5" height="50" rx="1" fill="var(--blue)"/><path d="${grid(5, 50, 1, 10)}" stroke="var(--paper)" stroke-width=".6"/></g>`;
-      x += 9;
-    }
-    if (z) x += 8;
-    for (let i = 0; i < e; i++) {
-      out += `<rect x="${x + Math.floor(i / 5) * 9}" y="${45 - (i % 5) * 9}" width="5" height="5" rx="1" fill="var(--red)"/>`;
-    }
-    if (e) x += Math.ceil(e / 5) * 9;
-    return `<svg class="dienes" viewBox="-2 -2 ${x + 4} 54" aria-hidden="true">${out}</svg>`;
+    if (e) x += Math.ceil(e / 5) * (u + 6) - 6;
+    return `<svg class="dienes" viewBox="-2 -2 ${Math.max(x, 10) + 4} ${10 * u + 4}" aria-hidden="true">${out}</svg>`;
   }
 
   function tafel(n, k) {
     const heads = PLACES.slice(0, k).reverse();
     const digits = String(n).padStart(k, "0").split("");
-    return `<table class="tafel"><tr>${heads.map((p) => `<th title="${p[1]}">${p[0]}</th>`).join("")}</tr>` +
+    const color = (i) => (k - 1 - i < 3 ? ` style="color:${PLACE_COLOR[k - 1 - i]}"` : "");
+    return `<table class="tafel"><tr>${heads.map((p, i) => `<th title="${p[1]}"${color(i)}>${p[0]}</th>`).join("")}</tr>` +
       `<tr>${digits.map((d) => `<td>${d}</td>`).join("")}</tr></table>`;
   }
 
