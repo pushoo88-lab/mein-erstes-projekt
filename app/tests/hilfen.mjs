@@ -3,7 +3,7 @@
 // kleinen Einblicken angelegt: window.__s (Zustand), __bj (Ballonjagd), __mem (Memory),
 // __gen (Aufgaben erzeugen), __draw (Aufgabe zeichnen), __mk (Aufgaben-Bausteine) usw.
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,8 +13,10 @@ export const appDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const bridge = () => readFileSync(join(appDir, "node_modules/@capacitor/android/capacitor/src/main/assets/native-bridge.js"), "utf8");
 
 // Frisch gebaute App mit Test-Einblicken in einem eigenen Ordner. Gibt den Ordner zurück.
+const copies = [];
 export function testCopy() {
   const dir = mkdtempSync(join(tmpdir(), "rechenwiese-test-"));
+  copies.push(dir);
   execFileSync(process.execPath, [join(appDir, "scripts/build-web.mjs"), dir]);
   let html = readFileSync(join(dir, "index.html"), "utf8");
   const swap = (a, b) => {
@@ -97,5 +99,6 @@ export function check(ok, msg) {
 export function done(name, errors = []) {
   check(errors.length === 0, `keine JavaScript-Fehler${errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""}`);
   console.log(failed ? `${name}: ${failed} Prüfung(en) fehlgeschlagen` : `${name}: alles in Ordnung`);
+  for (const d of copies) rmSync(d, { recursive: true, force: true });   // Testkopien wieder wegräumen
   process.exit(failed ? 1 : 0);
 }

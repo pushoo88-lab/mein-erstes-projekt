@@ -71,5 +71,25 @@ const robo = await page.evaluate(() => { const it = [...document.querySelectorAl
 check(robo === 3, "angefangener Rechenroboter: die 3 ausgefüllten Felder zählen");
 check(await page.evaluate(() => [...document.querySelectorAll(".corr-item.empty .circled")].length) === 0, "leere Aufgaben: nichts eingekreist");
 check(await page.evaluate(() => window.__said.some((x) => /Zeit ist um/.test(x))), "Summi sagt, dass die Zeit um ist");
+
+// Eine Zahl getippt, aber noch nicht bestätigt, als die Zeit abläuft: Sie zählt.
+const lastTotal = () => page.evaluate(() => JSON.parse(localStorage.getItem("rw-exams")).slice(-1)[0].total);
+await page.click("#correctionBack"); await page.click("#againBtn"); await page.click('[data-min="30"]'); await page.waitForTimeout(300);
+const plain = await page.evaluate(() => window.__s.round.tasks[0]);
+await page.keyboard.type(String(plain.answer)); await page.waitForTimeout(100);
+await page.evaluate(() => { window.__s.round.deadline = Date.now() + 300; });
+await page.waitForTimeout(2000);
+check(await lastTotal() === 0.5, `getippte Zahl ohne OK zählt, wenn die Zeit um ist (${await lastTotal()} Punkte)`);
+
+// Angefangen und dann selbst übersprungen, als letzte Aufgabe: bleibt leer, kein Fehler fürs Lernen
+await page.click("#againBtn"); await page.click('[data-min="0"]'); await page.waitForTimeout(300);
+const skillBefore = await page.evaluate(() => localStorage.getItem("rw-skill"));
+const idx2 = await page.evaluate(() => window.__s.round.tasks.findIndex((t) => t.kind === "family4"));
+await page.evaluate((idx) => { const r = window.__s.round; r.i = idx; r.revisit = []; window.__render(); }, idx2);
+const t2 = await page.evaluate(() => window.__s.round.tasks[window.__s.round.i]);
+for (const v of [t2.nums[t2.miss], t2.nums[0]]) await answer(page, null, v);
+await page.click("#skipBtn"); await page.waitForTimeout(800);
+check(await page.textContent("#resultTitle") === "Prüfung geschafft!" && await lastTotal() === 0, `selbst übersprungen: zählt als leer (${await lastTotal()} Punkte)`);
+check(await page.evaluate(() => localStorage.getItem("rw-skill")) === skillBefore, "übersprungene Aufgabe verändert den Lernstand nicht");
 await browser.close();
 done("Prüfung", errors);

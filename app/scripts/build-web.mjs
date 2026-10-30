@@ -2,7 +2,7 @@
 // - Schriftarten kommen aus app/fonts statt aus dem Internet (App läuft offline)
 // - Summis eingesprochene Stimme aus lernapp/stimme
 // - ohne viewport-fit=cover, damit Android die App neben Statusleiste und Navigationsleiste platziert
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -20,6 +20,8 @@ html = html.replace(fontLinks, '<link rel="stylesheet" href="fonts/fonts.css">')
 if (!html.includes(", viewport-fit=cover")) throw new Error("viewport-Meta in lernapp/index.html nicht gefunden");
 html = html.replace(", viewport-fit=cover", "");
 
+// Sicherheitsnetz gegen Tippfehler: niemals einen Projektordner löschen
+if (existsSync(join(www, "package.json")) || existsSync(join(www, ".git")) || existsSync(join(www, "lernapp"))) throw new Error(`${www} ist kein Bau-Ordner`);
 rmSync(www, { recursive: true, force: true });
 mkdirSync(www, { recursive: true });
 writeFileSync(join(www, "index.html"), html);

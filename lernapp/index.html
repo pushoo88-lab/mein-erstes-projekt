@@ -2439,7 +2439,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         for (const v of data) sum += v * v;
         const db = 10 * Math.log10(sum / data.length + 1e-12), now = performance.now(), dt = now - last;
         last = now;
-        if (now - t0 > 150) { floor = Math.min(floor, db); peak = Math.max(peak, db); }   // Einschalt-Knacksen nicht mitzählen
+        if (now - t0 > 150) {   // Einschalt-Knacksen nicht mitzählen
+          if (db > -100) floor = Math.min(floor, db);   // völlige Stille (Rauschunterdrückung des Handys) ist kein Raumgeräusch
+          peak = Math.max(peak, db);
+        }
         const loud = db > Math.max(floor + 12, -55) && db > peak - 25;
         if (loud) { lastLoud = now; heardMs += dt; }
         const heard = heardMs > 300;   // mindestens 0,3 Sekunden gesprochen
@@ -2541,6 +2544,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (new TextDecoder().decode(bytes.slice(0, 7)) !== BACKUP_MAGIC) throw new Error("keine Rechenwiese-Sicherung");
     const n = new DataView(buf, 7, 4).getUint32(0), meta = JSON.parse(new TextDecoder().decode(bytes.slice(11, 11 + n)));
     let pos = 11 + n;
+    if (!meta || !Array.isArray(meta.clips) || typeof meta.progress !== "object") throw new Error("keine Rechenwiese-Sicherung");
+    // Abgeschnittene Datei (z. B. abgebrochener Download): lieber ablehnen als gute Aufnahmen durch leere ersetzen
+    if (meta.clips.reduce((sum, c) => sum + c.size, pos) > bytes.length) throw new Error("Sicherung unvollständig");
     const clips = meta.clips.map((c) => {
       const blob = new Blob([bytes.slice(pos, pos + c.size)], { type: "audio/wav" });
       pos += c.size;
@@ -2602,14 +2608,28 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       const clipsDone = window.indexedDB
         ? recStore("readwrite", (st) => { st.clear(); for (const c of data.clips) st.put(c); return null; }) : Promise.resolve();
       clipsDone.then(() => {
-        try {
-          const old = [];
-          for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf("rw-") === 0) old.push(k); }
-          for (const k of old) localStorage.removeItem(k);
-          for (const [k, v] of Object.entries(data.meta.progress || {})) localStorage.setItem(k, v);
-        } catch { /* Fortschritt nicht speicherbar */ }
-        backupNote(`Wiederhergestellt: ${data.clips.length} ${data.clips.length === 1 ? "Aufnahme" : "Aufnahmen"} und der Fortschritt. Die App startet gleich neu.`);
-        setTimeout(() => location.reload(), 1800);
+        const progress = Object.entries(data.meta.progress);
+        let progressOk = !progress.length;   // Sicherung ohne Fortschritt: den jetzigen Stand behalten
+        if (progress.length) {
+          const old = {};
+          try {
+            for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf("rw-") === 0) old[k] = localStorage.getItem(k); }
+            for (const k of Object.keys(old)) localStorage.removeItem(k);
+            for (const [k, v] of progress) localStorage.setItem(k, v);
+            progressOk = true;
+          } catch {
+            // Speicher voll oder gesperrt: den alten Stand zurückschreiben, so gut es geht
+            try {
+              for (const [k] of progress) localStorage.removeItem(k);
+              for (const [k, v] of Object.entries(old)) localStorage.setItem(k, v);
+            } catch { /* nichts mehr zu retten */ }
+          }
+        }
+        const clipsText = `${data.clips.length} ${data.clips.length === 1 ? "Aufnahme" : "Aufnahmen"}`;
+        backupNote(progressOk
+          ? `Wiederhergestellt: ${clipsText}${progress.length ? " und der Fortschritt" : ""}. Die App startet gleich neu.`
+          : `Wiederhergestellt: ${clipsText}. Der Fortschritt ließ sich nicht speichern, der bisherige Stand bleibt. Die App startet gleich neu.`, !progressOk);
+        setTimeout(() => location.reload(), progressOk ? 1800 : 4000);
       }).catch(() => backupNote("Wiederherstellen hat nicht geklappt. Ist der Speicher des Geräts voll?", true));
     };
     reader.readAsArrayBuffer(file);
@@ -3079,8 +3099,16 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function finishExam(r, timeUp = false) {
     if (state.round !== r) return;
     clearInterval(r.timer);
-    // Läuft die Zeit mitten in einer Aufgabe ab, zählen die schon ausgefüllten Felder
-    if (r.answers[r.i] === undefined && r.vals.length) r.answers[r.i] = r.vals.slice();
+    // Läuft die Zeit mitten in einer Aufgabe ab, zählt, was schon dasteht: ausgefüllte Felder und eine getippte Zahl.
+    // Hat das Kind die Aufgabe selbst übersprungen, bleibt sie leer.
+    if (timeUp && r.answers[r.i] === undefined) {
+      const t = r.tasks[r.i], typed = r.input !== "" && !isNaN(Number(r.input)) ? Number(r.input) : undefined;
+      if (t.steps) {
+        const vals = r.vals.slice();
+        if (typed !== undefined && t.steps[r.step] && t.steps[r.step].type === "num") vals[r.step] = typed;
+        if (vals.length) r.answers[r.i] = vals;
+      } else if (typed !== undefined) r.answers[r.i] = typed;
+    }
     const graded = r.tasks.map((t, k) => gradeTask(t, r.answers[k]));
     const per = SCHOOL.map((sec, i) => {
       const own = graded.filter((_, k) => r.tasks[k].sec === i).map((g) => g.score);

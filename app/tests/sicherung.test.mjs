@@ -53,6 +53,10 @@ for (const android of [false, true]) {
   await page.evaluate(() => new Promise((ok) => { localStorage.clear(); const r = indexedDB.deleteDatabase("rw-stimme"); r.onsuccess = r.onerror = r.onblocked = () => ok(); }));
   await page.reload(); await page.waitForTimeout(500);
   await setup(page, {});
+  // Was nach der Neuinstallation schon da ist, soll durch die Sicherung ersetzt werden
+  await page.evaluate(() => new Promise((ok) => { localStorage.setItem("rw-alt", "1"); const r = indexedDB.open("rw-stimme", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("clips", { keyPath: "id" });
+    r.onsuccess = () => { const tx = r.result.transaction("clips", "readwrite"); tx.objectStore("clips").put({ id: 999, text: "alt", dur: 1, blob: new Blob(["x"]) }); tx.oncomplete = ok; }; }));
   await page.click("#parentBtn"); await page.waitForTimeout(300);
   await page.setInputFiles("#backupFile", file);
   await page.waitForFunction(() => /Wiederhergestellt/.test(document.getElementById("backupNote").textContent), null, { timeout: 15000 });
@@ -60,13 +64,20 @@ for (const android of [false, true]) {
   const after = await page.evaluate(() => new Promise((ok) => { const r = indexedDB.open("rw-stimme", 1); r.onsuccess = () => { const q = r.result.transaction("clips").objectStore("clips").getAll(); q.onsuccess = async () => ok({
     clips: q.result.length,
     same: (await Promise.all(q.result.filter((c) => c.id > 0).map(async (c) => { const a = new Uint8Array(await c.blob.arrayBuffer()); return a.length === 100000 + c.id && a.every((v, k) => v === (k * 7 + c.id) % 251); }))).every(Boolean),
-    name: localStorage.getItem("rw-name"), garden: JSON.parse(localStorage.getItem("rw-garden") || "[]").length, stickers: localStorage.getItem("rw-stickers") }); }; }));
-  check(after.clips === 61 && after.same, `${how}: alle 61 Aufnahmen Byte für Byte zurück`);
+    name: localStorage.getItem("rw-name"), alt: localStorage.getItem("rw-alt"), garden: JSON.parse(localStorage.getItem("rw-garden") || "[]").length, stickers: localStorage.getItem("rw-stickers") }); }; }));
+  check(after.clips === 61 && after.same, `${how}: alle 61 Aufnahmen Byte für Byte zurück, alte ersetzt`);
+  check(after.alt === null, `${how}: alter Stand vorher weggeräumt`);
   check(after.name === '"Luisa"' && after.garden === 17 && after.stickers === '["runde1"]', `${how}: Name, Blumen und Sticker zurück`);
   writeFileSync(join(dir, "falsch.txt"), "hallo");
   await page.click("#parentBtn").catch(() => {}); await page.waitForTimeout(300);
   await page.setInputFiles("#backupFile", join(dir, "falsch.txt")); await page.waitForTimeout(400);
   check(/keine Sicherung/.test(await page.textContent("#backupNote")), `${how}: falsche Datei wird abgelehnt`);
+  // Abgebrochener Download: Datei zu kurz. Die guten Aufnahmen auf dem Handy müssen bleiben.
+  const cut = join(dir, `abgeschnitten-${how}.rwsich`);
+  writeFileSync(cut, readFileSync(file).subarray(0, readFileSync(file).length - 5000));
+  await page.setInputFiles("#backupFile", cut); await page.waitForTimeout(800);
+  const kept = await page.evaluate(() => new Promise((ok) => { const r = indexedDB.open("rw-stimme", 1); r.onsuccess = () => { const q = r.result.transaction("clips").objectStore("clips").count(); q.onsuccess = () => ok(q.result); }; }));
+  check(/keine Sicherung/.test(await page.textContent("#backupNote")) && kept === 61, `${how}: abgeschnittene Datei wird abgelehnt, Aufnahmen bleiben (${kept})`);
   allErrors.push(...errors);
   await browser.close();
 }
