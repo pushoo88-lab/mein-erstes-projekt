@@ -49,12 +49,15 @@ for (const topic of ["text", "plus", "minus", "mal", "geteilt", "verdoppeln", "s
   await page.evaluate((t) => { window.__s.topics = [t]; }, topic);
   await spoken();
   await page.click("#startBtn"); await page.waitForTimeout(150);
-  let helped = null, played = 0;
+  let helped = null, played = 0, readable = false;
   // 3 Aufgaben: die erste einfache zuerst falsch, dann richtig. Mehrteilige Aufgaben Feld für Feld.
   for (let guard = 0; played < 3 && guard < 40; guard++) {
     const s = await page.evaluate(() => { const r = window.__s.round; return r && { t: r.tasks[r.i], step: r.step, vals: r.vals, locked: r.locked }; });
     if (!s) break;
     if (s.locked) { if (await page.isVisible("#nextBtn")) await page.click("#nextBtn"); else await page.waitForTimeout(250); continue; }
+    // So entscheidet die App: Text, Mauer, Familie, Tabelle und mehrteilige Aufgaben werden vorgelesen,
+    // reine Rechnungen (23 + 5, 6 Zehner + 3 Einer) nicht. Lob und Mut-Sätze kommen immer.
+    if (["text", "wall", "family", "table"].includes(s.t.kind) || s.t.steps) readable = true;
     if (s.t.steps) {
       const opts = await page.evaluate(([t, k, v]) => window.__mk.stepOptions(t, k, v), [s.t, s.step, s.vals]);
       await answer(page, s.t.steps[s.step], opts[0]);
@@ -67,9 +70,7 @@ for (const topic of ["text", "plus", "minus", "mal", "geteilt", "verdoppeln", "s
     played++; await chkWide(topic + played);
   }
   const said = await spoken(), read = said.filter((x) => !praise.test(x));
-  // Reine Rechnungen (23 + 5) liest Summi nicht vor, nur Aufgaben mit Text. Lob und Mut-Sätze kommen immer.
-  const plain = ["plus", "minus", "mal", "geteilt"].includes(topic);
-  check(played === 3 && helped !== false && said.length > 0 && (plain || read.length > 0), `${topic}: 3 Aufgaben gelöst${helped ? ", Tipp nach Fehler" : ""}, gesprochen («${(read[0] || said[0] || "").slice(0, 50)}»)`);
+  check(played === 3 && helped !== false && said.length > 0 && (!readable || read.length > 0), `${topic}: 3 Aufgaben gelöst${helped ? ", Tipp nach Fehler" : ""}, gesprochen («${(read[0] || said[0] || "").slice(0, 50)}»)`);
   await back(); await back();
   check(await visible() === "startView", `${topic}: Zurück-Taste fragt nach und führt zum Start`);
 }
