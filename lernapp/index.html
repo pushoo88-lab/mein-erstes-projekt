@@ -2431,8 +2431,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       const quietStop = splitSentences(LISTE[recFor].text).length > 1 ? 2200 : 1300;
       // Leise und laut immer im Vergleich: das Grundrauschen (eher leise Werte) und die lauteste Stelle bisher.
       // So klappt es auch, wenn das Handy die Lautstärke selbst nachregelt oder der Raum nicht ganz still ist.
-      const seen = [];
-      let peak = -Infinity, heardMs = 0, lastLoud = 0, last = t0, raf = 0;
+      let floor = Infinity, peak = -Infinity, heardMs = 0, lastLoud = 0, last = t0, raf = 0;
       const tick = () => {
         if (recState !== "recording") return;
         an.getFloatTimeDomainData(data);
@@ -2440,8 +2439,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         for (const v of data) sum += v * v;
         const db = 10 * Math.log10(sum / data.length + 1e-12), now = performance.now(), dt = now - last;
         last = now;
-        if (now - t0 > 150) { seen.push(db); peak = Math.max(peak, db); }   // Einschalt-Knacksen nicht mitzählen
-        const floor = seen.length ? [...seen].sort((p, q) => p - q)[Math.floor(seen.length * 0.2)] : db;
+        if (now - t0 > 150) { floor = Math.min(floor, db); peak = Math.max(peak, db); }   // Einschalt-Knacksen nicht mitzählen
         const loud = db > Math.max(floor + 12, -55) && db > peak - 25;
         if (loud) { lastLoud = now; heardMs += dt; }
         const heard = heardMs > 300;   // mindestens 0,3 Sekunden gesprochen
@@ -2599,10 +2597,17 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     reader.onload = () => {
       let data;
       try { data = readBackup(reader.result); } catch { return backupNote("Das ist keine Sicherung der Rechenwiese. Bitte die Datei mit der Endung .rwsich wählen.", true); }
-      const clipsDone = window.indexedDB && data.clips.length
-        ? recStore("readwrite", (st) => { for (const c of data.clips) st.put(c); return null; }) : Promise.resolve();
+      if (data.clips.length && !window.indexedDB) return backupNote("Auf diesem Gerät können keine Aufnahmen gespeichert werden. Es wurde nichts verändert.", true);
+      // Genau den gesicherten Stand herstellen: erst leeren, dann alles aus der Sicherung schreiben
+      const clipsDone = window.indexedDB
+        ? recStore("readwrite", (st) => { st.clear(); for (const c of data.clips) st.put(c); return null; }) : Promise.resolve();
       clipsDone.then(() => {
-        try { for (const [k, v] of Object.entries(data.meta.progress || {})) localStorage.setItem(k, v); } catch { /* Fortschritt nicht speicherbar */ }
+        try {
+          const old = [];
+          for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf("rw-") === 0) old.push(k); }
+          for (const k of old) localStorage.removeItem(k);
+          for (const [k, v] of Object.entries(data.meta.progress || {})) localStorage.setItem(k, v);
+        } catch { /* Fortschritt nicht speicherbar */ }
         backupNote(`Wiederhergestellt: ${data.clips.length} ${data.clips.length === 1 ? "Aufnahme" : "Aufnahmen"} und der Fortschritt. Die App startet gleich neu.`);
         setTimeout(() => location.reload(), 1800);
       }).catch(() => backupNote("Wiederherstellen hat nicht geklappt. Ist der Speicher des Geräts voll?", true));
@@ -3041,10 +3046,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     let n = -1;
     if (!r.revisit) {
       n = r.i + 1 < r.tasks.length ? r.i + 1 : -1;
-      if (n < 0 && r.skipped.length) {
-        r.revisit = r.skipped.slice().sort((a, b) => a - b);
-        say("Jetzt kommen die Aufgaben, die du übersprungen hast. Versuch sie ruhig nochmal!");
-      }
+      if (n < 0 && r.skipped.length) r.revisit = r.skipped.slice().sort((a, b) => a - b);
     }
     if (r.revisit) n = r.revisit.length ? r.revisit.shift() : -1;
     if (n < 0) return finishExam(r);
@@ -3052,30 +3054,33 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     r.input = ""; r.tries = 0; r.locked = false; r.helped = false;
     freshTask(r);
     resetTaskUi();
+    if (r.revisit) say("Diese Aufgabe hast du übersprungen. Versuch sie ruhig nochmal!");
     renderTask();
     announceTask();
   }
 
   // Bewertung einer Aufgabe: Anteil der richtigen Felder. Bei Plus darf die Reihenfolge getauscht sein.
-  function solutionOf(t) {
-    if (!t.steps) return [t.answer];
-    const sol = [];
-    for (let k = 0; k < t.steps.length; k++) sol.push(stepOptions(t, k, sol)[0]);
-    return sol;
-  }
   function gradeTask(t, ans) {
     if (!t.steps) {
       const ok = ans !== undefined && ans === t.answer;
       return { score: ok ? 1 : 0, marks: [ok], vals: [ans], sol: [t.answer] };
     }
-    const vals = ans || [];
-    const marks = t.steps.map((_, k) => vals[k] !== undefined && stepOptions(t, k, vals).includes(vals[k]));
-    return { score: marks.filter(Boolean).length / t.steps.length, marks, vals, sol: solutionOf(t) };
+    // Schritt für Schritt: Was das Kind richtig hatte, bleibt (auch eine andere richtige Reihenfolge).
+    // Falsches wird durch die passende Lösung ersetzt, damit die nächsten Felder fair bewertet werden.
+    const vals = ans || [], marks = [], sol = [];
+    for (let k = 0; k < t.steps.length; k++) {
+      const opts = stepOptions(t, k, sol), ok = vals[k] !== undefined && opts.includes(vals[k]);
+      marks.push(ok);
+      sol.push(ok ? vals[k] : opts[0]);
+    }
+    return { score: marks.filter(Boolean).length / t.steps.length, marks, vals, sol };
   }
 
   function finishExam(r, timeUp = false) {
     if (state.round !== r) return;
     clearInterval(r.timer);
+    // Läuft die Zeit mitten in einer Aufgabe ab, zählen die schon ausgefüllten Felder
+    if (r.answers[r.i] === undefined && r.vals.length) r.answers[r.i] = r.vals.slice();
     const graded = r.tasks.map((t, k) => gradeTask(t, r.answers[k]));
     const per = SCHOOL.map((sec, i) => {
       const own = graded.filter((_, k) => r.tasks[k].sec === i).map((g) => g.score);
@@ -3086,6 +3091,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     graded.forEach((g, i) => {
       if (g.score === 1) state.garden.push("f" + (i % 4));
       else if (g.score >= 0.5) state.garden.push("b" + (i % 4));
+      if (r.answers[i] === undefined) return;   // leer gelassen: kein Fehler fürs Lernen, nur keine Punkte
       recordResult(r.tasks[i].topic, g.score === 1 ? 1 : g.score >= 0.5 ? 0.5 : 0);
       if (g.score < 1) rememberMistake(r.tasks[i]);
     });
@@ -3100,13 +3106,15 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const pct = total / maxPoints, stars = pct >= 0.85 ? 3 : pct >= 0.6 ? 2 : 1;
     const better = last && total > last.total ? `Letztes Mal hattest du ${half(last.total)} Punkte, heute ${half(total)}. Du hast dich verbessert!` : "";
     const blank = graded.filter((g, k) => r.answers[k] === undefined).length;
+    const weak = per.filter((p) => p.got / p.max < 0.75).sort((a, b) => a.got / a.max - b.got / b.max)[0];
     const extra = afterGame();
     state.round = null;
     $("resultTitle").textContent = timeUp ? "Die Zeit ist um!" : "Prüfung geschafft!";
     $("bigStars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= stars ? "on grow" : "off"}">${STAR}</span>`).join("");
     $("bigStars").setAttribute("aria-label", `${stars} von 3 Sternen`);
     $("resultText").textContent = `Von ${half(maxPoints)} Punkten hast du ${half(total)} erreicht. Du hast ${minutesUsed} ${minutesUsed === 1 ? "Minute" : "Minuten"} gebraucht.` +
-      (blank ? ` ${blank} ${blank === 1 ? "Aufgabe ist" : "Aufgaben sind"} leer geblieben.` : "") + (better ? " " + better : "") + (extra ? " " + extra : "");
+      (blank ? ` ${blank} ${blank === 1 ? "Aufgabe ist" : "Aufgaben sind"} leer geblieben.` : "") + (better ? " " + better : "") +
+      (weak ? ` Das üben wir noch: ${weak.short}.` : "") + (extra ? " " + extra : "");
     $("tally").innerHTML = `<ul class="school-points">${per.map((p) =>
       `<li><span>${p.sec + 1}. ${p.short}</span><b>${half(p.got)} / ${half(p.max)}</b></li>`).join("")}</ul>` +
       '<button class="go" id="correctionOpen" type="button">Korrektur ansehen</button>' +
@@ -3214,7 +3222,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       html = `<div class="dtab-wrap"><table class="dtab"><tr><th>die Zahl</th>${cells("z", (x) => x)}</tr>` +
         `<tr><th>das Doppelte</th>${cells("d", (x) => 2 * x)}</tr></table></div>`;
     } else if (t.kind === "smart2") {
-      const picking = ss.step === 0, chosen = picking ? ss.picks : String(ss.vals[0] || "").split(",").map(Number);
+      const picking = ss.step === 0, chosen = picking ? ss.picks : String(ss.vals[0] === undefined ? "" : ss.vals[0]).split(",").filter(Boolean).map(Number);
       const n = (i) => (picking ? `<button class="pick${chosen.includes(i) ? " picked" : ""}" type="button" data-pick="${i}">${fmt(t.nums[i])}</button>`
         : `<span class="${chosen.includes(i) ? "circled" : ""}">${fmt(t.nums[i])}</span>`);
       html = `<div class="row">${n(0)}<span class="op">${t.ops[0]}</span>${n(1)}<span class="op">${t.ops[1]}</span>${n(2)}<span class="op">=</span>` +
@@ -4781,7 +4789,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (h.length) { h[h.length - 1].feel = Number(f.dataset.feel); store.set("rw-exams", h); }
     for (const b of $("tally").querySelectorAll("[data-feel]")) b.classList.toggle("on", b === f);
     say("");
-    speak(FEEL_THANKS[Number(f.dataset.feel) - 1]);
+    autoRead(FEEL_THANKS[Number(f.dataset.feel) - 1]);
   });
   $("schoolBtn").addEventListener("click", startSchool);
   $("albumBtn").addEventListener("click", openAlbum);
@@ -4809,7 +4817,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   });
   $("menuBtn").addEventListener("click", leaveGame);
   $("backBtn").addEventListener("click", () => {
-    if (state.round && state.round.results.length && !reallyLeave((t) => say(t, "oops"))) return;
+    if (state.round && (state.round.results.length || state.round.exam) && !reallyLeave((t) => say(t, "oops"))) return;
     state.round = null; resetTaskUi(); leaveGame();
   });
   $("helpBtn").addEventListener("click", () => { if ($("help").hidden) showHelp(); else $("help").hidden = true; });
