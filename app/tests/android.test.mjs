@@ -31,9 +31,16 @@ const spoken = () => page.evaluate(() => window.__spoken.splice(0));
 // Ein offenes Sticker-Fenster würde die Zurück-Taste zuerst schließen (gewollt). Darum vorher zumachen.
 const back = async () => {
   await page.waitForTimeout(1800);
-  // Mehrere neue Sticker kommen nacheinander: alle schließen
-  for (let i = 0; i < 6 && await page.isVisible("#stickerToast"); i++) { await page.click("#toastOk"); await page.waitForTimeout(700); }
-  await page.waitForTimeout(400);
+  // Neue Sticker kommen zeitversetzt nacheinander (1,6 s nach dem Ergebnis, dann je einer nach dem Schließen).
+  // Erst wenn 2,5 s lang keiner mehr erscheint, gehört die Zurück-Taste wieder der Seite.
+  // Nur dort, wo Sticker erscheinen dürfen. Im Spiel und in der Ballonjagd kommen keine, und
+  // "Wirklich aufhören?" braucht dort den zweiten Druck innerhalb von 4 s.
+  let calm = ["resultView", "startView", "memoryView"].includes(await visible()) ? 0 : 2500;
+  if (calm) for (let i = 0; i < 6 && await page.isVisible("#stickerToast"); i++) { await page.click("#toastOk"); await page.waitForTimeout(400); }
+  for (let guard = 0; calm < 2500 && guard < 100; guard++) {
+    if (await page.isVisible("#stickerToast")) { await page.click("#toastOk").catch(() => {}); calm = 0; }
+    await page.waitForTimeout(250); calm += 250;
+  }
   await page.evaluate(() => window.Capacitor.fromNative({ callbackId: window.__back, pluginId: "App", methodName: "addListener", success: true, data: { canGoBack: false } }));
   await page.waitForTimeout(250);
 };
