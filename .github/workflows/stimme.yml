@@ -1,0 +1,82 @@
+name: Summis Stimme bearbeiten
+
+# Sobald Aufnahmen in stimme-aufnahmen/ hochgeladen werden: anhören, in Sätze schneiden,
+# Klang verbessern, in die App einbauen und danach eine neue APK bauen.
+on:
+  push:
+    paths:
+      - 'stimme-aufnahmen/**'
+      - 'app/stimme/verarbeiten.py'
+      - 'app/stimme/sprechliste.json'
+      - '.github/workflows/stimme.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Werden mehrere Dateien nacheinander hochgeladen, zählt nur der letzte Lauf (er bearbeitet alle Aufnahmen)
+concurrency:
+  group: stimme-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stimme:
+    name: Aufnahmen bearbeiten
+    runs-on: ubuntu-latest
+    outputs:
+      neu: ${{ steps.save.outputs.neu }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Werkzeuge installieren
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg espeak-ng
+          pip install -q faster-whisper==1.2.1 numpy
+
+      # Das Spracherkennungs-Modell nur einmal herunterladen
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: whisper-small-v1
+
+      # Prüft die ganze Bearbeitung mit einer Computerstimme (mit Versprecher und Rauschen)
+      - name: Selbsttest
+        run: python app/stimme/verarbeiten.py --selbsttest
+
+      - name: Aufnahmen bearbeiten
+        id: work
+        run: |
+          if ! ls stimme-aufnahmen 2>/dev/null | grep -qiE '\.(m4a|mp3|ogg|opus|wav|aac|amr|3gp|webm|flac|mp4)$'; then
+            echo "Noch keine Aufnahmen in stimme-aufnahmen/."
+            exit 0
+          fi
+          python app/stimme/verarbeiten.py
+          cat app/stimme/bericht.md >> "$GITHUB_STEP_SUMMARY"
+          echo "da=1" >> "$GITHUB_OUTPUT"
+
+      - name: In die App übernehmen
+        id: save
+        if: ${{ steps.work.outputs.da == '1' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lernapp/stimme app/stimme/bericht.md
+          if git diff --cached --quiet; then echo "Nichts Neues."; exit 0; fi
+          git commit -m "Summis Stimme: Aufnahmen bearbeitet"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+          echo "neu=1" >> "$GITHUB_OUTPUT"
+
+  # Was dieser Ablauf hochlädt, startet den App-Bau nicht von selbst. Darum wird er hier aufgerufen.
+  app:
+    name: Neue App bauen
+    needs: stimme
+    if: ${{ needs.stimme.outputs.neu == '1' }}
+    uses: ./.github/workflows/android-app.yml
+    with:
+      ref: ${{ github.ref_name }}
