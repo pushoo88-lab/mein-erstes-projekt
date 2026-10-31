@@ -652,6 +652,23 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   .top-right { gap: 6px; }
   .pill { padding-right: 9px; }
 }
+/* Tablet oder Handy quer (z. B. Fire HD 10 im Ständer): Aufgabe links, Zahlentasten rechts.
+   So sind die Tasten immer zu sehen, ohne zu scrollen. */
+@media (orientation: landscape) and (min-width: 700px) {
+  #gameView {
+    width: min(1080px, calc(100vw - 32px));
+    margin-inline: calc((100% - min(1080px, calc(100vw - 32px))) / 2);
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-areas: "bar bar" "head head" "card pad" "card meadow" "card .";
+    grid-template-rows: auto auto auto auto 1fr;
+    align-items: start;
+  }
+  #gameView > .bar { grid-area: bar; }
+  #gameView > #sheetHead { grid-area: head; }
+  #gameView > .task-card { grid-area: card; }
+  #gameView > #pad { grid-area: pad; position: sticky; top: 12px; }
+  #gameView > #meadow { grid-area: meadow; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }

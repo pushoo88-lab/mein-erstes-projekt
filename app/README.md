@@ -16,6 +16,21 @@ Bei jeder Änderung an `lernapp/` oder `app/` baut GitHub automatisch eine neue 
 Updates werden genauso installiert. Weil jede Version mit demselben Schlüssel
 (`signing/rechenwiese-debug.keystore`) signiert wird, bleiben Garten, Pfad und Rekorde erhalten.
 
+### Amazon Fire Tablet (z. B. Fire HD 10 Kids Pro)
+
+Fire-Tablets laufen mit Fire OS 7 oder 8 (Android 9 oder 11). Die App braucht mindestens Android 7, sie
+läuft also. Quer im Ständer stehen Aufgabe und Zahlentasten nebeneinander, hochkant untereinander.
+
+1. Im **Eltern-Profil** unter *Einstellungen → Sicherheit und Datenschutz* „Apps aus unbekannten Quellen“
+   für den Silk-Browser erlauben.
+2. Im Silk-Browser den Release öffnen, **Rechenwiese.apk** laden und installieren.
+3. Die App dem **Kinderprofil** zuweisen: *Einstellungen → Profile und Familienbibliothek → Kind →
+   Inhalte hinzufügen → Apps*, dort die Rechenwiese auswählen (oder über das Amazon-Eltern-Dashboard).
+4. **Wichtig:** Jedes Profil hat eigene Daten. Fortschritt und eigene Aufnahmen gehören zu dem Profil,
+   in dem sie entstehen. Summis Stimme darum **im Kinderprofil** aufnehmen (Bereich „Für Eltern“).
+5. Vorlesen: Fire-Tablets haben eine eigene Sprachausgabe. Klingt sie nicht deutsch, unter
+   *Einstellungen → Barrierefreiheit → Text-zu-Sprache* Deutsch wählen. Eigene Aufnahmen gehen immer.
+
 ## Was die App anders macht als die Browser-Version
 
 - Stürzt beim Start doch einmal etwas ab, erscheint statt eines leeren Bildschirms eine Meldung
