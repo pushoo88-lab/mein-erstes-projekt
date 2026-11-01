@@ -1431,6 +1431,97 @@
    "block": 24,
    "gruppe": "Neue Aufgaben und Übungsblatt",
    "text": "Merk dir die Lösung und such das passende Ergebnis."
+  },
+  {
+   "id": 205,
+   "teil": 2,
+   "block": 24,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Wer zuerst am Bienenstock ist, gewinnt! Erst würfeln, dann rechnen, dann ziehen."
+  },
+  {
+   "id": 206,
+   "teil": 2,
+   "block": 25,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Rechne die Aufgabe. Wenn sie stimmt, darfst du ziehen."
+  },
+  {
+   "id": 207,
+   "teil": 2,
+   "block": 25,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Hat Summi richtig gerechnet?"
+  },
+  {
+   "id": 208,
+   "teil": 2,
+   "block": 25,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Gut aufgepasst! Summi hat sich verrechnet. Dafür bekommst du eine Blume."
+  },
+  {
+   "id": 209,
+   "teil": 2,
+   "block": 25,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Doch, das stimmt! Summi darf ziehen."
+  },
+  {
+   "id": 210,
+   "teil": 2,
+   "block": 25,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Hoppla, Summi hat sich verrechnet. Dann bleibt sie stehen."
+  },
+  {
+   "id": 211,
+   "teil": 2,
+   "block": 25,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Richtig, Summi darf ziehen."
+  },
+  {
+   "id": 212,
+   "teil": 2,
+   "block": 25,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Eine Blume für deinen Garten!"
+  },
+  {
+   "id": 213,
+   "teil": 2,
+   "block": 25,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Abkürzung! Drei Felder vor."
+  },
+  {
+   "id": 214,
+   "teil": 2,
+   "block": 25,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Huch, der Wind pustet zwei Felder zurück."
+  },
+  {
+   "id": 215,
+   "teil": 2,
+   "block": 25,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Nochmal würfeln!"
+  },
+  {
+   "id": 216,
+   "teil": 2,
+   "block": 25,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Du hast gewonnen! Super gerechnet!"
+  },
+  {
+   "id": 217,
+   "teil": 2,
+   "block": 25,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Summi hat gewonnen. Nächstes Mal schaffst du es!"
   }
  ]
 }

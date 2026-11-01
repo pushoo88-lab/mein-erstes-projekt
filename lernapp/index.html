@@ -389,6 +389,54 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .card.asking .front { border-color: var(--sun); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sun) 45%, transparent); }
 .card.solved .front { border-color: var(--blue); }
 .card .front small { display: block; color: var(--blue); }
+/* Wiesen-Rallye */
+.board-setup { display: grid; gap: 12px; text-align: center; }
+.board-ask { margin: 0; font-family: var(--display); font-weight: 800; font-size: 24px; }
+.board-opps { display: grid; gap: 10px; }
+.board-opps .choice { font-size: 22px; padding: 14px; }
+.board-play { display: grid; gap: 14px; }
+.board { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; padding: 8px; border-radius: 20px;
+  background: color-mix(in srgb, var(--grass) 22%, var(--paper)); border: 2px solid var(--line); }
+.field { position: relative; aspect-ratio: 1; border-radius: 12px; background: var(--paper); border: 2px solid var(--line);
+  display: grid; place-items: center; overflow: hidden; }
+.field .num { position: absolute; top: 1px; left: 4px; font-size: 11px; font-weight: 700; color: var(--ink-soft); }
+.field .sym { width: 62%; height: 62%; display: grid; place-items: center; opacity: .9; }
+.field .sym svg { width: 100%; height: 100%; }
+.field.blume { background: color-mix(in srgb, var(--petal-2) 18%, var(--paper)); }
+.field.sprung { background: color-mix(in srgb, var(--grass) 25%, var(--paper)); }
+.field.wind { background: color-mix(in srgb, var(--blue) 15%, var(--paper)); }
+.field.nochmal { background: color-mix(in srgb, var(--sun) 25%, var(--paper)); }
+.field.start { background: var(--key); font-family: var(--display); font-weight: 800; font-size: 13px; }
+.field.ziel { background: color-mix(in srgb, var(--sun) 35%, var(--paper)); border-color: var(--sun); }
+.field .toks { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; gap: 1px; padding-bottom: 2px; }
+.tok { flex: none; width: 24px; height: 24px; box-sizing: border-box; border-radius: 50%; display: grid; place-items: center; color: #fff;
+  font-family: var(--display); font-weight: 800; font-size: 13px; line-height: 1; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,.3); overflow: hidden; }
+.toks .tok + .tok { margin-left: -8px; }
+.tok.kid { background: var(--petal-1); }
+.tok.grown { background: var(--blue); }
+.tok.bee { background: var(--sun); padding: 1px; }
+.tok.bee svg { width: 100%; height: 100%; }
+.tok.hop { animation: hop .25s ease; }
+@keyframes hop { 50% { transform: translateY(-8px); } }
+.board-panel { display: grid; gap: 12px; justify-items: center; }
+.board-turn { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 800; font-size: 22px; }
+.board-turn .tok { width: 32px; height: 32px; font-size: 16px; }
+.board-panel .key { min-height: 48px; font-size: 28px; }
+.board-panel .pad { gap: 8px; }
+.board-task .robo { transform: scale(.85); }
+.board-roll { display: flex; align-items: center; gap: 16px; }
+.die { width: 64px; height: 64px; display: block; }
+.die svg { width: 100%; height: 100%; }
+.die.rolling { animation: roll .5s linear; }
+@keyframes roll { 50% { transform: rotate(180deg) scale(.85); } 100% { transform: rotate(360deg); } }
+.board-task { width: 100%; }
+.board-panel .pad { width: 100%; }
+@media (orientation: landscape) and (min-width: 700px) {
+  #boardView { width: min(1080px, calc(100vw - 32px)); margin-inline: calc((100% - min(1080px, calc(100vw - 32px))) / 2); }
+  .board-play { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
+  .tok { width: 34px; height: 34px; font-size: 17px; }
+  .toks .tok + .tok { margin-left: -12px; }
+}
 /* Rechenfeld fürs Memory: liegt unten über den Karten, die offene Karte bleibt oben sichtbar */
 .mem-ask {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; margin: 0 auto; width: min(560px, 100%);
@@ -747,6 +795,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       <button class="mode adventure wide" id="pathBtn" type="button"><span class="tag">Abenteuer</span><span id="iconPath"></span><b>Abenteuer-Pfad</b><small id="pathInfo"></small></button>
       <button class="mode game" id="balloonBtn" type="button"><span class="tag">Spiel</span><span id="iconBalloon"></span><b>Ballonjagd</b><small>Tippe den richtigen Ballon an</small></button>
       <button class="mode game" id="memoryBtn" type="button"><span class="tag">Spiel</span><span id="iconMemory"></span><b>Zahlen-Memory</b><small>Erst rechnen, dann Paare finden</small></button>
+      <button class="mode game wide" id="boardBtn" type="button"><span class="tag">Brettspiel</span><span id="iconBoard"></span><b>Wiesen-Rallye</b><small>Würfeln, rechnen, als Erste am Bienenstock sein</small></button>
       <button class="mode" id="startBtn" type="button"><span class="tag">Üben</span><span id="iconFlower"></span><b>Blumen-Runde</b><small>10 Aufgaben, Blumen sammeln</small></button>
       <button class="mode" id="tricksBtn" type="button"><span class="tag">Lernen</span><span id="iconTricks"></span><b>Rechentricks</b><small>So geht Rechnen leichter</small></button>
       <button class="mode school" id="schoolBtn" type="button"><span class="tag">Wie in der Schule</span><span id="iconSchool"></span><b>Übungsblatt</b><small>Wie die Lernzielkontrolle, ohne Zeit</small></button>
@@ -869,6 +918,48 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         <li><b>Nicht abzählen lassen.</b> In Klasse 2 sollen Kinder vom Abzählen wegkommen: mit der Kraft der Fünf, Verdoppeln und Kernaufgaben wie 2 mal, 5 mal und 10 mal. Die Tipps in der App zeigen genau diese Rechenwege.</li>
         <li><b>Gemeinsam spielen.</b> Fragen Sie ab und zu: „Wie hast du das gerechnet?“ Erklären festigt das Wissen.</li>
       </ul>
+    </section>
+  </main>
+
+  <!-- Wiesen-Rallye: Brettspiel gegen Summi oder mit Mama/Papa -->
+  <main id="boardView" hidden style="display:grid; gap:14px;">
+    <div class="bar">
+      <button class="back" id="boardBack" type="button">← Zurück</button>
+      <span class="where">Wiesen-Rallye</span>
+      <span class="count" id="boardTurnInfo"></span>
+    </div>
+    <div class="hello mini"><div class="bee" id="boardBee"></div><p class="say" id="boardSay" aria-live="polite"></p></div>
+    <section class="sheet board-setup" id="boardSetup">
+      <p class="board-ask">Mit wem spielst du?</p>
+      <div class="board-opps" role="group" aria-label="Mitspieler">
+        <button class="choice" type="button" data-opp="bee">Gegen Summi</button>
+        <button class="choice" type="button" data-opp="Mama">Mit Mama</button>
+        <button class="choice" type="button" data-opp="Papa">Mit Papa</button>
+      </div>
+    </section>
+    <div class="board-play" id="boardPlay" hidden>
+      <div class="board" id="board" aria-label="Spielbrett"></div>
+      <section class="sheet board-panel" id="boardPanel">
+        <div class="board-turn" id="boardTurn"></div>
+        <div class="board-roll" id="boardRollBox">
+          <span class="die" id="boardDie"></span>
+          <button class="go" id="boardRoll" type="button">Würfeln</button>
+        </div>
+        <div class="task board-task" id="boardTask" hidden></div>
+        <div class="pad" id="boardPad" hidden></div>
+        <div class="yesno" id="boardCheck" hidden>
+          <button class="choice" type="button" data-judge="1">Stimmt</button>
+          <button class="choice" type="button" data-judge="0">Stimmt nicht</button>
+        </div>
+      </section>
+    </div>
+    <section class="sheet result" id="boardOver" hidden>
+      <h2 id="boardOverTitle"></h2>
+      <p class="muted" id="boardOverText"></p>
+      <div class="actions">
+        <button class="go" id="boardAgain" type="button">Nochmal spielen</button>
+        <button class="go secondary" id="boardMenu" type="button">Zum Start</button>
+      </div>
     </section>
   </main>
 
@@ -2023,13 +2114,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   })();
 
   // ---------- Ansichten ----------
-  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView", "pathView", "gardenView", "parentView", "recordView", "albumView", "correctionView"];
+  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView", "pathView", "gardenView", "parentView", "recordView", "albumView", "correctionView", "boardView"];
   function show(view) {
     if (view !== "recordView") cancelRecording();
     for (const id of VIEWS) $(id).hidden = id !== view;
     fx.stop();
     stopSpeaking();
     if (view !== "balloonView") stopBalloons();
+    if (view !== "boardView" && typeof board !== "undefined") board.gen++;   // laufende Züge anhalten
     window.scrollTo(0, 0);
   }
 
@@ -3479,6 +3571,22 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     "Richtig gerechnet! Jetzt such das passende Ergebnis.",
     "Merk dir die Lösung und such das passende Ergebnis.",
   ];
+  // Wiesen-Rallye
+  const BOARD_SAY = [
+    "Wer zuerst am Bienenstock ist, gewinnt! Erst würfeln, dann rechnen, dann ziehen.",
+    "Rechne die Aufgabe. Wenn sie stimmt, darfst du ziehen.",
+    "Hat Summi richtig gerechnet?",
+    "Gut aufgepasst! Summi hat sich verrechnet. Dafür bekommst du eine Blume.",
+    "Doch, das stimmt! Summi darf ziehen.",
+    "Hoppla, Summi hat sich verrechnet. Dann bleibt sie stehen.",
+    "Richtig, Summi darf ziehen.",
+    "Eine Blume für deinen Garten!",
+    "Abkürzung! Drei Felder vor.",
+    "Huch, der Wind pustet zwei Felder zurück.",
+    "Nochmal würfeln!",
+    "Du hast gewonnen! Super gerechnet!",
+    "Summi hat gewonnen. Nächstes Mal schaffst du es!",
+  ];
   const HIT_WORDS = ["Treffer!", "Super!", "Klasse!", "Toll!", "Jawohl!", "Spitze!", "Prima!", "Juhu!"];
 
   // Wie ein gemischter Kartenstapel: jeder Satz kommt erst wieder, wenn alle anderen dran waren.
@@ -3542,6 +3650,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       art: () => '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28" fill="var(--grass)"/><text x="32" y="42" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="28" fill="#fff">10</text></svg>' },
     { id: "pruefung", name: "Erste Prüfung", hint: "Mach eine ganze Prüfung.", ok: (s2) => s2.exams >= 1,
       art: () => $("iconExam").innerHTML },
+    { id: "rallye", name: "Rallye-Sieger", hint: "Gewinne die Wiesen-Rallye.", art: () => $("iconBoard").innerHTML, ok: (s2) => s2.boardWins >= 1 },
     { id: "pfad", name: "Pfad geschafft", hint: "Schaffe alle 12 Level auf dem Abenteuer-Pfad.", art: () => $("iconPath").innerHTML, ok: () => state.path.done >= 12 },
   ];
   const STICKER_SAY = ["Neuer Sticker für dein Album!"];
@@ -3562,7 +3671,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
   // Mitten im Spiel stört der Sticker. Dann wartet er, bis ein Ergebnis oder die Startseite zu sehen ist.
   const calmView = () => !$("resultView").hidden || !$("startView").hidden || !$("albumView").hidden || !$("gardenView").hidden ||
-    !$("pathView").hidden || (!$("balloonView").hidden && !$("bjOver").hidden) || (!$("memoryView").hidden && !$("memOver").hidden);
+    !$("pathView").hidden || (!$("balloonView").hidden && !$("bjOver").hidden) || (!$("memoryView").hidden && !$("memOver").hidden) ||
+    (!$("boardView").hidden && !$("boardOver").hidden);
   function nextToast() {
     if (!$("stickerToast").hidden || !toastQueue.length) return;
     if (!calmView()) { setTimeout(nextToast, 1500); return; }
@@ -4709,6 +4819,279 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("memAgain").focus();
   }
 
+  // ---------- Wiesen-Rallye: Brettspiel ----------
+  // 21 Felder (Start bis Bienenstock) als Schlangenweg. Würfeln, die Aufgabe lösen, dann ziehen.
+  // Gegen Summi: Summi rechnet laut und verrechnet sich manchmal. Das Kind prüft, ob es stimmt.
+  // Mit Mama oder Papa: abwechselnd am selben Tablet, die Erwachsenen bekommen schwerere Aufgaben.
+  const BOARD_GOAL = 20, BOARD_COLS = 7;
+  const BOARD_FIELDS = { 3: "blume", 5: "sprung", 7: "nochmal", 9: "wind", 10: "blume", 12: "sprung", 14: "nochmal", 16: "wind", 17: "blume", 18: "wind" };
+  // var statt const: show() fragt das Brett schon ab, bevor dieser Teil beim Start gelaufen ist
+  var board = { players: [], turn: 0, phase: "", dice: 0, t: null, input: "", tries: 0, shown: 0, gen: 0, flowers: 0, solved: 0, moved: false };
+  const DIE_PIPS = { 1: [[2, 2]], 2: [[1, 1], [3, 3]], 3: [[1, 1], [2, 2], [3, 3]], 4: [[1, 1], [3, 1], [1, 3], [3, 3]], 5: [[1, 1], [3, 1], [2, 2], [1, 3], [3, 3]], 6: [[1, 1], [3, 1], [1, 2], [3, 2], [1, 3], [3, 3]] };
+  const dieSVG = (n) => `<svg viewBox="0 0 64 64" aria-label="${n ? "Würfel zeigt " + n : "Würfel"}"><rect x="3" y="3" width="58" height="58" rx="14" fill="var(--paper)" stroke="var(--ink)" stroke-width="3"/>` +
+    (DIE_PIPS[n] || []).map(([x, y]) => `<circle cx="${x * 16}" cy="${y * 16}" r="6" fill="var(--ink)"/>`).join("") + "</svg>";
+  const fieldSym = {
+    blume: () => flowerSVG("flower", "var(--petal-2)"),
+    sprung: () => '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 30C12 12 24 10 32 14" stroke="var(--grass-deep)" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M26 8l8 6-9 4" fill="var(--grass-deep)"/></svg>',
+    wind: () => '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M4 14h22a5 5 0 1 0-5-5M4 22h28a5 5 0 1 1-5 5M4 30h14" stroke="var(--blue)" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg>',
+    nochmal: () => dieSVG(6),
+    ziel: () => decoSVG("bienenstock"),
+  };
+  const tokenHTML = (p) => `<span class="tok ${p.kind}" title="${p.name}">${p.kind === "bee" ? MINI_BEE : p.name[0]}</span>`;
+  const boardKid = () => board.players[0];
+  const boardWho = (p) => (p.kind === "kid" ? (state.name || "Du") : p.name);
+
+  function startBoard() {
+    if (!ready()) return;
+    board.gen++;
+    $("boardSetup").hidden = false;
+    $("boardPlay").hidden = true;
+    $("boardOver").hidden = true;
+    $("boardTurnInfo").textContent = "";
+    $("boardSay").textContent = BOARD_SAY[0];
+    $("boardBee").innerHTML = beeSVG();
+    beeMood("boardBee", "happy");
+    show("boardView");
+    autoRead(BOARD_SAY[0]);
+  }
+  function boardBegin(opp) {
+    board.gen++;
+    const kid = { kind: "kid", name: state.name || "Ich", pos: 0 };
+    const other = opp === "bee" ? { kind: "bee", name: "Summi", pos: 0 } : { kind: "grown", name: opp, pos: 0 };
+    Object.assign(board, { players: [kid, other], turn: 0, phase: "", dice: 0, t: null, flowers: 0, solved: 0, moved: false });
+    // Spielbrett: Schlangenweg, jede zweite Reihe läuft zurück
+    $("board").innerHTML = Array.from({ length: BOARD_GOAL + 1 }, (_, i) => {
+      const row = Math.floor(i / BOARD_COLS), col = row % 2 ? BOARD_COLS - 1 - (i % BOARD_COLS) : i % BOARD_COLS;
+      const kind = i === 0 ? "start" : i === BOARD_GOAL ? "ziel" : BOARD_FIELDS[i] || "";
+      const sym = i === 0 ? "Start" : fieldSym[kind] ? `<span class="sym">${fieldSym[kind]()}</span>` : "";
+      return `<div class="field ${kind}" data-field="${i}" style="grid-row:${row + 1}; grid-column:${col + 1}">${i && i < BOARD_GOAL ? `<span class="num">${i}</span>` : ""}${sym}<span class="toks"></span></div>`;
+    }).join("");
+    $("boardSetup").hidden = true;
+    $("boardPlay").hidden = false;
+    $("boardOver").hidden = true;
+    renderBoardTokens();
+    boardTurn();
+  }
+  function renderBoardTokens(hop = -1) {
+    for (const f of $("board").children) f.querySelector(".toks").innerHTML = "";
+    board.players.forEach((p, k) => {
+      const cell = $("board").children[p.pos].querySelector(".toks");
+      cell.insertAdjacentHTML("beforeend", tokenHTML(p));
+      if (k === hop) cell.lastElementChild.classList.add("hop");
+    });
+    $("boardTurnInfo").textContent = board.players.map((p) => `${p.name[0]}: ${p.pos}`).join(" · ");
+  }
+  // Wer ist dran? Kinder und Erwachsene würfeln selbst, Summi von allein.
+  function boardTurn() {
+    const p = board.players[board.turn], gen = board.gen;
+    board.phase = "roll"; board.t = null;
+    $("boardTurn").innerHTML = `${tokenHTML(p)} ${boardWho(p)} ${p.kind === "kid" && !state.name ? "bist" : "ist"} dran`;
+    $("boardTask").hidden = $("boardPad").hidden = $("boardCheck").hidden = true;
+    $("boardRollBox").hidden = false;
+    $("boardDie").innerHTML = dieSVG(board.dice);
+    $("boardRoll").hidden = p.kind === "bee";
+    $("boardRoll").disabled = false;
+    if (p.kind === "bee") {
+      $("boardSay").textContent = "Jetzt würfelt Summi.";
+      setTimeout(() => { if (gen === board.gen) boardRoll(); }, 900);
+    } else {
+      $("boardSay").textContent = p.kind === "kid" ? "Würfle!" : `${p.name}, würfle!`;
+      $("boardRoll").focus();
+    }
+  }
+  function boardRoll() {
+    if (board.phase !== "roll") return;
+    board.phase = "rolling";
+    $("boardRoll").disabled = true;
+    const gen = board.gen, die = $("boardDie");
+    board.dice = R(1, 6);
+    die.classList.remove("rolling"); void die.offsetWidth; die.classList.add("rolling");
+    let k = 0;
+    const spin = setInterval(() => { die.innerHTML = dieSVG(k++ % 6 + 1); }, 80);
+    beep(SOUND_TAP);
+    setTimeout(() => {
+      clearInterval(spin);
+      if (gen !== board.gen) return;
+      die.innerHTML = dieSVG(board.dice);
+      boardAsk();
+    }, 550);
+  }
+  // Eine Aufgabe mit einem Ergebnis (keine mehrteiligen Blatt-Aufgaben)
+  function boardTask(p) {
+    if (p.kind === "grown") {
+      const cfg = { N: 1000, mal: true, grade: 4, single: true };
+      for (let i = 0; i < 20; i++) { const t = generate(cfg, pick(opsFor(cfg)), opsFor(cfg)); if (!t.steps) return t; }
+    }
+    const cfg = { ...config(), single: true }, sel = [...state.topics];
+    for (let i = 0; i < 30; i++) { const t = generate(cfg, pick(sel), sel); if (!t.steps) return t; }
+    return { ...plusTask(cfg.N), topic: "plus" };
+  }
+  function boardAsk() {
+    const p = board.players[board.turn];
+    board.t = boardTask(p); board.input = ""; board.tries = 0;
+    $("boardTask").hidden = false;
+    if (p.kind === "bee") {
+      // Summi rechnet laut, manchmal falsch. Das Kind prüft.
+      const t = board.t, wrong = Math.random() < 0.3;
+      let shown = t.answer;
+      if (wrong) for (const d of shuffle([1, -1, 2, -2, 10, -10])) if (t.answer + d >= 0) { shown = t.answer + d; break; }
+      board.shown = shown;
+      board.phase = "check";
+      drawTask($("boardTask"), t, `<span class="slot filled">${fmt(shown)}</span>`);
+      $("boardRollBox").hidden = true;
+      $("boardCheck").hidden = false;
+      $("boardSay").textContent = `Summi hat ${board.dice} gewürfelt und rechnet. ${BOARD_SAY[2]}`;
+      beeMood("boardBee", "think");
+      autoRead(`Summi rechnet: ${spokenTask(t).replace(/ wie viel\??$/, "").replace(/\?$/, "")} ${fmt(shown)}. ${BOARD_SAY[2]}`);
+      return;
+    }
+    board.phase = "ask";
+    $("boardRollBox").hidden = true;
+    $("boardPad").hidden = false;
+    renderBoardTask();
+    $("boardSay").textContent = `${board.dice} gewürfelt! ${BOARD_SAY[1]}`;
+    const padBottom = $("boardPad").getBoundingClientRect().bottom;
+    if (padBottom > window.innerHeight) window.scrollBy({ top: padBottom - window.innerHeight + 12, behavior: "smooth" });
+    beeMood("boardBee", "");
+    autoRead(`${board.dice}. ${spokenTask(board.t)}`);
+  }
+  function renderBoardTask(mark = "") {
+    const slot = `<span class="slot${board.input ? " filled" : ""}${mark ? " " + mark : ""}">${board.input ? fmt(Number(board.input)) : "?"}</span>`;
+    drawTask($("boardTask"), board.t, slot);
+  }
+  function boardKey(k) {
+    if (board.phase !== "ask") return;
+    const p = board.players[board.turn], t = board.t;
+    if (k === "del") { board.input = board.input.slice(0, -1); return renderBoardTask(); }
+    if (k !== "ok") {
+      if (board.input.length < String(p.kind === "grown" ? 1000000 : state.N || 100).length + 1) board.input = (board.input === "0" ? "" : board.input) + k;
+      return renderBoardTask();
+    }
+    if (board.input === "") return;
+    const right = Number(board.input) === t.answer;
+    if (!right && board.tries === 0) {
+      board.tries = 1; board.input = "";
+      renderBoardTask("bad");
+      $("boardSay").textContent = fromDeck("tryAgain", TRY_AGAIN);
+      autoRead($("boardSay").textContent);
+      beep(SOUND_WRONG);
+      return;
+    }
+    board.phase = "move";
+    $("boardPad").hidden = true;
+    if (p.kind === "kid") {
+      recordResult(t.topic, right ? (board.tries ? 0.5 : 1) : 0);
+      if (right) { addSolved(); board.solved++; } else rememberMistake(t);
+    }
+    if (right) {
+      renderBoardTask("ok");
+      beep(SOUND_RIGHT);
+      const say = board.tries ? pick(SECOND_TRY) : fromDeck("praise", PRAISE);
+      $("boardSay").textContent = `${say} Zieh ${board.dice} ${board.dice === 1 ? "Feld" : "Felder"}.`;
+      beeMood("boardBee", "happy");
+      autoRead(say);
+      boardMove(board.dice);
+    } else {
+      board.input = String(t.answer);
+      renderBoardTask("ok");
+      const say = `Die Lösung ist ${fmt(t.answer)}. Diesmal bleibst du stehen.`;
+      $("boardSay").textContent = say;
+      beeMood("boardBee", "think");
+      autoRead(say);
+      boardNext(2200);
+    }
+  }
+  function boardJudge(saysRight) {
+    if (board.phase !== "check") return;
+    board.phase = "move";
+    $("boardCheck").hidden = true;
+    const t = board.t, summiRight = board.shown === t.answer, judgedRight = saysRight === summiRight;
+    let say;
+    if (summiRight) say = judgedRight ? BOARD_SAY[6] : BOARD_SAY[4];
+    else if (!saysRight) {
+      say = BOARD_SAY[3];
+      boardFlower();
+    } else say = `${BOARD_SAY[5]} Richtig ist ${fmt(t.answer)}.`;
+    if (!summiRight) drawTask($("boardTask"), t, `<span class="slot ok">${fmt(t.answer)}</span>`);
+    $("boardSay").textContent = summiRight ? say : (saysRight ? say : `${say} Richtig ist ${fmt(t.answer)}.`);
+    beep(judgedRight ? SOUND_RIGHT : SOUND_WRONG);
+    beeMood("boardBee", judgedRight ? "happy" : "think");
+    autoRead($("boardSay").textContent);
+    bumpStats({ boardChecks: judgedRight ? 1 : 0 });
+    if (summiRight) boardMove(board.dice, 1200); else boardNext(2600);
+  }
+  function boardFlower() {
+    board.flowers++;
+    state.garden.push("f" + (board.flowers % 4));
+    store.set("rw-garden", state.garden);
+    renderHeader();
+  }
+  // Figur Feld für Feld ziehen, dann das Sonderfeld
+  function boardMove(steps, delay = 600) {
+    const gen = board.gen, k = board.turn, p = board.players[k];
+    board.moved = true;
+    let left = steps;
+    const stepOnce = () => {
+      if (gen !== board.gen) return;
+      if (left > 0 && p.pos < BOARD_GOAL) { p.pos++; left--; beep(SOUND_STEP); renderBoardTokens(k); setTimeout(stepOnce, 280); return; }
+      boardLanded(p);
+    };
+    setTimeout(stepOnce, delay);
+  }
+  function boardLanded(p) {
+    const gen = board.gen, k = board.turn;
+    if (p.pos >= BOARD_GOAL) return boardWon(p);
+    const kind = BOARD_FIELDS[p.pos];
+    let again = false, say = "";
+    if (kind === "blume") { say = p.kind === "kid" ? BOARD_SAY[7] : `${p.name} pflückt eine Blume.`; if (p.kind === "kid") { boardFlower(); fx.pop($("board").children[p.pos], 1); } }
+    else if (kind === "sprung") say = BOARD_SAY[8];
+    else if (kind === "wind") say = BOARD_SAY[9];
+    else if (kind === "nochmal") { say = BOARD_SAY[10]; again = true; }
+    if (!say) return boardNext(900);
+    $("boardSay").textContent = say;
+    autoRead(say, true);
+    setTimeout(() => {
+      if (gen !== board.gen) return;
+      if (kind === "sprung") { p.pos = Math.min(BOARD_GOAL, p.pos + 3); beep(SOUND_STREAK); renderBoardTokens(k); }
+      if (kind === "wind") { p.pos = Math.max(0, p.pos - 2); beep(SOUND_WRONG); renderBoardTokens(k); }
+      if (p.pos >= BOARD_GOAL) return boardWon(p);
+      if (again) { board.turn = k; boardTurn(); } else boardNext(700);
+    }, 1300);
+  }
+  function boardNext(delay) {
+    const gen = board.gen;
+    setTimeout(() => {
+      if (gen !== board.gen) return;
+      board.turn = (board.turn + 1) % board.players.length;
+      boardTurn();
+    }, delay);
+  }
+  function boardWon(p) {
+    board.phase = "over";
+    const kidWon = p.kind === "kid", vsBee = board.players[1].kind === "bee";
+    // Fürs Mitspielen 3 Blumen, für den Sieg 2 dazu
+    const gift = 3 + (kidWon ? 2 : 0);
+    for (let i = 0; i < gift; i++) state.garden.push("f" + (i % 4));
+    state.garden = state.garden.slice(-5000);
+    store.set("rw-garden", state.garden);
+    bumpStats({ boardGames: 1, boardWins: kidWon ? 1 : 0 });
+    setTimeout(checkStickers, 0);
+    $("boardPlay").hidden = true;
+    $("boardOver").hidden = false;
+    $("boardOverTitle").textContent = kidWon ? (state.name ? `${state.name} hat gewonnen!` : "Du hast gewonnen!") : `${p.name} hat gewonnen!`;
+    const say = kidWon ? BOARD_SAY[11] : vsBee ? BOARD_SAY[12] : `${p.name} hat gewonnen. Gut gespielt!`;
+    const total = gift + board.flowers;
+    $("boardOverText").textContent = `${say} Du hast ${board.solved} ${board.solved === 1 ? "Aufgabe" : "Aufgaben"} gelöst. ${total} Blumen wachsen in deinem Garten.`;
+    const extra = afterGame();
+    if (extra) $("boardOverText").textContent += " " + extra;
+    $("boardSay").textContent = kidWon ? "Juhu!" : "Gut gespielt!";
+    beeMood("boardBee", "happy");
+    autoRead(say + (extra ? " " + extra : ""));
+    if (kidWon) { beep(SOUND_PERFECT); fx.show(4); } else beep(SOUND_DONE);
+    renderHeader();
+    $("boardAgain").focus();
+  }
+
   // ---------- Ergebnis ----------
   function finish() {
     if (state.round.exam) return finishExam(state.round);
@@ -4784,6 +5167,19 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
        aria-label="${k === "ok" ? "Weiter" : k === "del" ? "Löschen" : k}">${k === "ok" ? "Weiter" : k === "del" ? "⌫" : k}</button>`).join("");
   $("rangePad").addEventListener("click", (e) => { const b = e.target.closest("[data-key]"); if (b) rangeKey(b.dataset.key); });
   $("memPad").innerHTML = $("pad").innerHTML;
+  $("boardPad").innerHTML = $("pad").innerHTML;
+  $("boardPad").addEventListener("click", (e) => { const b = e.target.closest("[data-key]"); if (b) boardKey(b.dataset.key); });
+  $("boardBtn").addEventListener("click", () => { state.level = null; setLevelButtons(); startBoard(); });
+  $("boardSetup").addEventListener("click", (e) => { const b = e.target.closest("[data-opp]"); if (b) boardBegin(b.dataset.opp); });
+  $("boardRoll").addEventListener("click", boardRoll);
+  $("boardCheck").addEventListener("click", (e) => { const b = e.target.closest("[data-judge]"); if (b) boardJudge(b.dataset.judge === "1"); });
+  $("boardAgain").addEventListener("click", () => boardBegin(board.players[1].kind === "bee" ? "bee" : board.players[1].name));
+  $("boardMenu").addEventListener("click", () => { board.gen++; goHome(); });
+  $("boardBack").addEventListener("click", () => {
+    if (!$("boardPlay").hidden && board.moved && !reallyLeave((t) => { $("boardSay").textContent = t; beeMood("boardBee", "think"); })) return;
+    board.gen++;
+    goHome();
+  });
   $("memPad").addEventListener("click", (e) => { const b = e.target.closest("[data-key]"); if (b) memKey(b.dataset.key); });
   $("grades").addEventListener("click", (e) => {
     const b = e.target.closest("[data-grade]"); if (!b) return;
@@ -4981,6 +5377,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       if (k) { rangeKey(k); e.preventDefault(); }
       return;
     }
+    if (!$("boardView").hidden && board.phase === "ask") {
+      const k = /^[0-9]$/.test(e.key) ? e.key : e.key === "Backspace" ? "del" : e.key === "Enter" ? "ok" : "";
+      if (k) { boardKey(k); e.preventDefault(); }
+      return;
+    }
     if (!$("memAsk").hidden && !$("memoryView").hidden) {
       const k = /^[0-9]$/.test(e.key) ? e.key : e.key === "Backspace" ? "del" : e.key === "Enter" ? "ok" : "";
       if (k) { memKey(k); e.preventDefault(); }
@@ -4997,12 +5398,15 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // Alle Bienen neu zeichnen, z. B. wenn Summi etwas Neues anzieht
   function paintBees() {
-    for (const id of ["setupBee", "homeBee", "gameBee", "memBee", "pathBee", "gardenBee", "albumBee"]) $(id).innerHTML = beeSVG();
+    for (const id of ["setupBee", "homeBee", "gameBee", "memBee", "pathBee", "gardenBee", "albumBee", "boardBee"]) $(id).innerHTML = beeSVG();
   }
   paintBees();
   $("iconPath").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 54C24 54 14 36 32 34S44 16 54 14" stroke="var(--sun)" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="2 8"/><circle cx="10" cy="54" r="6" fill="var(--grass)"/><circle cx="32" cy="34" r="6" fill="var(--grass)"/><path d="M54 6V30" stroke="var(--bee-ink)" stroke-width="3"/><path d="M54 6L68 11L54 16Z" fill="var(--red)" transform="translate(-4 0)"/></svg>';
   $("iconGarden").innerHTML = decoSVG("pilz");
   $("iconBalloon").innerHTML = balloonSVG("var(--petal-1)");
+  $("iconBoard").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 50h12V38h12V26h12V14h12" stroke="var(--grass)" stroke-width="7" fill="none" stroke-linejoin="round" stroke-linecap="round"/>' +
+    '<rect x="6" y="6" width="24" height="24" rx="6" fill="var(--paper)" stroke="var(--ink)" stroke-width="2.5" transform="rotate(-12 18 18)"/><circle cx="12" cy="12" r="2.6" fill="var(--ink)" transform="rotate(-12 18 18)"/><circle cx="18" cy="18" r="2.6" fill="var(--ink)" transform="rotate(-12 18 18)"/><circle cx="24" cy="24" r="2.6" fill="var(--ink)" transform="rotate(-12 18 18)"/>' +
+    '<circle cx="54" cy="12" r="7" fill="var(--sun)"/></svg>';
   $("iconMemory").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="12" width="28" height="38" rx="5" fill="var(--grass)" transform="rotate(-10 20 31)"/><rect x="28" y="10" width="28" height="38" rx="5" fill="var(--paper)" stroke="var(--blue)" stroke-width="3" transform="rotate(8 42 29)"/><text x="42" y="36" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="18" fill="var(--blue)" transform="rotate(8 42 29)">12</text></svg>';
   $("iconFlower").innerHTML = flowerSVG("flower", "var(--petal-2)");
   $("iconExam").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="10" y="6" width="36" height="48" rx="4" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="3"/>' +
@@ -5017,7 +5421,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   if (isApp && cap.addListener) {
     try {
       const BACK = { setupView: "setupBack", gameView: "backBtn", resultView: "menuBtn", tricksView: "tricksBack",
-        balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack", recordView: "recordBack", albumView: "albumBack", correctionView: "correctionBack" };
+        balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack", recordView: "recordBack", albumView: "albumBack", correctionView: "correctionBack", boardView: "boardBack" };
       cap.addListener("App", "backButton", () => {
         if (!$("stickerToast").hidden) return $("toastOk").click();
         if (!$("examDialog").hidden) { $("examDialog").hidden = true; return; }

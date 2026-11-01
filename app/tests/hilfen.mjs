@@ -1,7 +1,7 @@
 // Gemeinsame Hilfen für die Tests der Rechenwiese.
 // Jeder Test baut sich eine frische Kopie aus lernapp/index.html (wie "npm run build:web") mit
 // kleinen Einblicken angelegt: window.__s (Zustand), __bj (Ballonjagd), __mem (Memory),
-// __gen (Aufgaben erzeugen), __draw (Aufgabe zeichnen), __mk (Aufgaben-Bausteine) usw.
+// __board (Brettspiel), __gen (Aufgaben erzeugen), __draw (Aufgabe zeichnen), __mk (Aufgaben-Bausteine) usw.
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -27,6 +27,7 @@ export function testCopy() {
   swap("  const state = {", "  const state = window.__s = {");
   swap("  const bj = {", "  const bj = window.__bj = {");
   swap("  const mem = {", "  const mem = window.__mem = {");
+  swap("  var board = {", "  var board = window.__board = {");
   swap("  function makeRound(cfg, sel) {",
     "  window.__gen = (c, t, s) => generate(c, t, s); window.__draw = drawTask; window.__spokenTask = (t) => spokenTask(t);\n" +
     "  window.__render = () => { renderTask(); announceTask(); };\n" +
