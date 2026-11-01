@@ -130,6 +130,22 @@ automatisch eine installierbare `Rechenwiese.apk` (Release „Rechenwiese für A
 Die App läuft offline, liest mit der Sprachausgabe von Android vor und behält bei Updates
 den Fortschritt. Details und Installationsanleitung: [`app/README.md`](app/README.md).
 
+### Als Windows-Programm
+
+Im Ordner `windows/` wird dieselbe App mit [Electron](https://www.electronjs.org) zu einem Windows-Programm.
+GitHub baut bei jeder Änderung `Rechenwiese-Setup.exe` (Ablauf „Windows-Programm bauen“, Release
+„Rechenwiese für Windows“). Das Programm läuft offline, liest mit den Windows-Stimmen vor, kann Summis
+Stimme über das Mikrofon aufnehmen und speichert alles im Benutzerordner (`%APPDATA%\Rechenwiese`).
+Windows warnt beim ersten Start, weil das Programm nicht signiert ist: *Weitere Informationen → Trotzdem ausführen*.
+Fortschritt und Aufnahmen vom Tablet kommen über *Für Eltern → Sichern* und *Wiederherstellen* auf den PC.
+
+```bash
+cd windows && npm ci
+npm start           # Programm starten
+npm run selbsttest  # startet unsichtbar und prüft, dass die App lädt
+npm run dist        # Installationsprogramm bauen (unter Windows)
+```
+
 ### Tests und Skills
 
 In `app/tests/` liegen automatische Tests, die die ganze App wie ein Kind durchspielen: Aufgaben
