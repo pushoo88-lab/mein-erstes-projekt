@@ -4,7 +4,7 @@
 import { testCopy, start, setup, check, done } from "./hilfen.mjs";
 
 const dir = testCopy(), allErrors = [];
-for (const [width, height, how] of [[360, 800, "Handy"], [1280, 800, "Tablet quer"]]) {
+for (const [width, height, how] of [[360, 800, "Handy"], [780, 360, "Handy quer"], [1280, 800, "Tablet quer"]]) {
   const { browser, page, errors, url } = await start({ dir, width, height });
   await page.goto(url); await page.waitForTimeout(300);
   await setup(page, { name: "Luisa", range: "20", topics: ["plus", "minus"] });
@@ -35,11 +35,13 @@ for (const [width, height, how] of [[360, 800, "Handy"], [1280, 800, "Tablet que
   await page.click(`[data-card="${resultOf(0)}"]`); await page.waitForTimeout(500);
   check(await page.evaluate(() => window.__mem.found) === 1, `${how}: dann das Gegenstück gefunden`);
   check(await skillLen() - skill0 === 1, `${how}: zählt einmal für den Lernstand`);
+  check(await page.evaluate(() => Number(localStorage.getItem("rw-solved"))) === 1, `${how}: ein Paar = eine gelöste Aufgabe`);
 
   // Paar 1: Ergebnis zuerst, dann Aufgabe: zweimal falsch, dann zeigt Summi die Lösung und es geht weiter
   await page.click(`[data-card="${resultOf(1)}"]`); await page.waitForTimeout(300);
   await page.click(`[data-card="${taskOf(1)}"]`); await page.waitForTimeout(400);
   check(await page.isVisible("#memAsk"), `${how}: auch als zweite Karte erst rechnen`);
+  check(!(await page.evaluate((k) => document.querySelector(`[data-card="${k}"]`).classList.contains("open"), resultOf(1))), `${how}: offenes Ergebnis ist beim Rechnen zugedeckt (kein Abschreiben)`);
   await typeIn(answers[1] + 2); await typeIn(answers[1] + 3);
   check(!(await page.isVisible("#memAsk")) && (await page.textContent("#memSay")).includes(`Die Lösung ist ${answers[1]}`), `${how}: nach zwei Fehlern zeigt Summi die Lösung (Tastatur)`);
   await page.waitForTimeout(500);

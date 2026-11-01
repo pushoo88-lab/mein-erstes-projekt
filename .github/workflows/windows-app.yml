@@ -11,12 +11,19 @@ on:
       - 'app/assets/icon-only.png'
       - '.github/workflows/windows-app.yml'
   workflow_dispatch:
+  # Wird auch nach dem Bearbeiten von Summis Stimme aufgerufen (stimme.yml)
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Branch, der gebaut wird'
+        type: string
+        required: true
 
 permissions:
   contents: write
 
 concurrency:
-  group: windows-${{ github.ref }}
+  group: windows-${{ inputs.ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -31,6 +38,8 @@ jobs:
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'   # kein Code-Signatur-Zertifikat
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - uses: actions/setup-node@v4
         with:
@@ -64,7 +73,7 @@ jobs:
           path: windows/dist/Rechenwiese-Setup.exe
 
       - name: Als Download bereitstellen
-        if: ${{ contains(fromJSON('["ccr-daadfa50-cgyznk", "master"]'), github.ref_name) }}
+        if: ${{ contains(fromJSON('["ccr-daadfa50-cgyznk", "master"]'), inputs.ref || github.ref_name) }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: rechenwiese-windows

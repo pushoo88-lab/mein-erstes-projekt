@@ -420,6 +420,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 @keyframes hop { 50% { transform: translateY(-8px); } }
 .board-panel { display: grid; gap: 12px; justify-items: center; }
 .board-turn { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 800; font-size: 22px; }
+.board-score { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
+.board-score .tok { width: 22px; height: 22px; font-size: 12px; }
 .board-turn .tok { width: 32px; height: 32px; font-size: 16px; }
 .board-panel .key { min-height: 48px; font-size: 28px; }
 .board-panel .pad { gap: 8px; }
@@ -448,6 +450,13 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .mem-q .slot.bad { border-color: var(--oops); animation: shake .35s; }
 .mem-ask .key { min-height: 54px; }
 #memoryView.asking { padding-bottom: 360px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .mem-ask, .board-panel { gap: 8px; }
+  .mem-ask .pad, .board-panel .pad { grid-template-columns: repeat(6, 1fr); }
+  .mem-ask .key, .board-panel .key { min-height: 42px; font-size: 24px; }
+  .mem-q { font-size: 24px; }
+  #memoryView.asking { padding-bottom: 170px; }
+}
 
 /* Rechentricks */
 .trick-nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
@@ -2486,7 +2495,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     return new Blob([buf], { type: "audio/wav" });
   }
 
-  let recIdx = 0, recFor = 0, recStream = null, recorder = null, recChunks = [], recTimer = 0, recState = "idle";
+  let recIdx = 0, recFor = 0, recStream = null, recorder = null, recChunks = [], recTimer = 0, recState = "idle", recStartedAt = 0;
   function openRecorder() {
     stopSpeaking();
     LISTE = recList();
@@ -2535,6 +2544,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         recorder.onstop = finishRecording;
         recorder.start();
         recState = "recording";
+        recStartedAt = Date.now();
         recTimer = setTimeout(stopRecording, 15000);   // höchstens 15 Sekunden
         renderRecorder();
         watchLevel(stream);
@@ -4651,7 +4661,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         continue;
       }
       // Auf Karten nur "Aufgabe = ?" zeigen: Lücken werden zur normalen Aufgabe, bei Stellenwerten nur "4 Z + 7 E"
-      if (!t.kind && t.blank !== "c") { t.blank = "c"; t.answer = t.c; }
+      if (!t.kind && t.blank !== "c") {
+        t.blank = "c"; t.answer = t.c;
+        t.topic = { "+": "plus", "−": "minus", "·": "mal", ":": "geteilt" }[t.op] || t.topic;
+      }
       if (t.kind === "parts" && !/ Z$/.test(t.parts[0]) && t.topic !== "geschickt") continue;
       const label = cardLabel(t);
       // Keine Zahl darf doppelt vorkommen, sonst passt eine Karte scheinbar zu zwei anderen
@@ -4703,6 +4716,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const c = mem.cards[i];
     Object.assign(mem, { lock: true, ask: i, input: "", tries: 0 });
     $("memGrid").children[i].classList.add("asking");
+    for (const k of mem.open) if (k !== i && mem.cards[k].ans) $("memGrid").children[k].classList.remove("open");
     $("memQ").innerHTML = memQuestion(c, "?");
     $("memAsk").hidden = false;
     $("memoryView").classList.add("asking");
@@ -4713,6 +4727,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (card.bottom > panel.top - 8) window.scrollBy({ top: card.bottom - panel.top + 16, behavior: "smooth" });
   }
   function closeMemAsk() {
+    for (const k of mem.open) $("memGrid").children[k].classList.add("open");   // zugedecktes Ergebnis wieder zeigen
     $("memAsk").hidden = true;
     $("memoryView").classList.remove("asking");
     for (const el of $("memGrid").children) el.classList.remove("asking");
@@ -4748,8 +4763,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       if (right) { beep(SOUND_RIGHT); fx.pop(el, 1); }
       // Liegt das Gegenstück schon offen, gleich prüfen; die Lösung bleibt dabei in Summis Satz stehen
       if (mem.open.length === 2) return memoryPairCheck(right ? "" : `Die Lösung ist ${fmt(p.answer)}.`);
-      const say = right ? MEM_SAY[2] : `Die Lösung ist ${fmt(p.answer)}. ${MEM_SAY[3]}`;
-      $("memSay").textContent = right && mem.tries ? `${pick(SECOND_TRY)} ${MEM_SAY[2].replace(/^Richtig gerechnet! /, "")}` : say;
+      const say = !right ? `Die Lösung ist ${fmt(p.answer)}. ${MEM_SAY[3]}`
+        : mem.tries ? `${pick(SECOND_TRY)} ${MEM_SAY[2].replace(/^Richtig gerechnet! /, "")}` : MEM_SAY[2];
+      $("memSay").textContent = say;
       autoRead(say);
       return;
     }
@@ -4769,7 +4785,6 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       for (const k of mem.open) $("memGrid").children[k].classList.add("done");
       mem.open = [];
       mem.found++;
-      addSolved();
       beep(SOUND_RIGHT);
       fx.pop(el, 1);
       const cheer = pick(["Super, ein Paar!", "Toll, das passt!", "Klasse gefunden!"]);
@@ -4879,7 +4894,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       cell.insertAdjacentHTML("beforeend", tokenHTML(p));
       if (k === hop) cell.lastElementChild.classList.add("hop");
     });
-    $("boardTurnInfo").textContent = board.players.map((p) => `${p.name[0]}: ${p.pos}`).join(" · ");
+    $("boardTurnInfo").innerHTML = board.players.map((p) => `<span class="board-score">${tokenHTML(p)} ${p.pos}</span>`).join(" ");
   }
   // Wer ist dran? Kinder und Erwachsene würfeln selbst, Summi von allein.
   function boardTurn() {
@@ -5229,7 +5244,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (f) restoreBackup(f);
   });
   $("recordBack").addEventListener("click", () => { cancelRecording(); show("parentView"); openVoiceSettings(); });
-  $("recBtn").addEventListener("click", () => (recState === "recording" ? stopRecording() : recState === "idle" ? startRecording() : null));
+  // Ein zweiter Tipp in der ersten Sekunde ist ein Doppeltipp, kein "Fertig"
+  $("recBtn").addEventListener("click", () => (recState === "recording" ? (Date.now() - recStartedAt > 1000 && stopRecording()) : recState === "idle" ? startRecording() : null));
   $("recPlay").addEventListener("click", () => playOwn(LISTE[recIdx].id));
   $("recPrev").addEventListener("click", () => { recIdx = Math.max(0, recIdx - 1); renderRecorder(); });
   $("recNext").addEventListener("click", () => { recIdx = Math.min(LISTE.length - 1, recIdx + 1); renderRecorder(); });
@@ -5372,19 +5388,13 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   });
 
   document.addEventListener("keydown", (e) => {
-    if (!$("setupView").hidden && setupStep === S_RANGE) {
+    // Zahlenfelder außerhalb der Runde: Einrichtung, Brettspiel, Memory
+    const padTarget = !$("setupView").hidden && setupStep === S_RANGE ? rangeKey
+      : !$("boardView").hidden && board.phase === "ask" ? boardKey
+      : !$("memAsk").hidden && !$("memoryView").hidden ? memKey : null;
+    if (padTarget) {
       const k = /^[0-9]$/.test(e.key) ? e.key : e.key === "Backspace" ? "del" : e.key === "Enter" ? "ok" : "";
-      if (k) { rangeKey(k); e.preventDefault(); }
-      return;
-    }
-    if (!$("boardView").hidden && board.phase === "ask") {
-      const k = /^[0-9]$/.test(e.key) ? e.key : e.key === "Backspace" ? "del" : e.key === "Enter" ? "ok" : "";
-      if (k) { boardKey(k); e.preventDefault(); }
-      return;
-    }
-    if (!$("memAsk").hidden && !$("memoryView").hidden) {
-      const k = /^[0-9]$/.test(e.key) ? e.key : e.key === "Backspace" ? "del" : e.key === "Enter" ? "ok" : "";
-      if (k) { memKey(k); e.preventDefault(); }
+      if (k) { padTarget(k); e.preventDefault(); }
       return;
     }
     if ($("gameView").hidden || !state.round) return;

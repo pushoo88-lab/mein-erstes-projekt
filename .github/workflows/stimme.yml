@@ -80,3 +80,11 @@ jobs:
     uses: ./.github/workflows/android-app.yml
     with:
       ref: ${{ github.ref_name }}
+
+  windows:
+    name: Neues Windows-Programm bauen
+    needs: stimme
+    if: ${{ needs.stimme.outputs.neu == '1' }}
+    uses: ./.github/workflows/windows-app.yml
+    with:
+      ref: ${{ github.ref_name }}

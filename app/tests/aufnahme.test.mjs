@@ -30,7 +30,7 @@ for (const c of cases) {
   await page.waitForFunction(() => /Gespeichert|nicht/.test(document.getElementById("recNote").textContent) && document.getElementById("recBtn").textContent !== "Moment …", null, { timeout: 16000 });
   const stopped = (Date.now() - t0) / 1000 + 1.6;
   check(stopped < 9, `${c.name}: stoppt von selbst nach ${stopped.toFixed(1)} s`);
-  check(/Gespeichert/.test(await page.textContent("#recNote")), `${c.name}: gespeichert`);
+  check(/Gespeichert/.test(await page.textContent("#recNote")), `${c.name}: gespeichert („${await page.textContent("#recNote")}“)`);
   const clip = await page.evaluate(() => new Promise((ok) => { const r = indexedDB.open("rw-stimme", 1); r.onsuccess = () => { const q = r.result.transaction("clips").objectStore("clips").getAll(); q.onsuccess = () => ok(q.result.map((x) => x.dur)); }; }));
   check(clip.length === 1 && clip[0] > c.speech && clip[0] < c.speech + 1.6, `${c.name}: Satz vollständig und ohne lange Stille (${clip[0] && clip[0].toFixed(2)} s für ${c.speech} s Sprechen)`);
   await page.click("#recordBack"); await page.waitForTimeout(300);

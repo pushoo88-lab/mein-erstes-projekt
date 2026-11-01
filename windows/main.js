@@ -8,7 +8,9 @@ const path = require("node:path");
 
 const selftest = process.argv.includes("--selbsttest");
 
-if (!selftest && !app.requestSingleInstanceLock()) app.quit();
+// Schon offen (z. B. Doppelklick auf das Symbol): nur das vorhandene Fenster nach vorn holen
+const firstInstance = selftest || app.requestSingleInstanceLock();
+if (!firstInstance) app.quit();
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -30,7 +32,7 @@ function createWindow() {
   return win;
 }
 
-app.whenReady().then(() => {
+if (firstInstance) app.whenReady().then(() => {
   // Mikrofon für "Summis Stimme aufnehmen" erlauben, sonst nichts
   session.defaultSession.setPermissionRequestHandler((_wc, permission, done) => done(permission === "media"));
   session.defaultSession.setPermissionCheckHandler((_wc, permission) => permission === "media");
