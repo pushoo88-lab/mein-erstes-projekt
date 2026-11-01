@@ -108,9 +108,14 @@ for (const topic of ["uhr", "geld", "mauer", "plus"]) {
 
 await page.evaluate(() => { window.__s.topics = ["plus", "minus"]; });
 await page.click("#memoryBtn"); await page.waitForTimeout(200);
-const pairs = await page.evaluate(() => window.__mem.cards.map((c) => c.pair));
+// Erst die Aufgabenkarte ausrechnen (Zahlentasten), dann das Ergebnis dazu antippen
+const cards = await page.evaluate(() => window.__mem.cards.map((c) => ({ pair: c.pair, ans: c.ans })));
+const results = await page.evaluate(() => window.__mem.pairs.map((p) => p.answer));
 for (let pair = 0; pair < 6; pair++) {
-  for (const i of pairs.map((x, k) => (x === pair ? k : -1)).filter((k) => k >= 0)) await page.click(`[data-card="${i}"]`);
+  await page.click(`[data-card="${cards.findIndex((c) => c.pair === pair && !c.ans)}"]`); await page.waitForTimeout(300);
+  for (const d of String(results[pair])) await page.click(`#memPad [data-key="${d}"]`);
+  await page.click('#memPad [data-key="ok"]'); await page.waitForTimeout(200);
+  await page.click(`[data-card="${cards.findIndex((c) => c.pair === pair && c.ans)}"]`);
   await page.waitForTimeout(450);
 }
 await page.waitForTimeout(900);

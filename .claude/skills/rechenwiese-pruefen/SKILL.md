@@ -32,6 +32,7 @@ Die Android-App wird daraus mit Capacitor gebaut (`app/`). Die Tests liegen in `
    | bedienung | Doppeltippen, Ergebnistexte, Ballon, Sticker, Album, Kleiderschrank, hell und dunkel |
    | android | ganze App mit Capacitor-Brücke, Zurück-Taste, alle Themen, Spiele |
    | offline | keine Anfragen ins Internet, Schriften aus der App |
+   | memory | Zahlen-Memory: erst rechnen, dann Gegenstück suchen; Fehler, Lösung, Ende, Handy und Tablet |
    | tablet | Fire HD 10 quer und hochkant: Zahlentasten bei jeder Aufgabenart ohne Scrollen sichtbar |
 
 5. **Fehler untersuchen:** Erst klären, ob die App oder der Test falsch ist. Ein Test darf nie abgeschwächt

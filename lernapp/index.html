@@ -386,6 +386,20 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .card .front { background: var(--paper); transform: rotateY(180deg); font-family: var(--display); font-weight: 800; font-size: clamp(17px, 5vw, 24px); line-height: 1.15; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .card .front.ans { color: var(--blue); font-size: clamp(24px, 7vw, 34px); }
 .card.done .front { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, var(--paper)); }
+.card.asking .front { border-color: var(--sun); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sun) 45%, transparent); }
+.card.solved .front { border-color: var(--blue); }
+.card .front small { display: block; color: var(--blue); }
+/* Rechenfeld fürs Memory: liegt unten über den Karten, die offene Karte bleibt oben sichtbar */
+.mem-ask {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; margin: 0 auto; width: min(560px, 100%);
+  border-radius: 24px 24px 0 0; padding: 14px 16px max(16px, env(safe-area-inset-bottom, 0px));
+  display: grid; gap: 12px; box-shadow: 0 -8px 24px rgba(0, 0, 0, .18);
+}
+.mem-q { margin: 0; text-align: center; font-family: var(--display); font-weight: 800; font-size: 30px; font-variant-numeric: tabular-nums; }
+.mem-q .slot { display: inline-block; min-width: 2.2em; padding: 0 .2em; border-radius: 12px; border: 3px dashed var(--line); background: var(--key); }
+.mem-q .slot.bad { border-color: var(--oops); animation: shake .35s; }
+.mem-ask .key { min-height: 54px; }
+#memoryView.asking { padding-bottom: 360px; }
 
 /* Rechentricks */
 .trick-nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
@@ -732,7 +746,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     <div class="modes">
       <button class="mode adventure wide" id="pathBtn" type="button"><span class="tag">Abenteuer</span><span id="iconPath"></span><b>Abenteuer-Pfad</b><small id="pathInfo"></small></button>
       <button class="mode game" id="balloonBtn" type="button"><span class="tag">Spiel</span><span id="iconBalloon"></span><b>Ballonjagd</b><small>Tippe den richtigen Ballon an</small></button>
-      <button class="mode game" id="memoryBtn" type="button"><span class="tag">Spiel</span><span id="iconMemory"></span><b>Zahlen-Memory</b><small>Finde Aufgabe und Ergebnis</small></button>
+      <button class="mode game" id="memoryBtn" type="button"><span class="tag">Spiel</span><span id="iconMemory"></span><b>Zahlen-Memory</b><small>Erst rechnen, dann Paare finden</small></button>
       <button class="mode" id="startBtn" type="button"><span class="tag">Üben</span><span id="iconFlower"></span><b>Blumen-Runde</b><small>10 Aufgaben, Blumen sammeln</small></button>
       <button class="mode" id="tricksBtn" type="button"><span class="tag">Lernen</span><span id="iconTricks"></span><b>Rechentricks</b><small>So geht Rechnen leichter</small></button>
       <button class="mode school" id="schoolBtn" type="button"><span class="tag">Wie in der Schule</span><span id="iconSchool"></span><b>Übungsblatt</b><small>Wie die Lernzielkontrolle, ohne Zeit</small></button>
@@ -867,6 +881,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     </div>
     <div class="hello mini"><div class="bee" id="memBee"></div><p class="say" id="memSay" aria-live="polite"></p></div>
     <div class="memory" id="memGrid"></div>
+    <!-- Erst rechnen, dann suchen: erscheint, sobald eine Aufgabenkarte offen ist -->
+    <section class="sheet mem-ask" id="memAsk" hidden aria-live="polite">
+      <p class="mem-q" id="memQ"></p>
+      <div class="pad" id="memPad"></div>
+    </section>
     <section class="sheet result" id="memOver" hidden>
       <h2 id="memOverTitle">Geschafft!</h2>
       <p class="muted" id="memOverText"></p>
@@ -3453,6 +3472,13 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     "Die Lösung ist {x}. Fehler gehören zum Lernen dazu. Weiter geht's!", "Die Lösung ist {x}. Die nächste Aufgabe schaffst du!",
   ];
   const STREAK = ["{n} richtig hintereinander! Dein Üben zahlt sich aus!", "{n} am Stück! Du rechnest richtig konzentriert!", "Super-Serie: {n} richtige! Weiter so!"];
+  // Zahlen-Memory: erst rechnen, dann das Gegenstück suchen
+  const MEM_SAY = [
+    "Dreh eine Aufgabe um und rechne sie aus. Dann such das passende Ergebnis!",
+    "Rechne zuerst aus und tippe das Ergebnis ein.",
+    "Richtig gerechnet! Jetzt such das passende Ergebnis.",
+    "Merk dir die Lösung und such das passende Ergebnis.",
+  ];
   const HIT_WORDS = ["Treffer!", "Super!", "Klasse!", "Toll!", "Jawohl!", "Spitze!", "Prima!", "Juhu!"];
 
   // Wie ein gemischter Kartenstapel: jeder Satz kommt erst wieder, wenn alle anderen dran waren.
@@ -4486,7 +4512,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
 
   // ---------- Zahlen-Memory ----------
-  const mem = { cards: [], open: [], moves: 0, found: 0, lock: false };
+  const mem = { cards: [], pairs: [], open: [], moves: 0, found: 0, lock: false, ask: -1, input: "", tries: 0, solved: 0 };
 
   // Kurzer Kartentext, z. B. "7 + 5" oder "47 = 40 + □"
   function cardLabel(t) {
@@ -4511,7 +4537,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         const parts = String(n).split("").map((d, i) => (d !== "0" ? `${d} ${heads[i][0]}` : "")).filter(Boolean);
         if (answers.has(n)) continue;
         answers.add(n);
-        pairs.push({ label: parts.join(" + "), answer: n });
+        pairs.push({ label: parts.join(" + "), answer: n, topic: "stellen" });
         continue;
       }
       // Auf Karten nur "Aufgabe = ?" zeigen: Lücken werden zur normalen Aufgabe, bei Stellenwerten nur "4 Z + 7 E"
@@ -4522,7 +4548,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       if (answers.has(t.answer)) continue;
       if (strict && (pairs.some((pp) => numbersIn(pp.label).includes(t.answer)) || numbersIn(label).some((x) => answers.has(x)))) continue;
       answers.add(t.answer);
-      pairs.push({ label, answer: t.answer });
+      pairs.push({ label, answer: t.answer, topic: t.topic, t });
     }
     return pairs;
   }
@@ -4530,8 +4556,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function startMemory() {
     if (!ready()) return;
     const pairs = memoryPairs(config(), [...state.topics]);
+    mem.pairs = pairs;
     mem.cards = shuffle(pairs.flatMap((p, i) => [{ pair: i, text: p.label, ans: false }, { pair: i, text: fmt(p.answer), ans: true }]));
-    Object.assign(mem, { open: [], moves: 0, found: 0, lock: false });
+    Object.assign(mem, { open: [], moves: 0, found: 0, lock: false, ask: -1, input: "", tries: 0, solved: 0 });
+    closeMemAsk();
     const back = flowerSVG("flower", "var(--sun)", "var(--petal-1)");
     $("memGrid").innerHTML = mem.cards.map((c, i) =>
       `<button class="card" type="button" data-card="${i}" aria-label="Karte ${i + 1}, verdeckt"><span class="in">
@@ -4539,8 +4567,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("memGrid").hidden = false;
     $("memOver").hidden = true;
     $("memMoves").textContent = "0 Züge";
-    $("memSay").textContent = "Finde immer eine Aufgabe und ihr Ergebnis! Tippe zwei Karten an.";
+    $("memSay").textContent = MEM_SAY[0];
     show("memoryView");
+    autoRead(MEM_SAY[0]);
     beeMood("memBee", "happy");
   }
 
@@ -4550,8 +4579,78 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     el.classList.add("open");
     el.setAttribute("aria-label", c.text);
     mem.open.push(i);
-    if (mem.open.length < 2) return;
+    // Aufgabenkarte: erst ausrechnen, dann geht es weiter. Schon gerechnete Karten zeigen gleich das Ergebnis.
+    if (!c.ans && !c.solved) return askMemory(i);
+    memoryPairCheck();
+  }
 
+  // Frage zur offenen Aufgabenkarte: "7 + 5 = ?" mit Zahlentasten
+  const memQuestion = (c, v) => {
+    const slot = `<span class="slot">${v}</span>`;
+    return c.text.includes("□") ? c.text.replace("□", slot) : `${c.text} = ${slot}`;
+  };
+  function askMemory(i) {
+    const c = mem.cards[i];
+    Object.assign(mem, { lock: true, ask: i, input: "", tries: 0 });
+    $("memGrid").children[i].classList.add("asking");
+    $("memQ").innerHTML = memQuestion(c, "?");
+    $("memAsk").hidden = false;
+    $("memoryView").classList.add("asking");
+    $("memSay").textContent = MEM_SAY[1];
+    beeMood("memBee", "think");
+    autoRead(MEM_SAY[1]);
+    const card = $("memGrid").children[i].getBoundingClientRect(), panel = $("memAsk").getBoundingClientRect();
+    if (card.bottom > panel.top - 8) window.scrollBy({ top: card.bottom - panel.top + 16, behavior: "smooth" });
+  }
+  function closeMemAsk() {
+    $("memAsk").hidden = true;
+    $("memoryView").classList.remove("asking");
+    for (const el of $("memGrid").children) el.classList.remove("asking");
+  }
+  function memKey(k) {
+    if (mem.ask < 0) return;
+    const c = mem.cards[mem.ask], p = mem.pairs[c.pair];
+    if (k === "del") mem.input = mem.input.slice(0, -1);
+    else if (k !== "ok") { if (mem.input.length < String(state.N || 100).length + 1) mem.input = (mem.input === "0" ? "" : mem.input) + k; }
+    else if (mem.input !== "") {
+      const right = Number(mem.input) === p.answer;
+      if (!right && mem.tries === 0) {
+        mem.tries = 1; mem.input = "";
+        $("memQ").innerHTML = memQuestion(c, "?");
+        $("memQ").querySelector(".slot").classList.add("bad");
+        $("memSay").textContent = fromDeck("tryAgain", TRY_AGAIN);
+        autoRead($("memSay").textContent);
+        beep(SOUND_WRONG);
+        return;
+      }
+      // Richtig, oder beim zweiten Fehler die Lösung zeigen: dann geht es weiter mit dem Suchen
+      recordResult(p.topic, right ? (mem.tries ? 0.5 : 1) : 0);
+      if (!right && p.t) rememberMistake(p.t);
+      if (right) { mem.solved++; addSolved(); }
+      c.solved = true;
+      const el = $("memGrid").children[mem.ask];
+      el.classList.add("solved");
+      el.querySelector(".front").innerHTML = `${c.text.includes("□") ? c.text.replace("□", fmt(p.answer)) : c.text}<small>= ${fmt(p.answer)}</small>`;
+      el.setAttribute("aria-label", `${c.text}, Ergebnis ${fmt(p.answer)}`);
+      mem.ask = -1; mem.lock = false;
+      closeMemAsk();
+      beeMood("memBee", right ? "happy" : "think");
+      if (right) { beep(SOUND_RIGHT); fx.pop(el, 1); }
+      // Liegt das Gegenstück schon offen, gleich prüfen; die Lösung bleibt dabei in Summis Satz stehen
+      if (mem.open.length === 2) return memoryPairCheck(right ? "" : `Die Lösung ist ${fmt(p.answer)}.`);
+      const say = right ? MEM_SAY[2] : `Die Lösung ist ${fmt(p.answer)}. ${MEM_SAY[3]}`;
+      $("memSay").textContent = right && mem.tries ? `${pick(SECOND_TRY)} ${MEM_SAY[2].replace(/^Richtig gerechnet! /, "")}` : say;
+      autoRead(say);
+      return;
+    }
+    $("memQ").innerHTML = memQuestion(c, mem.input || "?");
+  }
+
+  // Zwei Karten offen (und gerechnet): Passen sie zusammen?
+  function memoryPairCheck(before = "") {
+    if (mem.open.length < 2) return;
+    const lead = before ? before + " " : "";
+    const el = $("memGrid").children[mem.open[1]];
     mem.moves++;
     $("memMoves").textContent = `${mem.moves} ${mem.moves === 1 ? "Zug" : "Züge"}`;
     const [a, b] = mem.open.map((k) => mem.cards[k]);
@@ -4563,15 +4662,17 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       addSolved();
       beep(SOUND_RIGHT);
       fx.pop(el, 1);
-      $("memSay").textContent = `${fromDeck("praise", PRAISE)} ${a.ans ? b.text : a.text} = ${a.ans ? a.text : b.text}`;
-      if (mem.found < mem.cards.length / 2) autoRead(pick(["Super, ein Paar!", "Toll, das passt!", "Klasse gefunden!"]));
+      const cheer = pick(["Super, ein Paar!", "Toll, das passt!", "Klasse gefunden!"]);
+      $("memSay").textContent = `${lead}${cheer} ${a.ans ? b.text : a.text} = ${a.ans ? a.text : b.text}`;
+      if (mem.found < mem.cards.length / 2) autoRead(lead + cheer);
       beeMood("memBee", "happy");
       // Nur feiern, wenn das Kind noch im Memory ist
       if (mem.found === mem.cards.length / 2) setTimeout(() => { if (!$("memoryView").hidden && mem.found === mem.cards.length / 2 && $("memOver").hidden) memoryWon(); }, 700);
       return;
     }
     mem.lock = true;
-    $("memSay").textContent = "Das passt nicht zusammen. Merk dir, wo die Karten liegen!";
+    $("memSay").textContent = lead + "Das passt nicht zusammen. Merk dir, wo die Karten liegen!";
+    if (lead) autoRead(lead.trim());
     beeMood("memBee", "think");
     setTimeout(() => {
       for (const k of mem.open) {
@@ -4682,6 +4783,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     `<button class="key${k === "ok" ? " ok" : k === "del" ? " del" : ""}" type="button" data-key="${k}"
        aria-label="${k === "ok" ? "Weiter" : k === "del" ? "Löschen" : k}">${k === "ok" ? "Weiter" : k === "del" ? "⌫" : k}</button>`).join("");
   $("rangePad").addEventListener("click", (e) => { const b = e.target.closest("[data-key]"); if (b) rangeKey(b.dataset.key); });
+  $("memPad").innerHTML = $("pad").innerHTML;
+  $("memPad").addEventListener("click", (e) => { const b = e.target.closest("[data-key]"); if (b) memKey(b.dataset.key); });
   $("grades").addEventListener("click", (e) => {
     const b = e.target.closest("[data-grade]"); if (!b) return;
     state.grade = Number(b.dataset.grade);
@@ -4777,7 +4880,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   });
   $("memAgain").addEventListener("click", startMemory);
   $("memBack").addEventListener("click", () => {
-    if (!$("memGrid").hidden && mem.moves > 0 && !reallyLeave((t) => { $("memSay").textContent = t; beeMood("memBee", "think"); })) return;
+    if (!$("memGrid").hidden && (mem.moves > 0 || mem.ask >= 0 || mem.solved > 0) && !reallyLeave((t) => { $("memSay").textContent = t; beeMood("memBee", "think"); })) return;
     leaveGame();
   });
   $("memMenu").addEventListener("click", leaveGame);
@@ -4876,6 +4979,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (!$("setupView").hidden && setupStep === S_RANGE) {
       const k = /^[0-9]$/.test(e.key) ? e.key : e.key === "Backspace" ? "del" : e.key === "Enter" ? "ok" : "";
       if (k) { rangeKey(k); e.preventDefault(); }
+      return;
+    }
+    if (!$("memAsk").hidden && !$("memoryView").hidden) {
+      const k = /^[0-9]$/.test(e.key) ? e.key : e.key === "Backspace" ? "del" : e.key === "Enter" ? "ok" : "";
+      if (k) { memKey(k); e.preventDefault(); }
       return;
     }
     if ($("gameView").hidden || !state.round) return;
