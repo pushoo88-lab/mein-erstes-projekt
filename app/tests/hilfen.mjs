@@ -31,7 +31,7 @@ export function testCopy() {
   swap("  function makeRound(cfg, sel) {",
     "  window.__gen = (c, t, s) => generate(c, t, s); window.__draw = drawTask; window.__spokenTask = (t) => spokenTask(t);\n" +
     "  window.__render = () => { renderTask(); announceTask(); };\n" +
-    "  window.__mk = { familyFullTask, freeRobotTask, wallMultiTask, tableMultiTask, doubleTableTask, smartPickTask, sachTask, riddleTask, probeTask, stepOptions, dienes, tafel, gradeTask };\n" +
+    "  window.__mk = { familyFullTask, freeRobotTask, wallMultiTask, tableMultiTask, doubleTableTask, smartPickTask, sachTask, riddleTask, probeTask, stepOptions, dienes, tafel, gradeTask, factState, countingHint };\n" +
     "  function makeRound(cfg, sel) {");
   writeFileSync(join(dir, "index.html"), html);
   return dir;
@@ -75,8 +75,12 @@ export async function start({ dir, width = 360, height = 800, mic = null, androi
 
 // Einrichtung wie ein Kind: Name, Klasse, Zahlenraum, Mal/Geteilt, Themen
 export async function setup(page, { name = "", range = "20", mal = false, topics = ["plus"] } = {}) {
-  if (name) { await page.fill("#nameInput", name); await page.click("#nameOk"); } else await page.click("#nameSkip");
-  await page.waitForTimeout(300);
+  // Nach einem Neustart mit gespeichertem Namen beginnt die Einrichtung bei der Klasse
+  await page.waitForFunction(() => [...document.querySelectorAll("#nameInput, [data-grade]")].some((e) => e.offsetParent));
+  if (await page.isVisible("#nameInput")) {
+    if (name) { await page.fill("#nameInput", name); await page.click("#nameOk"); } else await page.click("#nameSkip");
+    await page.waitForTimeout(300);
+  }
   await page.click('[data-grade="2"]'); await page.waitForTimeout(400);
   for (const k of [...range, "ok"]) await page.click(`#rangePad [data-key="${k}"]`);
   await page.click(`[data-mal="${mal ? 1 : 0}"]`); await page.waitForTimeout(400);

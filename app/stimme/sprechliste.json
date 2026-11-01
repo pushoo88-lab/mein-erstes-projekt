@@ -1522,6 +1522,34 @@
    "block": 25,
    "gruppe": "Neue Aufgaben und Übungsblatt",
    "text": "Summi hat gewonnen. Nächstes Mal schaffst du es!"
+  },
+  {
+   "id": 218,
+   "teil": 2,
+   "block": 26,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Hier siehst du, welche Plus- und Minusaufgaben bis 20 schon sitzen."
+  },
+  {
+   "id": 219,
+   "teil": 2,
+   "block": 26,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Grün heißt: sitzt. Gelb heißt: richtig, aber noch langsam. Orange heißt: noch unsicher."
+  },
+  {
+   "id": 220,
+   "teil": 2,
+   "block": 26,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Mit Blitzrechnen üben wir genau die Aufgaben, die noch nicht sitzen."
+  },
+  {
+   "id": 221,
+   "teil": 2,
+   "block": 26,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Wow, alle Aufgaben sitzen! Du bist ein Blitzrechen-Profi!"
   }
  ]
 }
