@@ -41,16 +41,17 @@ for (const [width, height, how] of [[360, 800, "Handy"], [320, 640, "kleines Han
   if (how !== "Handy") { await browser.close(); allErrors.push(...errors); continue; }
 
   // Runde spielen: 7+5 schnell richtig (→ langsam, braucht 2×), 8+6 langsam, 13−6 zweimal falsch, Rest schnell
-  for (let i = 0; i < 10; i++) {
-    const t = await page.evaluate(() => window.__s.round.tasks[window.__s.round.i]);
+  // Immer warten, bis die nächste Aufgabe wirklich da ist (feste Wartezeiten sind auf langsamen Rechnern zu kurz)
+  const nextReady = (i) => page.waitForFunction((i) => !window.__s.round || (window.__s.round.i !== i && !window.__s.round.locked), i, { timeout: 15000 });
+  let missedOnce = false;
+  for (let guard = 0; guard < 16 && !(await page.isVisible("#resultView")); guard++) {
+    const { i, t } = await page.evaluate(() => ({ i: window.__s.round.i, t: window.__s.round.tasks[window.__s.round.i] }));
     const k = `${t.a}${t.op}${t.b}`;
-    await solveCurrent(page, k === "13−6" ? { wrong: 2 } : k === "8+6" ? { wait: 5200 } : {});
-    await page.waitForTimeout(k === "13−6" ? 300 : 1300);
-    if (k === "13−6") { await page.click("#nextBtn"); await page.waitForTimeout(300); }
-    if (await page.isVisible("#resultView")) break;
+    const miss = k === "13−6" && !t.again && !missedOnce;
+    await solveCurrent(page, miss ? { wrong: 2 } : k === "8+6" && !t.again ? { wait: 5200 } : {});
+    if (miss) { missedOnce = true; await page.waitForSelector("#nextBtn", { state: "visible" }); await page.click("#nextBtn"); }
+    await nextReady(i);
   }
-  // "Nochmal" (3 später) kann das Ende verschieben
-  for (let g = 0; g < 4 && !(await page.isVisible("#resultView")); g++) { await solveCurrent(page); await page.waitForTimeout(1300); }
   check(await page.isVisible("#resultView"), `${how}: Blitzrechnen-Runde bis zum Ende`);
   check(/(von|Alle) 11 Aufgaben/.test(await page.textContent("#resultText")), `${how}: nicht geschaffte Aufgabe kommt zusätzlich dran, Ergebnis zählt richtig („${(await page.textContent("#resultText")).slice(0, 45)}“)`);
   check(await fstate(page, "7+5") === "langsam", `${how}: 7 + 5 einmal schnell nach Fehler: noch nicht „sitzt“`);
@@ -58,9 +59,10 @@ for (const [width, height, how] of [[360, 800, "Handy"], [320, 640, "kleines Han
   check(await fstate(page, "13−6") !== "sitzt", `${how}: 13 − 6 falsch: nicht grün`);
   await page.click("#againBtn"); await page.waitForTimeout(400);
   check((await page.textContent("#where")).includes("Blitzrechnen"), `${how}: „Nochmal“ startet wieder Blitzrechnen`);
-  for (let i = 0; i < 20 && !(await page.isVisible("#resultView")); i++) {
-    if (await page.isVisible("#nextBtn")) { await page.click("#nextBtn"); await page.waitForTimeout(300); continue; }
-    await solveCurrent(page); await page.waitForTimeout(1400);
+  for (let g = 0; g < 20 && !(await page.isVisible("#resultView")); g++) {
+    const i = await page.evaluate(() => window.__s.round.i);
+    await solveCurrent(page);
+    await nextReady(i);
   }
   check(await fstate(page, "7+5") === "sitzt", `${how}: 7 + 5 zweimal schnell richtig: sitzt`);
 
