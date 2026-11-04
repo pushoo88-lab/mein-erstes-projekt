@@ -590,6 +590,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 .task.is-sheet { display: grid; justify-items: center; gap: 10px; font-size: clamp(24px, 6.8vw, 32px); }
 .task.is-sheet .slot { min-width: 1.7em; border-width: 3px; padding: 0 .1em; border-radius: 10px; }
 .slot.done { border-style: solid; border-color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, var(--paper)); }
+/* Prüfung: ausgefüllt, aber ohne richtig/falsch – zum Verbessern antippbar */
+.slot.done.edit, .op.edit, .chosen.edit { border-color: var(--blue); background: color-mix(in srgb, var(--blue) 8%, var(--paper)); color: var(--ink); font: inherit; cursor: pointer; }
+.op.edit { border: 2px dashed var(--blue); border-radius: 8px; padding: 0 .2em; }
+.chosen.edit { border: 2px solid var(--blue); border-radius: 12px; padding: 6px 10px; text-align: left; width: 100%; }
+.chosen.edit small { color: var(--blue); font-weight: 700; margin-left: 6px; }
 .slot.later { opacity: .45; }
 .slot.later::after { content: "\00a0"; }
 .task .rows { display: grid; gap: 8px; justify-items: center; }
@@ -3362,12 +3367,25 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const r = state.round;
     if (!r || r.locked) return;
     const t = r.tasks[r.i];
+    if (t.steps && r.step >= t.steps.length) return;   // fertig: erst ein Feld antippen oder "Weiter"
     r.input = ""; r.picks = [];
     if (t.steps) {
       r.vals[r.step] = v;
-      r.step++;
+      // Nach dem Verbessern zurück dorthin, wo das Kind war; die anderen Felder bleiben stehen
+      if (r.editReturn !== undefined) { r.step = r.editReturn; r.editReturn = undefined; } else r.step++;
       if (r.step < t.steps.length) { beep(SOUND_TAP); renderTask(); return; }
+      // Alle Felder ausgefüllt: nochmal ansehen, verbessern oder weiter
       r.answers[r.i] = r.vals.slice();
+      r.skipped = r.skipped.filter((k) => k !== r.i);
+      r.results[r.i] = "second";
+      beep(SOUND_TAP);
+      say(EXAM_REVIEW);
+      setPadEnabled(false);
+      renderTask();
+      renderMeadow(r.i);
+      $("nextBtn").hidden = false;
+      $("nextBtn").focus();
+      return;
     } else r.answers[r.i] = v;
     r.skipped = r.skipped.filter((k) => k !== r.i);
     r.results[r.i] = "second";   // Knospe: beantwortet. Ob es stimmt, zeigt erst die Korrektur.
@@ -3378,6 +3396,20 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderTask();
     renderMeadow(r.i);
     setTimeout(() => { if (state.round === r) examNext(r); }, 600);
+  }
+
+  const EXAM_REVIEW = "Fertig? Wenn du etwas verbessern willst, tippe auf das Feld. Sonst tippe auf Weiter.";
+  // Ein schon ausgefülltes Feld nochmal bearbeiten
+  function examEdit(k) {
+    const r = state.round;
+    if (!r || !r.exam || r.locked) return;
+    const t = r.tasks[r.i];
+    if (!t.steps || k < 0 || k === r.step || (k > r.step && r.vals[k] === undefined)) return;
+    r.editReturn = Math.max(r.step, r.editReturn || 0);
+    r.step = k; r.input = ""; r.picks = [];
+    $("nextBtn").hidden = true;
+    say("Tippe die neue Zahl ein.");
+    renderTask();
   }
 
   function examSkip() {
@@ -3522,7 +3554,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // Zustand für Aufgaben mit mehreren Feldern: aktuelles Feld, ausgefüllte Werte, angetippte Zahlen
   function freshTask(r) {
-    Object.assign(r, { step: 0, vals: [], picks: [], stepTries: 0, gaveUp: false, stepScore: 0, shownAt: Date.now() });
+    Object.assign(r, { step: 0, vals: [], picks: [], stepTries: 0, gaveUp: false, stepScore: 0, shownAt: Date.now(), editReturn: undefined });
   }
 
   function num(n, cls = "") { return `<span class="${cls}">${fmt(n)}</span>`; }
@@ -3543,7 +3575,13 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // Aufgaben mit mehreren Feldern: fertige Felder grün, das aktuelle Feld zum Eintippen, spätere Felder leer
   function drawSteps(el, t, slot, ss) {
-    const at = (k) => (k < ss.step ? (ss.marks ? markSlot(ss.vals[k], ss.marks[k], ss.sol[k]) : `<span class="slot done">${fmt(ss.vals[k])}</span>`)
+    // Prüfung: Ausgefülltes antippen und verbessern, wie auf dem Papier
+    const edit = !!ss.exam && !ss.marks;
+    // Beim Verbessern bleiben die späteren, schon ausgefüllten Felder sichtbar
+    const filled = (k) => k < ss.step || (edit && k > ss.step && ss.vals[k] !== undefined);
+    const at = (k) => (k !== ss.step && filled(k) ? (ss.marks ? markSlot(ss.vals[k], ss.marks[k], ss.sol[k])
+      : edit ? `<button class="slot done edit" type="button" data-edit="${k}" aria-label="${fmt(ss.vals[k])}, zum Ändern antippen">${fmt(ss.vals[k])}</button>`
+      : `<span class="slot done">${fmt(ss.vals[k])}</span>`)
       : k === ss.step ? slot : '<span class="slot later"></span>');
     const choiceAt = (k, inline = false) => {
       const st = t.steps[k];
@@ -3551,6 +3589,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         const chosen = ss.vals[k] === undefined ? "–" : st.options[ss.vals[k]], fix = ss.marks[k] ? "" : `<small class="fix">${st.options[ss.sol[k]]}</small>`;
         return inline ? `<span class="slot done ${ss.marks[k] ? "ok" : "bad"}">${chosen}${fix}</span>` : `<p class="chosen ${ss.marks[k] ? "ok" : "bad"}">${chosen}${fix}</p>`;
       }
+      if (k !== ss.step && filled(k) && edit) return inline ? `<button class="op edit" type="button" data-edit="${k}">${st.options[ss.vals[k]]}</button>`
+        : `<button class="chosen edit" type="button" data-edit="${k}">${st.options[ss.vals[k]]} <small>ändern</small></button>`;
       if (k < ss.step) return inline ? `<span class="op">${st.options[ss.vals[k]]}</span>` : `<p class="chosen">${st.options[ss.vals[k]]}</p>`;
       if (k > ss.step) return inline ? '<span class="slot later"></span>' : "";
       return `<span class="choices${inline ? " inline" : ""}">${st.options.map((o, i) =>
@@ -3705,7 +3745,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const r = state.round;
     if (!r || r.locked) return;
     const t = r.tasks[r.i];
-    if (t.steps && t.steps[r.step].type !== "num") return;   // hier wird angetippt, nicht getippt
+    if (r.exam && t.steps && d === "del" && r.input === "" && r.step > 0) return examEdit(r.step - 1);
+    if (t.steps && (!t.steps[r.step] || t.steps[r.step].type !== "num")) return;   // angetippt, nicht getippt (oder schon fertig)
     if (d === "del") r.input = r.input.slice(0, -1);
     else if (d === "ok") return check();
     else if (r.input.length < String(r.N).length) r.input = (r.input === "0" ? "" : r.input) + d;
@@ -5583,6 +5624,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("task").addEventListener("click", (e) => {
     const r = state.round;
     if (!r || r.locked) return;
+    const editBtn = e.target.closest("[data-edit]");
+    if (editBtn) return examEdit(Number(editBtn.dataset.edit));
     const choice = e.target.closest("[data-choice]"), pickBtn = e.target.closest("[data-pick]");
     const answer = r.exam ? examInput : checkStep;
     if (choice) return answer(Number(choice.dataset.choice));

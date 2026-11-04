@@ -32,20 +32,41 @@ check(await page.isVisible("#gameView"), "Zurück fragt erst nach, auch wenn nur
 
 const state = () => page.evaluate(() => { const r = window.__s.round; return r && { i: r.i, t: r.tasks[r.i], step: r.step, vals: r.vals, locked: r.locked, revisit: !!r.revisit }; });
 const said = new Set();
-let skipped = 1;
+let skipped = 1, fixed = false, sawReview = false;
 for (let guard = 0; guard < 600; guard++) {
   const s = await state();
   if (!s) break;
   if (s.locked) { await page.waitForTimeout(250); continue; }
   if (s.i === 9 && s.step === 0 && !s.revisit && skipped < 2) { skipped++; await page.click("#skipBtn"); await page.waitForTimeout(150); continue; }
   if (!s.t.steps) await answer(page, null, s.i === 4 ? s.t.answer + 1 : s.t.answer);
-  else {
+  else if (s.step >= s.t.steps.length) {   // fertig: nochmal ansehen, dann Weiter
+    if (!sawReview) { sawReview = await page.isVisible("#nextBtn") && /verbessern/.test(await page.textContent("#say")); }
+    await page.click("#nextBtn"); await page.waitForTimeout(150);
+  } else if (!fixed && s.step === 0 && s.t.steps.length >= 4 && s.t.steps.slice(0, 3).every((x) => x.type === "num")) {
+    // Vertippt: Feld 2 falsch, Feld 3 richtig. Dann Feld 2 antippen und verbessern, ⌫ auf leerem Feld geht zurück.
+    fixed = true;
+    const opt = (k, v) => page.evaluate(([t, k, v]) => window.__mk.stepOptions(t, k, v)[0], [s.t, k, v]);
+    const v0 = await opt(0, []), v1 = await opt(1, [v0]), v2 = await opt(2, [v0, v1]);
+    for (const v of [v0, v1 + 1, v2]) await answer(page, s.t.steps[0], v);
+    check(await page.evaluate(() => document.querySelectorAll("#task .slot.done.edit").length) === 3 && !(await page.evaluate(() => document.querySelector("#task .slot.done.ok"))),
+      "Prüfung: ausgefüllte Felder ohne richtig/falsch, zum Antippen");
+    await page.click('#task [data-edit="1"]'); await page.waitForTimeout(100);
+    await answer(page, s.t.steps[1], v1);
+    const after = await state();
+    check(after.step === 3 && after.vals[1] === v1 && after.vals[2] === v2, `Prüfung: Feld verbessert, die anderen bleiben, weiter beim nächsten freien Feld (${after.vals.slice(0, 3).join(", ")})`);
+    await page.keyboard.press("Backspace"); await page.waitForTimeout(100);
+    check((await state()).step === 2, "Prüfung: ⌫ auf leerem Feld geht ein Feld zurück");
+    await answer(page, s.t.steps[2], v2);
+    continue;
+  } else {
     const opts = await page.evaluate(([t, k, v]) => window.__mk.stepOptions(t, k, v), [s.t, s.step, s.vals]);
     await answer(page, s.t.steps[s.step], opts[0]);
   }
   said.add(await page.textContent("#say"));
 }
 await page.waitForTimeout(900);
+check(fixed, "Prüfung: Vertipper verbessert");
+check(sawReview, "Prüfung: nach dem letzten Feld erst ansehen, dann Weiter");
 check(![...said].some((x) => /richtig|stimmt|Lösung|nochmal/i.test(x) && !/übersprungen/.test(x)), "während der Prüfung kein richtig oder falsch");
 check(await page.textContent("#resultTitle") === "Prüfung geschafft!", "Prüfung beendet");
 const res = await page.textContent("#resultText");
