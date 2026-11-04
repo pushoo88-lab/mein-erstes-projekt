@@ -475,7 +475,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
   .mem-ask .pad, .board-panel .pad { grid-template-columns: repeat(6, 1fr); }
   .mem-ask .key, .board-panel .key { min-height: 42px; font-size: 24px; }
   .mem-q { font-size: 24px; }
-  #memoryView.asking { padding-bottom: 170px; }
+  #memoryView.asking { padding-bottom: 260px; }
 }
 
 /* Rechentricks */
@@ -4923,7 +4923,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     beeMood("memBee", "think");
     autoRead(MEM_SAY[1]);
     const card = $("memGrid").children[i].getBoundingClientRect(), panel = $("memAsk").getBoundingClientRect();
-    if (card.bottom > panel.top - 8) window.scrollBy({ top: card.bottom - panel.top + 16, behavior: "smooth" });
+    if (card.bottom > panel.top - 8) window.scrollBy(0, card.bottom - panel.top + 16);
   }
   function closeMemAsk() {
     for (const k of mem.open) $("memGrid").children[k].classList.add("open");   // zugedecktes Ergebnis wieder zeigen
@@ -5156,7 +5156,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       $("boardCheck").hidden = false;
       $("boardSay").textContent = `Summi hat ${board.dice} gewürfelt und rechnet. ${BOARD_SAY[2]}`;
       beeMood("boardBee", "think");
-      autoRead(`Summi rechnet: ${spokenTask(t).replace(/ wie viel\??$/, "").replace(/\?$/, "")} ${fmt(shown)}. ${BOARD_SAY[2]}`);
+      autoRead(`Summi hat ${board.dice} gewürfelt. ${summiSays(t, shown)} ${BOARD_SAY[2]}`);
       return;
     }
     board.phase = "ask";
@@ -5165,10 +5165,18 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("boardPad").hidden = false;
     renderBoardTask();
     $("boardSay").textContent = `${board.dice} gewürfelt! ${BOARD_SAY[1]}`;
+    const who = p.kind === "kid" ? "Du hast" : `${p.name} hat`;
     const padBottom = $("boardPad").getBoundingClientRect().bottom;
     if (padBottom > window.innerHeight) window.scrollBy({ top: padBottom - window.innerHeight + 12, behavior: "smooth" });
     beeMood("boardBee", "");
-    autoRead(`${board.dice}. ${spokenTask(board.t)}`);
+    autoRead(`${who} ${board.dice} gewürfelt. ${spokenTask(board.t)}`);
+  }
+  // Summis Rechnung als ganzer Satz: "7 plus 5 gleich 12", "36 plus 5 gleich 41",
+  // bei anderen Aufgaben erst die Aufgabe, dann "Summi sagt: 22."
+  function summiSays(t, x) {
+    const base = spokenTask(t).replace(/ Danach mach die Probe\.$/, "");
+    if (/wie viel/.test(base)) return base.replace(/wie viel/, fmt(x)).replace(/\?$/, "") + ".";
+    return `${base} Summi sagt: ${fmt(x)}.`;
   }
   function renderBoardTask(mark = "") {
     const slot = `<span class="slot${board.input ? " filled" : ""}${mark ? " " + mark : ""}">${board.input ? fmt(Number(board.input)) : "?"}</span>`;
@@ -5202,7 +5210,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (right) {
       renderBoardTask("ok");
       beep(SOUND_RIGHT);
-      const say = board.tries ? pick(SECOND_TRY) : fromDeck("praise", PRAISE);
+      const say = board.tries ? pick(SECOND_TRY) : pick(PRAISE.filter((x) => !/Blume|Wiese|Garten/.test(x)));
       $("boardSay").textContent = `${say} Zieh ${board.dice} ${board.dice === 1 ? "Feld" : "Felder"}.`;
       beeMood("boardBee", "happy");
       autoRead(say);

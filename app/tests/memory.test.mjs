@@ -22,10 +22,11 @@ for (const [width, height, how] of [[360, 800, "Handy"], [780, 360, "Handy quer"
   await page.click(`[data-card="${taskOf(0)}"]`); await page.waitForTimeout(400);
   check(await page.isVisible("#memAsk"), `${how}: Aufgabenkarte öffnet das Rechenfeld`);
   check(/\?/.test(await page.textContent("#memQ")), `${how}: Frage „${(await page.textContent("#memQ")).trim()}“`);
+  // Erst messen: Der folgende Klick-Versuch lässt das Testprogramm selbst scrollen
+  const box = await page.evaluate(() => { const c = document.querySelector(".card.asking").getBoundingClientRect(), p = document.getElementById("memAsk").getBoundingClientRect(); return { card: Math.round(c.bottom), cardTop: Math.round(c.top), panel: Math.round(p.top), padBottom: Math.round(document.getElementById("memPad").getBoundingClientRect().bottom), scroll: Math.round(scrollY), max: document.documentElement.scrollHeight - innerHeight }; });
+  check(box.card <= box.panel && box.padBottom <= height, `${how}: offene Karte und Zahlentasten beide zu sehen${box.card <= box.panel && box.padBottom <= height ? "" : " " + JSON.stringify(box)}`);
   await page.click(`[data-card="${resultOf(0)}"]`, { force: true, trial: false }).catch(() => {});
   check((await page.evaluate(() => window.__mem.open.length)) === 1, `${how}: vor dem Rechnen geht keine zweite Karte auf`);
-  const box = await page.evaluate(() => { const c = document.querySelector(".card.asking").getBoundingClientRect(), p = document.getElementById("memAsk").getBoundingClientRect(); return { card: c.bottom, panel: p.top, padBottom: document.getElementById("memPad").getBoundingClientRect().bottom }; });
-  check(box.card <= box.panel && box.padBottom <= height, `${how}: offene Karte und Zahlentasten beide zu sehen`);
   // erst falsch, dann richtig (per Tasten auf dem Bildschirm)
   await tap(answers[0] + 1);
   check(await page.isVisible("#memAsk") && /\?/.test(await page.textContent("#memQ")), `${how}: falsches Ergebnis: nochmal rechnen`);
