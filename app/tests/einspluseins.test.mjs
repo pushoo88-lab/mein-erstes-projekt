@@ -27,6 +27,9 @@ for (const [width, height, how] of [[360, 800, "Handy"], [320, 640, "kleines Han
   const cells = await page.evaluate(() => ({ n: document.querySelectorAll("#factsGrid .fc").length, sitzt: document.querySelectorAll("#factsGrid .fc.sitzt").length, unsicher: document.querySelectorAll("#factsGrid .fc.unsicher").length, langsam: document.querySelectorAll("#factsGrid .fc.langsam").length, cross: document.querySelectorAll("#factsGrid .fc.cross").length }));
   check(cells.n === 100 && cells.sitzt === 1 && cells.unsicher === 1 && cells.langsam === 1, `${how}: Plus-Karte: 100 Felder, Farben stimmen (${JSON.stringify(cells)})`);
   check(cells.cross === 36, `${how}: 36 Aufgaben über die 10 markiert`);
+  await page.click('[data-facts="minus"]'); await page.waitForTimeout(150);
+  check(await page.evaluate(() => document.querySelectorAll("#factsGrid .fc.cross").length) === 36, `${how}: auch bei Minus genau 36 über die 10 (20 − 10 nicht)`);
+  await page.click('[data-facts="plus"]'); await page.waitForTimeout(150);
   check(await page.evaluate(() => document.documentElement.scrollWidth) <= width, `${how}: Karte passt in die Breite`);
   await page.click('[data-fact="7+5"]'); await page.waitForTimeout(200);
   check(/7 \+ 5 = 12/.test(await page.textContent("#factsSay")), `${how}: Feld antippen sagt die Aufgabe („${await page.textContent("#factsSay")}“)`);
@@ -73,7 +76,8 @@ for (const [width, height, how] of [[360, 800, "Handy"], [320, 640, "kleines Han
   await solveCurrent(page); await page.waitForTimeout(1300);
   const after = await page.evaluate(() => Object.values(JSON.parse(localStorage.getItem("rw-facts"))).reduce((n, h) => n + h.length, 0));
   const t0 = await page.evaluate(() => window.__s.round.tasks[0]);
-  const isFact = t0.a <= 20 && t0.b <= 10 && t0.c <= 20 && !t0.kind && t0.blank === "c";
+  // gleiche Regel wie die App: Plus mit beiden Zahlen 1–10, Minus mit Ergebnis und Abzug 1–10
+  const isFact = !t0.kind && t0.blank === "c" && (t0.op === "+" ? t0.a >= 1 && t0.a <= 10 && t0.b >= 1 && t0.b <= 10 : t0.op === "−" && t0.b >= 1 && t0.b <= 10 && t0.c >= 1 && t0.c <= 10);
   check(!isFact || after === before + 1, `${how}: Blumen-Runde zählt mit (${t0.a} ${t0.op} ${t0.b})`);
   await page.click("#backBtn"); await page.click("#backBtn").catch(() => {}); await page.waitForTimeout(300);
 

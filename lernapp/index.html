@@ -2004,7 +2004,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
   const factParts = (key) => { const m = key.match(/^(\d+)([+−])(\d+)$/); const a = +m[1], b = +m[3]; return { a, b, op: m[2], c: m[2] === "+" ? a + b : a - b }; };
   // Über die 10: 8 + 5, 13 − 6 (hier verraten lange Rechenzeiten oft noch zählendes Rechnen)
-  const factCrosses = (key) => { const f = factParts(key); return f.op === "+" ? f.a < 10 && f.b < 10 && f.c > 10 : f.a > 10 && f.a % 10 < f.b; };
+  const factCrosses = (key) => { const f = factParts(key); return f.op === "+" ? f.a < 10 && f.b < 10 && f.c > 10 : f.a > 10 && f.b < 10 && f.c < 10; };
   const factFast = (key) => (factParts(key).c >= 10 ? 4500 : 3500);   // zweistellige Antwort: etwas mehr Zeit zum Tippen
   function recordFact(t, ok, ms) {
     const key = factKey(t);
@@ -2426,6 +2426,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   });
 
   function autoRead(text, queue = false) { if (state.sound && interacted) speak(text, queue); }
+  // Ungefähre Dauer des Vorlesens: Die Rechenzeit fürs Einspluseins zählt erst danach
+  const readTime = (text) => (state.sound && interacted && text ? 400 + text.length * 60 / (voiceCfg.rate || 1) : 0);
 
   // Jeder Stopp erhöht die Nummer: Sätze, die noch in der Warteschlange stehen, verfallen dann
   let speechGen = 0;
@@ -3410,7 +3412,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     r.editReturn = Math.max(r.step, r.editReturn || 0);
     r.step = k; r.input = ""; r.picks = [];
     $("nextBtn").hidden = true;
-    say("Tippe die neue Zahl ein.");
+    const type = t.steps[k].type;
+    say(type === "choice" ? "Tippe die richtige Antwort an." : type === "pick2" ? "Tippe die zwei Zahlen an." : "Tippe die neue Zahl ein.");
     renderTask();
   }
 
@@ -3730,8 +3733,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       const msg = t.again ? "Die kennst du schon von vorhin. Jetzt klappt sie bestimmt!" : "Diese Aufgabe hattest du schon mal. Zeig, was du gelernt hast!";
       say(msg);
       autoRead(msg, true);
+      if (state.round) state.round.shownAt = Date.now() + readTime(msg);
     }
-    if (["text", "wall", "family", "table"].includes(t.kind) || t.steps) autoRead(spokenTask(t), true);
+    if (["text", "wall", "family", "table"].includes(t.kind) || t.steps) {
+      autoRead(spokenTask(t), true);
+      if (state.round) state.round.shownAt = Math.max(state.round.shownAt || 0, Date.now() + readTime(spokenTask(t)));
+    }
   }
 
   function resetTaskUi() {
@@ -4019,6 +4026,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   const STEP_OK = ["Richtig! Weiter geht's.", "Stimmt! Und jetzt das nächste Feld.", "Genau! Weiter so.", "Prima, das passt!"];
   const MULTI_MISSED = ["Nicht schlimm! Schau dir die Lösung genau an, dann klappt es beim nächsten Mal.",
     "Geschafft! Ein paar Felder hat Summi für dich ausgefüllt. So lernst du dazu."];
+  // Wie ein Feldwert vorgelesen/angezeigt wird: Zahl, gewählte Antwort oder zwei angetippte Zahlen
+  const fieldText = (t, st, v) => (st.type === "choice" ? `„${st.options[v]}“` : st.type === "pick2" ? String(v).split(",").map((i) => fmt(t.nums[i])).join(" und ") : fmt(v));
   function checkStep(v) {
     const r = state.round;
     if (!r || r.locked) return;
@@ -4049,7 +4058,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     }
     // Zweimal daneben: Summi trägt dieses Feld ein, dann geht es weiter
     const right = opts[0];
-    const shown = st.type === "choice" ? `„${st.options[right]}“` : st.type === "pick2" ? right.split(",").map((i) => fmt(t.nums[i])).join(" und ") : fmt(right);
+    const shown = fieldText(t, st, right);
     r.gaveUp = true; r.vals[r.step] = right; r.step++; r.stepTries = 0;
     if (r.step >= t.steps.length) return missTask(r, t, true);
     cheer(`Hier gehört ${shown} hin. Schau es dir an, dann geht es weiter.`, "oops");
@@ -4073,7 +4082,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     }
     addSolved();
     recordResult(t.topic, r.tries === 0 ? 1 : 0.5);
-    if (!r.exam) recordFact(t, r.tries === 0, r.helped ? 60000 : Date.now() - r.shownAt);   // mit Hilfe: richtig, aber nicht "sitzt"
+    if (!r.exam) recordFact(t, r.tries === 0, r.helped ? 60000 : Math.max(300, Date.now() - r.shownAt));   // mit Hilfe: richtig, aber nicht "sitzt"
     if (t.review || t.again) reviewAnswered(t, r.tries === 0);
     if (r.tries > 0) rememberMistake(t);
     renderTask("right");
@@ -5228,13 +5237,15 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const padBottom = $("boardPad").getBoundingClientRect().bottom;
     if (padBottom > window.innerHeight) window.scrollBy({ top: padBottom - window.innerHeight + 12, behavior: "smooth" });
     beeMood("boardBee", "");
-    autoRead(`${who} ${board.dice} gewürfelt. ${board.t.sec !== undefined ? "Aus der Prüfung. " : ""}${spokenTask(board.t)}`);
+    const spoken = `${who} ${board.dice} gewürfelt. ${board.t.sec !== undefined ? "Aus der Prüfung. " : ""}${spokenTask(board.t)}`;
+    autoRead(spoken);
+    board.askedAt = Date.now() + readTime(spoken);
   }
   // Summis Rechnung als ganzer Satz: "7 plus 5 gleich 12", "36 plus 5 gleich 41",
   // bei anderen Aufgaben erst die Aufgabe, dann "Summi sagt: 22."
   function summiSays(t, x) {
     const base = spokenTask(t).replace(/ Danach mach die Probe\.$/, "");
-    if (/wie viel/.test(base)) return base.replace(/wie viel/, fmt(x)).replace(/\?$/, "") + ".";
+    if (/\bwie viel\b/.test(base)) return base.replace(/\bwie viel\b/, fmt(x)).replace(/\?$/, "") + ".";
     return `${base} Summi sagt: ${fmt(x)}.`;
   }
   function renderBoardTask(mark = "") {
@@ -5268,7 +5279,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       return;
     }
     const right = opts[0];
-    const shown = st.type === "choice" ? `„${st.options[right]}“` : st.type === "pick2" ? right.split(",").map((i) => fmt(t.nums[i])).join(" und ") : fmt(right);
+    const shown = fieldText(t, st, right);
     board.gaveUp = true; board.vals[board.step] = right; board.step++; board.stepTries = 0;
     if (board.step >= t.steps.length) return boardSheetDone(false);
     $("boardSay").textContent = `Hier gehört ${shown} hin. Schau es dir an, dann geht es weiter.`;
@@ -5322,7 +5333,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("boardPad").hidden = true;
     if (p.kind === "kid") {
       recordResult(t.topic, right ? (board.tries ? 0.5 : 1) : 0);
-      recordFact(t, right && !board.tries, Date.now() - board.askedAt);
+      recordFact(t, right && !board.tries, Math.max(300, Date.now() - board.askedAt));
       if (right) { addSolved(); board.solved++; } else rememberMistake(t);
     }
     if (right) {
@@ -5448,7 +5459,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const perfect = first === r.tasks.length;
     bumpStats({ rounds: 1, three: first >= 9 ? 1 : 0, perfect: perfect ? 1 : 0 });
 
-    const key = `${state.grade}-${r.N}-${selectionKey(r.sel)}`;
+    const selKey = r.blitz ? "blitz" : selectionKey(r.sel);   // Blitzrechnen hat eigene Rekorde
+    const key = `${state.grade}-${r.N}-${selKey}`;
     state.best[key] = Math.max(state.best[key] || 0, stars);
     r.results.forEach((x, i) => {
       if (x === "first") state.garden.push("f" + (i % 4));
@@ -5462,7 +5474,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("resultTitle").textContent = perfect ? "Perfekt! Alles richtig!" : stars === 3 ? "Fantastisch!" : stars === 2 ? "Gut gemacht!" : "Weiter so!";
     const levelMsg = state.level ? (first + second >= (LEVELS[state.level.i].boss ? 8 : 7) ? " Und das Level hast du geschafft!" : " Probier das Level gleich nochmal, du schaffst das!") : "";
     // Mit dem eigenen letzten Ergebnis vergleichen, nie mit anderen
-    const correct = first + second, lastKey = `${state.grade}-${r.N}-${selectionKey(r.sel)}`;
+    const correct = first + second, lastKey = key;
     const last = state.lastScores[lastKey];
     state.lastScores[lastKey] = correct;
     store.set("rw-last", state.lastScores);
