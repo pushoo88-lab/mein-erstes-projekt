@@ -52,6 +52,7 @@ for (const [width, height, how] of [[360, 800, "Handy"], [320, 640, "kleines Han
   // "Nochmal" (3 später) kann das Ende verschieben
   for (let g = 0; g < 4 && !(await page.isVisible("#resultView")); g++) { await solveCurrent(page); await page.waitForTimeout(1300); }
   check(await page.isVisible("#resultView"), `${how}: Blitzrechnen-Runde bis zum Ende`);
+  check(/(von|Alle) 11 Aufgaben/.test(await page.textContent("#resultText")), `${how}: nicht geschaffte Aufgabe kommt zusätzlich dran, Ergebnis zählt richtig („${(await page.textContent("#resultText")).slice(0, 45)}“)`);
   check(await fstate(page, "7+5") === "langsam", `${how}: 7 + 5 einmal schnell nach Fehler: noch nicht „sitzt“`);
   check(await fstate(page, "8+6") === "langsam", `${how}: 8 + 6 langsam gerechnet: bleibt gelb`);
   check(await fstate(page, "13−6") !== "sitzt", `${how}: 13 − 6 falsch: nicht grün`);

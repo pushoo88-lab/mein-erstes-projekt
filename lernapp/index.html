@@ -4049,7 +4049,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     rememberMistake(t);
     recordFact(t, false);
     // Dieselbe Aufgabe kommt 3 Aufgaben später nochmal: so übt das Gedächtnis (nicht auf dem Übungsblatt)
-    if (!r.school && !t.again && r.i + 3 < r.tasks.length) r.tasks[r.i + 3] = { ...t, again: true };
+    // Beim Blitzrechnen zusätzlich einfügen: sonst fiele eine andere Aufgabe weg, die gerade geübt werden soll
+    if (r.blitz && !t.again) r.tasks.splice(Math.min(r.i + 3, r.tasks.length), 0, { ...t, again: true });
+    else if (!r.school && !t.again && r.i + 3 < r.tasks.length) r.tasks[r.i + 3] = { ...t, again: true };
     showHelp(true);
     setPadEnabled(false);
     $("helpBtn").hidden = true;
@@ -5327,7 +5329,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const second = r.results.filter((x) => x === "second").length;
     const missed = r.results.filter((x) => x === "missed").length;
     const stars = first >= 9 ? 3 : first + second >= 7 ? 2 : 1;
-    const perfect = first === 10;
+    const perfect = first === r.tasks.length;
     bumpStats({ rounds: 1, three: first >= 9 ? 1 : 0, perfect: perfect ? 1 : 0 });
 
     const key = `${state.grade}-${r.N}-${selectionKey(r.sel)}`;
@@ -5358,9 +5360,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       : "Gut, dass du geübt hast! Mit jeder Runde lernst du dazu.") + levelMsg, progress, extra].filter(Boolean).join(" ");
     $("bigStars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= stars ? "on grow" : "off"}">${STAR}</span>`).join("");
     $("bigStars").setAttribute("aria-label", `${stars} von 3 Sternen`);
-    $("resultText").textContent = first === 10
-      ? "Alle 10 Aufgaben gleich beim ersten Versuch richtig."
-      : `${first + second} von 10 Aufgaben richtig, ${first} davon gleich beim ersten Versuch.`;
+    $("resultText").textContent = perfect
+      ? `Alle ${r.tasks.length} Aufgaben gleich beim ersten Versuch richtig.`
+      : `${first + second} von ${r.tasks.length} Aufgaben richtig, ${first} davon gleich beim ersten Versuch.`;
     $("resultText").textContent += [progress, extra].filter(Boolean).map((x) => " " + x).join("");
     $("tally").innerHTML =
       `<span>${flowerSVG("flower", "var(--petal-1)")} ${first} Blumen</span>` +
