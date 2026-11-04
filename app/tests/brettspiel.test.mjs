@@ -4,12 +4,20 @@
 import { testCopy, start, setup, check, done } from "./hilfen.mjs";
 
 const dir = testCopy(), allErrors = [];
-const st = (page) => page.evaluate(() => { const b = window.__board; return { phase: b.phase, turn: b.turn, kind: b.players[b.turn] && b.players[b.turn].kind, pos: b.players.map((p) => p.pos), dice: b.dice, t: b.t, shown: b.shown }; });
+const st = (page) => page.evaluate(() => { const b = window.__board; return { phase: b.phase, turn: b.turn, kind: b.players[b.turn] && b.players[b.turn].kind, pos: b.players.map((p) => p.pos), dice: b.dice, t: b.t, shown: b.shown, step: b.step, vals: b.vals }; });
+// Ein Feld einer Prüfungsaufgabe so ausfüllen, wie ein Kind es bedient
+async function fillField(page, s, v) {
+  const type = s.t.steps[s.step].type;
+  if (type === "num") { for (const d of String(v)) await page.click(`#boardPad [data-key="${d}"]`); await page.click('#boardPad [data-key="ok"]'); }
+  else if (type === "choice") await page.click(`#boardTask [data-choice="${v}"]`);
+  else { const [x, y] = String(v).split(","); await page.click(`#boardTask [data-pick="${x}"]`); await page.click(`#boardTask [data-pick="${y}"]`); }
+  await page.waitForTimeout(60);
+}
 const flowers = (page) => page.evaluate(() => JSON.parse(localStorage.getItem("rw-garden") || "[]").length);
 
 // Spielt, bis jemand gewinnt. Gibt Beobachtungen zurück.
 async function playGame(page, { wrongFirst = true } = {}) {
-  const seen = { kidMoves: 0, checks: 0, caught: 0, grownMax: 0, wrongStays: 0, effects: new Set(), badMove: [] };
+  const seen = { kidMoves: 0, checks: 0, caught: 0, grownMax: 0, wrongStays: 0, effects: new Set(), badMove: [], sheets: new Set(), bonus: 0, sheetFails: 0 };
   let didWrong = !wrongFirst;
   for (let guard = 0; guard < 400; guard++) {
     if (await page.isVisible("#boardOver")) break;
@@ -18,6 +26,27 @@ async function playGame(page, { wrongFirst = true } = {}) {
     if (s.phase === "ask") {
       const before = s.pos[s.turn];
       if (s.kind === "grown") seen.grownMax = Math.max(seen.grownMax, s.t.answer, s.t.a || 0, s.t.b || 0);
+      let bonus = 0;
+      if (s.t.steps) {
+        // Prüfungsaufgabe: Feld für Feld. Die erste wird absichtlich verpatzt (zweimal falsch in einem Feld).
+        seen.sheets.add(s.t.kind);
+        const fail = seen.sheets.size === 1 && !seen.sheetFails && s.t.steps[0].type === "num";
+        for (let k = 0; k < 40; k++) {
+          const c = await st(page);
+          if (c.phase !== "ask" || c.step >= c.t.steps.length) break;
+          const opts = await page.evaluate(([t, k, v]) => window.__mk.stepOptions(t, k, v), [c.t, c.step, c.vals]);
+          if (fail && c.step === 0) { await fillField(page, c, Number(opts[0]) + 50); await fillField(page, c, Number(opts[0]) + 51); continue; }
+          await fillField(page, c, opts[0]);
+        }
+        if (fail) {
+          seen.sheetFails++;
+          await page.waitForTimeout(3600);
+          if ((await st(page)).pos[s.turn] !== before) seen.badMove.push("verpatzte Prüfungsaufgabe: trotzdem gezogen");
+          continue;
+        }
+        bonus = s.t.steps.length >= 6 ? 2 : 0;
+        if (bonus) seen.bonus++;
+      } else {
       if (!didWrong) {   // einmal ganz falsch: bleibt stehen
         didWrong = true;
         for (const v of [s.t.answer + 1, s.t.answer + 2]) { await page.keyboard.type(String(v)); await page.keyboard.press("Enter"); await page.waitForTimeout(150); }
@@ -27,9 +56,10 @@ async function playGame(page, { wrongFirst = true } = {}) {
       }
       for (const d of String(s.t.answer)) await page.click(`#boardPad [data-key="${d}"]`);
       await page.click('#boardPad [data-key="ok"]');
+      }
       // warten, bis die Figur gezogen ist (und ein Sonderfeld gewirkt hat)
       await page.waitForFunction((t) => window.__board.phase !== "move" || window.__board.turn !== t, s.turn, { timeout: 15000 });
-      const after = (await st(page)).pos[s.turn], plain = Math.min(20, before + s.dice);
+      const after = (await st(page)).pos[s.turn], plain = Math.min(20, before + s.dice + bonus);
       const field = { 5: 3, 12: 3, 9: -2, 16: -2, 18: -2 }[plain] || 0;
       if (field) seen.effects.add(field > 0 ? "sprung" : "wind");
       if ([7, 14].includes(plain)) seen.effects.add("nochmal");
@@ -74,7 +104,9 @@ for (const [width, height, how] of [[360, 780, "Handy"], [1280, 800, "Tablet que
   const seen = await playGame(page);
   check(await page.isVisible("#boardOver"), `${how}: Partie gegen Summi bis zum Ende („${await page.textContent("#boardOverTitle")}“)`);
   check(seen.badMove.length === 0, `${how}: Figuren ziehen richtig, Sonderfelder wirken${seen.badMove.length ? ": " + seen.badMove.join(", ") : ` (${[...seen.effects].join(", ") || "keins getroffen"})`}`);
-  check(seen.wrongStays === 1, `${how}: zweimal falsch gerechnet: Figur bleibt stehen`);
+  check(seen.wrongStays <= 1, `${how}: zweimal falsch gerechnet: Figur bleibt stehen`);
+  check(seen.sheets.size >= 2, `${how}: Prüfungsaufgaben im Spiel (${[...seen.sheets].join(", ")})`);
+  check(seen.sheetFails <= 1 && !seen.badMove.some((x) => /verpatzt/.test(x)), `${how}: verpatzte Prüfungsaufgabe: Summi füllt aus, Figur bleibt stehen`);
   const said = await page.evaluate(() => window.__said);
   const summi = said.filter((x) => x.startsWith("Summi hat ") && x.includes("gewürfelt")), kid = said.filter((x) => / gewürfelt\. /.test(x) && !x.startsWith("Summi"));
   const odd = [...summi.filter((x) => !/(gleich|Summi sagt:) \d[\d.]*( \w+)*\. Hat Summi richtig gerechnet\?$/.test(x) || /wie viel/.test(x)), ...kid.filter((x) => !/^Du hast [1-6] gewürfelt\. ./.test(x)), ...said.filter((x) => /Noch eine Blume|Deine Wiese/.test(x))];
@@ -97,9 +129,13 @@ for (const [width, height, how] of [[360, 780, "Handy"], [1280, 800, "Tablet que
   await playGame(page, { wrongFirst: false }).catch(() => {});   // bis zum Ende, dann neu
   await page.click("#boardAgain"); await page.waitForTimeout(300);
   await page.click("#boardRoll"); await page.waitForTimeout(700);
-  const a = (await st(page)).t.answer;
-  for (const d of String(a)) await page.click(`#boardPad [data-key="${d}"]`);
-  await page.click('#boardPad [data-key="ok"]'); await page.waitForTimeout(3000);
+  for (let k = 0; k < 40; k++) {   // Aufgabe lösen, egal welche Art
+    const c = await st(page);
+    if (c.phase !== "ask") break;
+    if (!c.t.steps) { for (const d of String(c.t.answer)) await page.click(`#boardPad [data-key="${d}"]`); await page.click('#boardPad [data-key="ok"]'); break; }
+    await fillField(page, c, (await page.evaluate(([t, k, v]) => window.__mk.stepOptions(t, k, v), [c.t, c.step, c.vals]))[0]);
+  }
+  await page.waitForTimeout(3000);
   await page.click("#boardBack"); await page.waitForTimeout(200);
   check(await page.isVisible("#boardView"), `${how}: Zurück im Spiel fragt erst nach`);
   await page.click("#boardBack"); await page.waitForTimeout(400);

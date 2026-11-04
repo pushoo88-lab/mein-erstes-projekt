@@ -452,6 +452,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .die.rolling { animation: roll .5s linear; }
 @keyframes roll { 50% { transform: rotate(180deg) scale(.85); } 100% { transform: rotate(360deg); } }
 .board-task { width: 100%; }
+.board-head { margin: 0; width: 100%; font-size: 15px; }
 .board-panel .pad { width: 100%; }
 @media (orientation: landscape) and (min-width: 700px) {
   #boardView { width: min(1080px, calc(100vw - 32px)); margin-inline: calc((100% - min(1080px, calc(100vw - 32px))) / 2); }
@@ -1011,6 +1012,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
           <span class="die" id="boardDie"></span>
           <button class="go" id="boardRoll" type="button">Würfeln</button>
         </div>
+        <p class="sheet-head board-head" id="boardHead" hidden></p>
         <div class="task board-task" id="boardTask" hidden></div>
         <div class="pad" id="boardPad" hidden></div>
         <div class="yesno" id="boardCheck" hidden>
@@ -3818,6 +3820,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     "Wow, alle Aufgaben sitzen! Du bist ein Blitzrechen-Profi!",
   ];
   // Wiesen-Rallye
+  const BOARD_SHEET_SAY = [
+    "Eine Aufgabe wie in der Prüfung! Fülle Feld für Feld aus. Wenn alles stimmt, darfst du ziehen.",
+    "Ein paar Felder hat Summi für dich ausgefüllt. Schau sie dir genau an. Diesmal bleibst du stehen.",
+  ];
   const BOARD_SAY = [
     "Wer zuerst am Bienenstock ist, gewinnt! Erst würfeln, dann rechnen, dann ziehen.",
     "Rechne die Aufgabe. Wenn sie stimmt, darfst du ziehen.",
@@ -5143,7 +5149,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const p = board.players[board.turn], gen = board.gen;
     board.phase = "roll"; board.t = null;
     $("boardTurn").innerHTML = `${tokenHTML(p)} ${boardWho(p)} ${p.kind === "kid" && !state.name ? "bist" : "ist"} dran`;
-    $("boardTask").hidden = $("boardPad").hidden = $("boardCheck").hidden = true;
+    $("boardTask").hidden = $("boardPad").hidden = $("boardCheck").hidden = $("boardHead").hidden = true;
     $("boardRollBox").hidden = false;
     $("boardDie").innerHTML = dieSVG(board.dice);
     $("boardRoll").hidden = p.kind === "bee";
@@ -5179,13 +5185,23 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       const cfg = { N: 1000, mal: true, grade: 4, single: true };
       for (let i = 0; i < 20; i++) { const t = generate(cfg, pick(opsFor(cfg)), opsFor(cfg)); if (!t.steps) return t; }
     }
+    // Kind: drei von vier Zügen eine Aufgabe wie in der Prüfung (gleiche Überschrift, gleiche Felder)
+    if (p.kind === "kid" && Math.random() < 0.75) {
+      const sec = R(1, SCHOOL.length - 1);   // Kopfrechnen kommt ohnehin in den anderen Zügen
+      return { ...pick(SCHOOL[sec].make(Math.min(config().N, 100))), sec };
+    }
     const cfg = { ...config(), single: true }, sel = [...state.topics];
     for (let i = 0; i < 30; i++) { const t = generate(cfg, pick(sel), sel); if (!t.steps) return t; }
     return { ...plusTask(cfg.N), topic: "plus" };
   }
+  // Große Aufgaben (viele Felder) bringen 2 Felder extra
+  const boardBonus = (t) => (t && t.steps && t.steps.length >= 6 ? 2 : 0);
   function boardAsk() {
     const p = board.players[board.turn];
     board.t = boardTask(p); board.input = ""; board.tries = 0;
+    Object.assign(board, { step: 0, vals: [], picks: [], stepTries: 0, gaveUp: false, stepScore: 0 });
+    $("boardHead").hidden = board.t.sec === undefined;
+    if (board.t.sec !== undefined) $("boardHead").textContent = `Aus der Prüfung: ${SCHOOL[board.t.sec].title}${boardBonus(board.t) ? " (große Aufgabe: 2 Felder extra)" : ""}`;
     $("boardTask").hidden = false;
     if (p.kind === "bee") {
       // Summi rechnet laut, manchmal falsch. Das Kind prüft.
@@ -5207,12 +5223,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("boardRollBox").hidden = true;
     $("boardPad").hidden = false;
     renderBoardTask();
-    $("boardSay").textContent = `${board.dice} gewürfelt! ${BOARD_SAY[1]}`;
+    $("boardSay").textContent = `${board.dice} gewürfelt! ${board.t.steps ? BOARD_SHEET_SAY[0] : BOARD_SAY[1]}`;
     const who = p.kind === "kid" ? "Du hast" : `${p.name} hat`;
     const padBottom = $("boardPad").getBoundingClientRect().bottom;
     if (padBottom > window.innerHeight) window.scrollBy({ top: padBottom - window.innerHeight + 12, behavior: "smooth" });
     beeMood("boardBee", "");
-    autoRead(`${who} ${board.dice} gewürfelt. ${spokenTask(board.t)}`);
+    autoRead(`${who} ${board.dice} gewürfelt. ${board.t.sec !== undefined ? "Aus der Prüfung. " : ""}${spokenTask(board.t)}`);
   }
   // Summis Rechnung als ganzer Satz: "7 plus 5 gleich 12", "36 plus 5 gleich 41",
   // bei anderen Aufgaben erst die Aufgabe, dann "Summi sagt: 22."
@@ -5223,17 +5239,76 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
   function renderBoardTask(mark = "") {
     const slot = `<span class="slot${board.input ? " filled" : ""}${mark ? " " + mark : ""}">${board.input ? fmt(Number(board.input)) : "?"}</span>`;
-    drawTask($("boardTask"), board.t, slot);
+    const t = board.t;
+    drawTask($("boardTask"), t, slot, t.steps ? board : undefined);
+    // Bei Auswahl- und Antipp-Feldern werden keine Zahlen getippt
+    if (t.steps) $("boardPad").hidden = board.phase !== "ask" || !t.steps[board.step] || t.steps[board.step].type !== "num";
+  }
+  // Ein Feld einer Prüfungsaufgabe: richtig → nächstes Feld; falsch → nochmal; zweimal falsch → Summi trägt ein
+  function boardStep(v) {
+    if (board.phase !== "ask" || !board.t.steps) return;
+    const t = board.t, st = t.steps[board.step], opts = stepOptions(t, board.step, board.vals);
+    board.input = ""; board.picks = [];
+    if (opts.includes(v)) {
+      board.stepScore += board.stepTries ? 0.5 : 1;
+      board.vals[board.step] = v; board.step++; board.stepTries = 0;
+      if (board.step < t.steps.length) {
+        beep(SOUND_STEP);
+        $("boardSay").textContent = pick(STEP_OK);
+        return renderBoardTask();
+      }
+      return boardSheetDone(!board.gaveUp);
+    }
+    board.stepTries++;
+    beep(SOUND_WRONG);
+    if (board.stepTries === 1) {
+      renderBoardTask("bad");
+      $("boardSay").textContent = fromDeck("tryAgain", TRY_AGAIN);
+      autoRead($("boardSay").textContent);
+      return;
+    }
+    const right = opts[0];
+    const shown = st.type === "choice" ? `„${st.options[right]}“` : st.type === "pick2" ? right.split(",").map((i) => fmt(t.nums[i])).join(" und ") : fmt(right);
+    board.gaveUp = true; board.vals[board.step] = right; board.step++; board.stepTries = 0;
+    if (board.step >= t.steps.length) return boardSheetDone(false);
+    $("boardSay").textContent = `Hier gehört ${shown} hin. Schau es dir an, dann geht es weiter.`;
+    autoRead($("boardSay").textContent);
+    renderBoardTask();
+  }
+  function boardSheetDone(right) {
+    const t = board.t, bonus = right ? boardBonus(t) : 0;
+    board.phase = "move";
+    $("boardPad").hidden = true;
+    recordResult(t.topic, right ? (board.stepScore === t.steps.length ? 1 : 0.5) : 0);
+    bumpStats({ ["t-" + t.topic]: right ? 1 : 0 });
+    if (right) { addSolved(); board.solved++; } else rememberMistake(t);
+    renderBoardTask();
+    if (right) {
+      beep(SOUND_RIGHT);
+      const say = `${pick(PRAISE.filter((x) => !/Blume|Wiese|Garten/.test(x)))} Zieh ${board.dice + bonus} Felder.` + (bonus ? " 2 davon gibt es für die große Aufgabe!" : "");
+      $("boardSay").textContent = say;
+      beeMood("boardBee", "happy");
+      autoRead(say);
+      boardMove(board.dice + bonus, 900);
+    } else {
+      const say = BOARD_SHEET_SAY[1];
+      $("boardSay").textContent = say;
+      beeMood("boardBee", "think");
+      autoRead(say);
+      boardNext(3200);
+    }
   }
   function boardKey(k) {
     if (board.phase !== "ask") return;
     const p = board.players[board.turn], t = board.t;
+    if (t.steps && (!t.steps[board.step] || t.steps[board.step].type !== "num")) return;
     if (k === "del") { board.input = board.input.slice(0, -1); return renderBoardTask(); }
     if (k !== "ok") {
       if (board.input.length < String(p.kind === "grown" ? 1000000 : state.N || 100).length + 1) board.input = (board.input === "0" ? "" : board.input) + k;
       return renderBoardTask();
     }
     if (board.input === "") return;
+    if (t.steps) return boardStep(Number(board.input));
     const right = Number(board.input) === t.answer;
     if (!right && board.tries === 0) {
       board.tries = 1; board.input = "";
@@ -5445,6 +5520,16 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("boardBtn").addEventListener("click", () => { state.level = null; setLevelButtons(); startBoard(); });
   $("boardSetup").addEventListener("click", (e) => { const b = e.target.closest("[data-opp]"); if (b) boardBegin(b.dataset.opp); });
   $("boardRoll").addEventListener("click", boardRoll);
+  $("boardTask").addEventListener("click", (e) => {
+    if (board.phase !== "ask" || !board.t || !board.t.steps) return;
+    const choice = e.target.closest("[data-choice]"), pickBtn = e.target.closest("[data-pick]");
+    if (choice) return boardStep(Number(choice.dataset.choice));
+    if (!pickBtn) return;
+    const k = Number(pickBtn.dataset.pick);
+    board.picks = board.picks.includes(k) ? board.picks.filter((x) => x !== k) : [...board.picks, k];
+    if (board.picks.length < 2) return renderBoardTask();
+    boardStep([...board.picks].sort((a, b) => a - b).join(","));
+  });
   $("boardCheck").addEventListener("click", (e) => { const b = e.target.closest("[data-judge]"); if (b) boardJudge(b.dataset.judge === "1"); });
   $("boardAgain").addEventListener("click", () => boardBegin(board.players[1].kind === "bee" ? "bee" : board.players[1].name));
   $("boardMenu").addEventListener("click", () => { board.gen++; goHome(); });

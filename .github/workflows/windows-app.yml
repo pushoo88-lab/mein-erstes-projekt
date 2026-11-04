@@ -67,13 +67,43 @@ jobs:
       - name: Installationsprogramm bauen
         run: npm run dist
 
+      # Nur zum Nachsehen bei GitHub; ein Netzfehler hier soll den Bau nicht rot machen
       - uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: Rechenwiese-Windows
           path: windows/dist/Rechenwiese-Setup.exe
 
       - name: Als Download bereitstellen
+        id: release
+        continue-on-error: true
         if: ${{ contains(fromJSON('["ccr-daadfa50-cgyznk", "master"]'), inputs.ref || github.ref_name) }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rechenwiese-windows
+          name: Rechenwiese für Windows
+          make_latest: false
+          files: windows/dist/Rechenwiese-Setup.exe
+          body: |
+            Die neueste Rechenwiese als Windows-Programm (Version ${{ env.VERSION }}).
+
+            So installierst du sie:
+            1. Unten bei „Assets“ auf **Rechenwiese-Setup.exe** klicken und speichern.
+            2. Die Datei öffnen.
+            3. Windows warnt eventuell („Der Computer wurde durch Windows geschützt“), weil das Programm
+               nicht von einer bekannten Firma signiert ist: auf **Weitere Informationen** → **Trotzdem ausführen**.
+            4. Installieren. Danach steht die Rechenwiese im Startmenü und auf dem Desktop.
+
+            Updates werden genauso installiert. Fortschritt und eigene Aufnahmen bleiben erhalten.
+            Vom Tablet übertragen: dort unter „Für Eltern“ eine Sicherung machen und sie am PC wiederherstellen.
+
+      # GitHub antwortet manchmal mit "Server Error": nach einer Pause nochmal
+      - name: Warten vor zweitem Versuch
+        if: ${{ steps.release.outcome == 'failure' }}
+        run: sleep 30
+
+      - name: Als Download bereitstellen (zweiter Versuch)
+        if: ${{ steps.release.outcome == 'failure' && contains(fromJSON('["ccr-daadfa50-cgyznk", "master"]'), inputs.ref || github.ref_name) }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: rechenwiese-windows

@@ -1550,6 +1550,20 @@
    "block": 26,
    "gruppe": "Neue Aufgaben und Übungsblatt",
    "text": "Wow, alle Aufgaben sitzen! Du bist ein Blitzrechen-Profi!"
+  },
+  {
+   "id": 222,
+   "teil": 2,
+   "block": 26,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Eine Aufgabe wie in der Prüfung! Fülle Feld für Feld aus. Wenn alles stimmt, darfst du ziehen."
+  },
+  {
+   "id": 223,
+   "teil": 2,
+   "block": 26,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Ein paar Felder hat Summi für dich ausgefüllt. Schau sie dir genau an. Diesmal bleibst du stehen."
   }
  ]
 }
