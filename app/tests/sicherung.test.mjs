@@ -72,6 +72,14 @@ for (const android of [false, true]) {
   await page.click("#parentBtn").catch(() => {}); await page.waitForTimeout(300);
   await page.setInputFiles("#backupFile", join(dir, "falsch.txt")); await page.waitForTimeout(400);
   check(/keine Sicherung/.test(await page.textContent("#backupNote")), `${how}: falsche Datei wird abgelehnt`);
+  // Sicherung mit beschädigtem Fortschritt ("progress": null): ablehnen, bevor irgendetwas ersetzt wird
+  const good = readFileSync(file), n = good.readUInt32BE(7), meta = JSON.parse(good.subarray(11, 11 + n).toString("utf8"));
+  const badMeta = Buffer.from(JSON.stringify({ ...meta, progress: null }), "utf8"), len = Buffer.alloc(4); len.writeUInt32BE(badMeta.length);
+  const broken = join(dir, `kaputt-${how}.rwsich`);
+  writeFileSync(broken, Buffer.concat([good.subarray(0, 7), len, badMeta, good.subarray(11 + n)]));
+  await page.setInputFiles("#backupFile", broken); await page.waitForTimeout(800);
+  const still = await page.evaluate(() => new Promise((ok) => { const r = indexedDB.open("rw-stimme", 1); r.onsuccess = () => { const q = r.result.transaction("clips").objectStore("clips").count(); q.onsuccess = () => ok({ clips: q.result, name: localStorage.getItem("rw-name") }); }; }));
+  check(/keine Sicherung/.test(await page.textContent("#backupNote")) && still.clips === 61 && still.name === '"Luisa"', `${how}: beschädigter Fortschritt wird abgelehnt, alles bleibt (${still.clips} Aufnahmen)`);
   // Abgebrochener Download: Datei zu kurz. Die guten Aufnahmen auf dem Handy müssen bleiben.
   const cut = join(dir, `abgeschnitten-${how}.rwsich`);
   writeFileSync(cut, readFileSync(file).subarray(0, readFileSync(file).length - 5000));

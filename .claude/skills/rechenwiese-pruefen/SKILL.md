@@ -35,18 +35,28 @@ Die Android-App wird daraus mit Capacitor gebaut (`app/`). Die Tests liegen in `
    | memory | Zahlen-Memory: erst rechnen, dann Gegenstück suchen; Fehler, Lösung, Ende, Handy und Tablet |
    | brettspiel | Wiesen-Rallye gegen Summi und mit Mama: ganze Partien, Sonderfelder, Summis Rechnung prüfen, Zurück |
    | einspluseins | Einspluseins-Karte: Farben, Blitzrechnen übt Unsicheres zuerst, „sitzt“ erst nach 2× schnell, Eltern-Hinweis zählendes Rechnen |
+   | skills | die beiden Skills passen zum Code: genannte Bausteine, Befehle, Dateien und Tests gibt es wirklich |
    | tablet | Fire HD 10 quer und hochkant: Zahlentasten bei jeder Aufgabenart ohne Scrollen sichtbar |
 
-5. **Fehler untersuchen:** Erst klären, ob die App oder der Test falsch ist. Ein Test darf nie abgeschwächt
+   Ein neuer oder geänderter Test muss mindestens dreimal hintereinander grün sein. Auf GitHub laufen die
+   Tests langsamer: auf einen Zustand warten (`waitForFunction`), nicht auf feste Zeiten. Zufall (Würfel,
+   Aufgabenwahl) im Test gezielt steuern, damit jeder Fall sicher drankommt.
+   Der Test `skills` prüft, dass diese Anleitung und `schulblatt-einbauen` noch zum Code passen.
+5. **Windows-Programm** (Ordner `windows/`, nur wenn dort oder am Bau etwas geändert wurde):
+   `npm ci`, dann `npm run build:web` und `xvfb-run -a node_modules/electron/dist/electron . --selbsttest --no-sandbox`
+   (unter Windows einfach `npm run selbsttest`). Am Ende muss „Selbsttest bestanden“ stehen.
+6. **Fehler untersuchen:** Erst klären, ob die App oder der Test falsch ist. Ein Test darf nie abgeschwächt
    werden, nur damit er grün wird. Test-Einblicke (`window.__s`, `__mk` …) baut `tests/hilfen.mjs` ein;
    fehlt eine Stelle, meldet `testCopy()` das mit "Test-Einblick nicht möglich".
-6. **Code-Durchsicht:** die Änderungen seit dem letzten Stand mit dem Skill `code-review` durchsehen
+7. **Code-Durchsicht:** die Änderungen seit dem letzten Stand mit dem Skill `code-review` durchsehen
    (Doppeltippen, alte Timer, Zurück-Taste, gespeicherte Daten, schmale Handys ab 320 px).
-7. **Neue Funktion?** Dann gehört ein Test dazu: neue Datei `app/tests/<name>.test.mjs` mit den Hilfen aus
+8. **Neue Funktion?** Dann gehört ein Test dazu: neue Datei `app/tests/<name>.test.mjs` mit den Hilfen aus
    `hilfen.mjs` (`testCopy`, `start`, `setup`, `answer`, `check`, `done`). `alle.mjs` findet sie von selbst.
 
 ## Bericht an die Eltern
 
 Kurz, auf Deutsch, ohne Fachwörter: was geprüft wurde (Tabelle mit ✓/✗), was gefunden und repariert wurde,
 was noch offen ist. Danach committen und auf den Arbeits-Branch pushen; GitHub baut dann die APK
-("Android-App bauen") und spielt alle Tests durch ("Rechenwiese prüfen").
+("Android-App bauen"), das Windows-Programm ("Windows-Programm bauen") und spielt alle Tests durch
+("Rechenwiese prüfen"). Erst berichten, wenn alle drei Läufe grün sind. Meldet ein Lauf nur "Server Error" oder
+einen Netzfehler beim Hochladen, liegt es an GitHub: den Lauf neu starten, nicht den Code ändern.

@@ -42,6 +42,36 @@ const solveRound = async (page) => {
   check(added === 1 && hist[hist.length - 1] === 0.5, `Ballon falsch, dann richtig: zählt einmal als zweiter Versuch (${added} Einträge, ${hist[hist.length - 1]})`);
   await page.click("#bjBack"); await page.click("#bjBack"); await page.waitForTimeout(800);
   check(await page.isVisible("#startView") && !(await page.isVisible("#bjOver")), "nach der Ballonjagd zurück auf der Startseite");
+  // Automatischer Tipp nach einem Fehler zählt nicht als "Hilfe geholt"; der Hilfe-Knopf schon
+  const helped = () => page.evaluate(() => JSON.parse(localStorage.getItem("rw-stats") || "{}").helped || 0);
+  const h0 = await helped();
+  await page.click("#startBtn"); await page.waitForTimeout(300);
+  let a = await page.evaluate(() => window.__s.round.tasks[window.__s.round.i].answer);
+  await page.keyboard.type(String(a + 1)); await page.keyboard.press("Enter"); await page.waitForTimeout(500);
+  await page.keyboard.type(String(a)); await page.keyboard.press("Enter"); await page.waitForTimeout(1900);
+  check(await helped() === h0, "Tipp nach einem Fehler zählt nicht als Hilfe geholt");
+  await page.click("#helpBtn"); await page.waitForTimeout(200);
+  a = await page.evaluate(() => window.__s.round.tasks[window.__s.round.i].answer);
+  await page.keyboard.type(String(a)); await page.keyboard.press("Enter"); await page.waitForTimeout(1900);
+  check(await helped() === h0 + 1, "Hilfe-Knopf zählt als Hilfe geholt");
+  // Tastatur (Windows): mit Tab auf "Hilfe", Enter öffnet die Hilfe und prüft nicht die halbe Antwort
+  await page.keyboard.type("1");
+  await page.focus("#helpBtn"); await page.keyboard.press("Shift+Tab"); await page.keyboard.press("Tab");
+  const onHelp = await page.evaluate(() => document.activeElement.id === "helpBtn");
+  const iBefore = await page.evaluate(() => window.__s.round.i);
+  await page.keyboard.press("Enter"); await page.waitForTimeout(300);
+  check(onHelp && await page.isVisible("#help") && await page.evaluate(() => window.__s.round.tries) === 0 && await page.evaluate(() => window.__s.round.i) === iBefore,
+    "Tab auf Hilfe und Enter: Hilfe geht auf, die Antwort wird nicht geprüft");
+  await page.click("#backBtn"); await page.click("#backBtn", { timeout: 1500 }).catch(() => {}); await page.waitForTimeout(300);
+  // Wiederholungen: Aufgabe mit großen Zahlen oder Mal kommt bei kleinem Zahlenraum ohne Mal nicht wieder
+  await page.evaluate(() => { localStorage.setItem("rw-review", JSON.stringify([
+    { t: { a: 300, op: "+", b: 400, c: 700, blank: "a", answer: 3, topic: "plus" }, due: 0, box: 0 },
+    { t: { a: 3, op: "·", b: 4, c: 12, blank: "c", answer: 12, topic: "plus" }, due: 0, box: 0 },
+    { t: { a: 7, op: "+", b: 5, c: 12, blank: "c", answer: 12, topic: "plus" }, due: 0, box: 0 }])); });
+  await page.reload(); await page.waitForTimeout(300); await setup(page, { range: "20", topics: ["plus"] });
+  await page.click("#startBtn"); await page.waitForTimeout(300);
+  const rev = await page.evaluate(() => window.__s.round.tasks.filter((t) => t.review).map((t) => `${t.a}${t.op}${t.b}`));
+  check(rev.length === 1 && rev[0] === "7+5", `Wiederholung nur, wenn sie zum Zahlenraum passt (${rev.join(", ")})`);
   allErrors.push(...errors);
   await browser.close();
 }

@@ -16,19 +16,23 @@ Unklare Stellen beim Nutzer nachfragen, nicht raten.
 
 ## 2. Mit vorhandenen Aufgabenarten abgleichen
 
-Vorhandene Bausteine (Erzeuger mit `fix`-Parametern, damit genaue Schulaufgaben nachgebaut werden können):
+Vorhandene Bausteine. Der letzte Parameter legt die genauen Zahlen vom Blatt fest (Beispiele dafür stehen in
+`app/tests/schulblatt.test.mjs`):
 
 | Art (`kind`) | Erzeuger | Schulaufgabe |
 |---|---|---|
-| family / family4 | `familyFullTask` | Rechenroboter / Plumino mit Aufgabenfamilie |
-| robofree | `freeRobotTask` | Roboter nur mit Ergebnis, Zerlegung frei |
-| wall3 | `wallMultiTask` | Zahlenmauer mit mehreren Lücken |
-| table / table4 | `tableMultiTask` | Rechentabelle (+6, −8 …) |
-| doubletab | `doubleTableTask` | Das Doppelte / die Hälfte |
-| probe | `probeTask` | Platzhalter □ mit Probe |
-| smart2 | `smartPickTask` | Geschickt rechnen: zwei Zahlen einkreisen |
-| riddle | `riddleTask` | Zahlenrätsel |
-| sach | `sachTask` | Sachaufgabe: Frage, Rechnung, Antwort |
+| family4 | `familyFullTask(N, start, fix)` | Rechenroboter / Plumino: fehlende Zahl und alle vier Aufgaben |
+| robofree | `freeRobotTask(N, fixC)` | Roboter nur mit Ergebnis, Zerlegung frei |
+| wall3 | `wallMultiTask(N, fix)` | Zahlenmauer mit mehreren Lücken |
+| table4 | `tableMultiTask(N, op, fix)` | Rechentabelle (+6, −8 …) mit vier Zeilen |
+| doubletab | `doubleTableTask(N, fix)` | Das Doppelte / die Zahl dazu |
+| probe | `probeTask(N, op, fix)` | Platzhalter □ mit Probe |
+| smart2 | `smartPickTask(N, fix)` | Geschickt rechnen: zwei Zahlen einkreisen |
+| sach | `riddleTask(N, fix)` | Zahlenrätsel (wie eine Sachaufgabe, Frage steht fest) |
+| sach | `sachTask(N, ops, fix)` | Sachaufgabe: Frage wählen, Rechnung, Antwort |
+
+Einfache Arten mit nur einem Feld für die Blumen-Runden: `family` (`familyTask`), `table` (`tableTask`),
+`wall` (`wallTask`), `parts`, `text` und reine Rechnungen ohne `kind`.
 
 Mehrteilige Aufgaben haben `t.steps` (Typen `num`, `choice`, `pick2`). Welche Antworten an einer Stelle
 gelten, entscheidet `stepOptions(t, k, vals)` – jede Lösung, die die Lehrerin gelten lassen würde, muss
@@ -42,6 +46,8 @@ vorlesen (`spokenTask`), Hilfe/Tipp, Bewertung über `stepOptions`, und in `wind
 
 `SCHOOL` in `lernapp/index.html` enthält die Teile des Blatts (Titel wörtlich, `short`, `points`, `make`).
 Übungsblatt (mit Hilfe) und Prüfung (ohne Hilfe, mit Punkten und Berichtigung) nutzen beide `SCHOOL`.
+Auch die **Wiesen-Rallye** (Brettspiel) zieht ihre Prüfungsaufgaben aus `SCHOOL` (`boardTask`): Eine neue Art
+muss dort Feld für Feld lösbar sein und aufs Handy passen.
 Gesamtpunkte und Notentext anpassen, wenn das neue Blatt andere Punkte hat. Bei einem zusätzlichen Blatt
 lieber eine Auswahl der Blätter anbieten, statt das alte zu ersetzen – vorher mit dem Nutzer klären.
 
@@ -49,13 +55,16 @@ lieber eine Auswahl der Blätter anbieten, statt das alte zu ersetzen – vorher
 
 In `app/tests/schulblatt.test.mjs` jede Aufgabe vom Foto mit genau den Zahlen über die `fix`-Parameter
 anlegen und die Lösung eintragen, die die Lehrerin erwartet. Jede muss beim ersten Versuch als richtig
-gelten. Dann `node tests/schulblatt.test.mjs` und `node tests/aufgaben.test.mjs` (Zufallsaufgaben der neuen
-Art rechnerisch richtig, im Zahlenraum, ohne doppelte Lücken) – bei neuen Arten dort ergänzen.
+gelten. Dann im Ordner `app/`: `node tests/schulblatt.test.mjs` und `node tests/aufgaben.test.mjs`
+(Zufallsaufgaben der neuen Art rechnerisch richtig, im Zahlenraum, ohne doppelte Lücken) – bei neuen Arten dort
+ergänzen. Neue Arten laufen außerdem durch `spielen` (Übungsblatt), `pruefung` (Punkte, Korrektur, Verbessern
+von Feldern), `brettspiel` und `tablet` (Zahlentasten sichtbar).
 
 ## 5. Stimme
 
-Neue feste Sätze (Lob, Hinweise) in `app/stimme/sprechliste.mjs` am Ende der Gruppe
-"Neue Aufgaben und Übungsblatt" ergänzen, dann `node stimme/sprechliste.mjs` und `--check`.
+Neue feste Sätze (Lob, Hinweise) als eigene Liste in `lernapp/index.html` anlegen (`const NAME = [...]`) und in
+`app/stimme/sprechliste.mjs` ganz am Ende der Gruppe "Neue Aufgaben und Übungsblatt" mit `...grab("NAME")`
+anhängen, dann im Ordner `app/`: `node stimme/sprechliste.mjs` und `node stimme/sprechliste.mjs --check`.
 Nie Sätze davor einfügen: sonst verschieben sich die Nummern schon aufgenommener Sätze.
 
 ## 6. Abschluss

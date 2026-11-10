@@ -1210,6 +1210,17 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 (() => {
   "use strict";
 
+  // Ältere Android-Geräte (WebView vor Chrome 69) kennen flat und flatMap noch nicht
+  if (!Array.prototype.flat) {
+    Object.defineProperty(Array.prototype, "flat", { configurable: true, writable: true, value: function (depth) {
+      const d = depth === undefined ? 1 : depth;
+      return this.reduce((out, x) => out.concat(Array.isArray(x) && d > 0 ? x.flat(d - 1) : [x]), []);
+    } });
+  }
+  if (!Array.prototype.flatMap) {
+    Object.defineProperty(Array.prototype, "flatMap", { configurable: true, writable: true, value: function (fn, self) { return this.map(fn, self).flat(); } });
+  }
+
   // Sicherheitsnetz: Bricht beim Start etwas ab, erscheint statt eines leeren Bildschirms
   // eine Meldung mit dem Fehlertext und einem Knopf zum Neustarten.
   function showCrash(message) {
@@ -1996,6 +2007,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // Für jede Plus- und Minusaufgabe bis 20 werden die letzten 4 Versuche gemerkt: Rechenzeit in ms, -1 = falsch.
   // Sitzt = die letzten zwei Male gleich richtig und schnell. Die Zeit wird nur gemessen, nie angezeigt.
   const facts = store.get("rw-facts", {});
+  // Unlesbare Einträge (z. B. aus einer beschädigten Sicherung) entfernen
+  for (const k of Object.keys(facts)) if (!/^\d+[+−]\d+$/.test(k) || !Array.isArray(facts[k])) delete facts[k];
   function factKey(t) {
     if (!t || t.kind || t.steps || t.blank !== "c") return null;
     if (t.op === "+" && t.a >= 1 && t.b >= 1 && t.a <= 10 && t.b <= 10) return `${t.a}+${t.b}`;
@@ -2144,9 +2157,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     else review[k].due = Date.now() + 24 * 36e5;              // morgen nochmal
     store.set("rw-review", review);
   }
-  function dueReviews(sel, N, max = 2) {
-    const len = Math.max(String(N).length, 2);
-    return shuffle(review.filter((x) => x.due <= Date.now() && sel.includes(x.t.topic) && String(x.t.answer).length <= len))
+  function dueReviews(sel, cfg, max = 2) {
+    const N = cfg.N, len = Math.max(String(N).length, 2);
+    // Rechenzahlen der Aufgabe: Wurde inzwischen ein kleinerer Zahlenraum oder "noch kein Mal" gewählt, passt sie nicht mehr
+    const nums = (t) => [t.a, t.b, t.c, ...(t.nums || []), ...(t.cols || []).map((x) => 2 * x), ...(t.rows || []).flat()].filter((x) => typeof x === "number");
+    const fits = (t) => (cfg.mal || !/[·:]/.test(String(t.op || "") + (t.ops || []).join(""))) && nums(t).every((x) => x <= Math.max(N, 20));
+    return shuffle(review.filter((x) => x.due <= Date.now() && sel.includes(x.t.topic) && String(x.t.answer).length <= len && fits(x.t)))
       .slice(0, max).map((x) => ({ ...x.t, review: true }));
   }
 
@@ -2187,7 +2203,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function makeRound(cfg, sel) {
     const seen = new Set();
     // Bis zu 2 fällige Wiederholungen von früher kommen mit in die Runde
-    const list = cfg.adapt ? dueReviews(sel, cfg.N) : [];
+    const list = cfg.adapt ? dueReviews(sel, cfg) : [];
     list.forEach((t) => seen.add(taskKey(t)));
     let guard = 0;
     while (list.length < 10 && guard++ < 500) {
@@ -2505,7 +2521,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   let ownClips = {};   // Nummer des Satzes → { id, text, dur, url }
   const ownCount = () => Object.keys(ownClips).length;
   const useRec = () => !!(clipAudio && voiceCfg.rec && (REC.length || ownCount()));
-  const splitSentences = (text) => text.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+  const splitSentences = (text) => text.trim().replace(/([.!?])\s+/g, "$1\n").split("\n").filter(Boolean);
   // Satz zum Nachschlagen: Name am Ende weglassen ("Gut gerechnet, Mia!"), Punkt und Ausrufezeichen gleich behandeln
   function sentenceKey(s) {
     const m = state.name && s.match(/^(.*), ([^,]+?)([.!?]?)$/);
@@ -2570,7 +2586,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       clipAudio.playbackRate = bee ? 1.12 : voiceCfg.rate < 0.9 ? 0.88 : 1;
       clipAudio.preservesPitch = clipAudio.webkitPreservesPitch = !bee;
       const timer = setTimeout(done, c.dur * 1000 / clipAudio.playbackRate + 1500);
-      const finish = (f) => () => { clearTimeout(timer); clipAudio.onended = clipAudio.onerror = null; f(); };
+      // Fehler melden sich manchmal doppelt (Ereignis und abgelehntes play): nur das erste Ende zählt
+      let settled = false;
+      const finish = (f) => () => { if (settled) return; settled = true; clearTimeout(timer); clipAudio.onended = clipAudio.onerror = null; f(); };
       clipAudio.onended = finish(done);
       clipAudio.onerror = finish(fallback);
       const p = clipAudio.play();
@@ -2798,19 +2816,25 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (recorder && recorder.state !== "inactive") { recState = "working"; renderRecorder(); recorder.stop(); }
     releaseMic();
   }
+  let recGen = 0;   // jede abgebrochene Aufnahme erhöht die Nummer: laufende Bearbeitung verfällt
   function cancelRecording() {
-    if (recorder && recorder.state !== "inactive") { recorder.onstop = null; recorder.stop(); }
+    recGen++;
+    if (recorder) recorder.onstop = null;   // auch wenn sie gerade schon gestoppt hat: nichts mehr speichern
+    if (recorder && recorder.state !== "inactive") recorder.stop();
     releaseMic();
     recState = "idle";
   }
   function finishRecording() {
     const s2 = LISTE[recFor], blob = new Blob(recChunks, { type: (recorder && recorder.mimeType) || "audio/webm" });
-    const fail = (text) => { recState = "idle"; renderRecorder({ text, bad: true }); };
+    const gen = recGen;
+    const fail = (text) => { if (gen !== recGen) return; recState = "idle"; renderRecorder({ text, bad: true }); };
     const reader = new FileReader();
     reader.onload = () => {
+      if (gen !== recGen) return;
       try {
         audio = audio || new (window.AudioContext || window.webkitAudioContext)();
         audio.decodeAudioData(reader.result, (buf) => {
+          if (gen !== recGen) return;
           const res = polishRecording(buf);
           if (res.empty) return fail("Da war nichts zu hören. Bitte nochmal aufnehmen und etwas lauter sprechen.");
           const clip = { id: s2.id, text: s2.text, dur: res.dur, blob: wavBlob(res.samples, res.rate) };
@@ -2876,7 +2900,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (new TextDecoder().decode(bytes.slice(0, 7)) !== BACKUP_MAGIC) throw new Error("keine Rechenwiese-Sicherung");
     const n = new DataView(buf, 7, 4).getUint32(0), meta = JSON.parse(new TextDecoder().decode(bytes.slice(11, 11 + n)));
     let pos = 11 + n;
-    if (!meta || !Array.isArray(meta.clips) || typeof meta.progress !== "object") throw new Error("keine Rechenwiese-Sicherung");
+    if (!meta || !Array.isArray(meta.clips) || !meta.progress || typeof meta.progress !== "object" || Array.isArray(meta.progress)) throw new Error("keine Rechenwiese-Sicherung");
     // Abgeschnittene Datei (z. B. abgebrochener Download): lieber ablehnen als gute Aufnahmen durch leere ersetzen
     if (meta.clips.reduce((sum, c) => sum + c.size, pos) > bytes.length) throw new Error("Sicherung unvollständig");
     const clips = meta.clips.map((c) => {
@@ -2940,7 +2964,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       const clipsDone = window.indexedDB
         ? recStore("readwrite", (st) => { st.clear(); for (const c of data.clips) st.put(c); return null; }) : Promise.resolve();
       clipsDone.then(() => {
-        const progress = Object.entries(data.meta.progress);
+        // Nur eigene Einträge der Rechenwiese ("rw-…") mit Text als Wert übernehmen
+        const progress = Object.entries(data.meta.progress).filter(([k, v]) => k.indexOf("rw-") === 0 && typeof v === "string");
         let progressOk = !progress.length;   // Sicherung ohne Fortschritt: den jetzigen Stand behalten
         if (progress.length) {
           const old = {};
@@ -4258,7 +4283,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // auto = Tipp nach dem ersten Fehler: ohne Bilder, in denen die Lösung schon steht
   function showHelp(afterMiss = false, auto = false) {
     const t = state.round.tasks[state.round.i];
-    if (!afterMiss) state.round.helped = true;
+    if (!afterMiss && !auto) state.round.helped = true;
     const more = `<button class="more-tricks" type="button" data-tricks="${t.topic}">Mehr Rechentricks dazu</button>`;
     const listen = (txt) => (canSpeak ? `<button class="speak" type="button" data-speak-text="${encodeURIComponent(txt)}">${SPEAKER}Tipp vorlesen</button>` : "");
     if (t.kind) {
@@ -5455,9 +5480,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const first = r.results.filter((x) => x === "first").length;
     const second = r.results.filter((x) => x === "second").length;
     const missed = r.results.filter((x) => x === "missed").length;
-    const stars = first >= 9 ? 3 : first + second >= 7 ? 2 : 1;
-    const perfect = first === r.tasks.length;
-    bumpStats({ rounds: 1, three: first >= 9 ? 1 : 0, perfect: perfect ? 1 : 0 });
+    // 9 von 10 gleich richtig = 3 Sterne, 7 von 10 geschafft = 2. Bei mehr Aufgaben (Blitzrechnen) im selben Verhältnis.
+    const n = r.tasks.length;
+    const stars = first >= Math.ceil(n * 0.9) ? 3 : first + second >= Math.ceil(n * 0.7) ? 2 : 1;
+    const perfect = first === n;
+    bumpStats({ rounds: 1, three: stars === 3 ? 1 : 0, perfect: perfect ? 1 : 0 });
 
     const selKey = r.blitz ? "blitz" : selectionKey(r.sel);   // Blitzrechnen hat eigene Rekorde
     const key = `${state.grade}-${r.N}-${selKey}`;
@@ -5744,11 +5771,19 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (!state.sound) stopSpeaking();
   });
 
+  // Merkt sich den Knopf, der mit der Tab-Taste erreicht wurde (nicht per Maus, Finger oder vom Programm)
+  let sawTab = false, tabTarget = null;
+  document.addEventListener("focusin", (e) => { tabTarget = sawTab ? e.target : null; sawTab = false; });
+  document.addEventListener("pointerdown", () => { tabTarget = null; sawTab = false; }, true);
   document.addEventListener("keydown", (e) => {
     // Zahlenfelder außerhalb der Runde: Einrichtung, Brettspiel, Memory
     const padTarget = !$("setupView").hidden && setupStep === S_RANGE ? rangeKey
       : !$("boardView").hidden && board.phase === "ask" ? boardKey
       : !$("memAsk").hidden && !$("memoryView").hidden ? memKey : null;
+    // Mit Tab auf einen Knopf gegangen (Windows, Tastatur): Enter drückt dann diesen Knopf, nicht "OK"
+    if (e.key === "Tab") { sawTab = true; return; }
+    const el = document.activeElement;
+    if (e.key === "Enter" && el && el === tabTarget && el.tagName === "BUTTON" && !el.classList.contains("key")) return;
     if (padTarget) {
       const k = /^[0-9]$/.test(e.key) ? e.key : e.key === "Backspace" ? "del" : e.key === "Enter" ? "ok" : "";
       if (k) { padTarget(k); e.preventDefault(); }

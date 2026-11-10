@@ -38,6 +38,19 @@ for (const c of cases) {
   await page.click('[data-rec="biene"]'); await page.waitForTimeout(2500);
   const played = await page.evaluate(() => window.__played);
   check(played.includes("TTS Hallo Luisa!") && played.includes("blob: 1.12 false"), `${c.name}: Probe mit eigener Stimme als kleine Biene (${played.join(" | ")})`);
+  // Aufnahme verworfen: starten und mitten im Sprechen auf Zurück. Es darf nichts gespeichert oder abgespielt werden.
+  if (c === cases[0]) {
+    await page.click("#recordOpen"); await page.waitForTimeout(300);
+    const count = () => page.evaluate(() => new Promise((ok) => { const r = indexedDB.open("rw-stimme", 1); r.onsuccess = () => { const q = r.result.transaction("clips").objectStore("clips").count(); q.onsuccess = () => ok(q.result); }; }));
+    const before = await count();
+    await page.evaluate(() => { window.__played = []; });
+    await page.click("#recBtn"); await page.waitForTimeout(1500);
+    await page.click("#recordBack"); await page.waitForTimeout(2500);
+    check(await count() === before && !(await page.evaluate(() => window.__played.some((x) => x.startsWith("blob")))), `${c.name}: Zurück mitten in der Aufnahme: nichts gespeichert, nichts abgespielt`);
+    await page.click("#recordOpen"); await page.waitForTimeout(300);
+    check(await page.textContent("#recBtn") !== "Moment …" && !(await page.isDisabled("#recBtn")), `${c.name}: danach ist der Aufnahme-Knopf wieder frei`);
+    await page.click("#recordBack"); await page.waitForTimeout(200);
+  }
   allErrors.push(...errors);
   await browser.close();
 }
