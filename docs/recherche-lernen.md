@@ -22,7 +22,9 @@ Vorsicht bei Herstellerangaben (z. B. „34 % besser“): Die sind meist nicht u
 | **Verteiltes Üben** | Über Tage verteilt behält man Mathe besser als alles am Stück. [Meta-Analyse, zusammengefasst](https://tipsforteachers.substack.com/p/research-bite-53-a-meta-analytic) | ✓ Fehler kommen nach 10 Min. und an späteren Tagen wieder (Wiederholungskasten), Tagesziel 3 Spiele |
 | **Gemischtes Üben** | Aufgabenarten mischen statt Blöcke verbessert Testergebnisse (Studien v. a. ab Klasse 6/7). [IES Interleaving](https://ies.ed.gov/use-work/awards/efficacy-study-interleaved-mathematics-practice?ID=1790) | ✓ „Bunt gemischt“, Übungsblatt, Brettspiel mischen |
 | **Abrufen statt Ansehen** | Stark belegt in anderen Fächern, in Mathe noch nicht eindeutig. | ✓ Kind muss selbst rechnen (auch im Memory jetzt) |
-| **Passende Schwierigkeit** | Etwa 85 % Erfolg hält Kinder im Lernbereich. | ✓ Schwierigkeit passt sich an |
+| **Passende Schwierigkeit** | Beim angeleiteten Üben sind etwa 80 % richtige Antworten günstig, beim selbstständigen Üben etwa 95 % (Rosenshine, *Principles of Instruction*, American Educator 2012; hier nach Zusammenfassungen von [educationcorner.com](https://educationcorner.com/principles-of-instruction) und [United Learning](https://unitedlearning.org.uk/curriculum/news/details/the-rosenshine-papers)). | ✓ Schwierigkeit passt sich an; Ziel 85 % ist unsere Festlegung dazwischen |
+| **Anstrengung loben** | Kinder (5. Klasse), die für Anstrengung gelobt wurden, wählten danach eher schwere Aufgaben; für Klugheit gelobte eher leichte (Mueller & Dweck 1998, *Journal of Personality and Social Psychology*; hier nach [Lumen Learning](https://courses.lumenlearning.com/waymaker-psychology/chapter/psych-in-real-life-growth-mindsets/) und [Parenting Science](https://parentingscience.com/praise-and-intelligence/)). | ✓ Summi lobt Anstrengung und Vorgehen |
+| **Selbst erklären** | Kinder (8–11 Jahre), die ihren Rechenweg erklärten, übertrugen ihn besser auf neue Aufgaben (Rittle-Johnson 2006, *Child Development* 77(1); [PDF](https://cdn.vanderbilt.edu/vu-sub/wp-content/uploads/sites/280/2023/08/04183033/ATME_Rittle-Johnson_2006.pdf)). | Elterntipp „Wie hast du das gerechnet?“ |
 | **Rückmeldung „noch nicht“** | Fehler als Lernschritt, nicht als Versagen. | ✓ Summis Sätze, zweiter Versuch, Tipp |
 
 ## 3. Basisfakten automatisieren – „Blitzrechnen“
@@ -87,8 +89,8 @@ Vorsicht bei Herstellerangaben (z. B. „34 % besser“): Die sind meist nicht u
 | App | Stärke | Schwäche / Unterschied zur Rechenwiese |
 |---|---|---|
 | **ANTON** | kostenlos, riesig (100.000+ Aufgaben), alle Fächer, Schulen nutzen sie | Spiele als Belohnung nach Aufgaben; nicht auf das eigene Schulblatt zugeschnitten |
-| **Blitzrechnen** (Klett) | genau die Basisübungen des Zahlenbuchs, 0,99 € pro Klasse | wenig Spiel, kein Elternbereich, keine eigene Stimme |
-| **Matific** | viele Spiel-Aufgaben | Abo, englischsprachige Herkunft, Wirksamkeitszahlen vom Anbieter |
+| **Blitzrechnen** (Klett) | offizielle App zum Zahlenbuch (mathe 2000), Klasse 1–4, über 1000 Aufgabenvarianten, Übungen in Stufen, 0,99 € pro Klasse ([App Store](https://apps.apple.com/de/app/blitzrechnen-1-mathe-%C3%BCben/id1027799669), [Medienberatung RLP](https://bildung.rlp.de/fileadmin/user_upload/studienseminar.rlp.de/fs-kl/DiBi-Toolbox/Karteikarten/Mathe/MATHE_App_Blitzrechnen.pdf)) | Tests mit festgelegter Zeit ([Handbuch Klett Schweiz](https://cms.klett.ch/uploads/images/infosites/Kundeninformationen/Dateien/Blitzrechnen_Handbuch_Schweizer-Zahlenbuch-neue-Ausgabe.pdf)); nicht auf das eigene Schulblatt zugeschnitten |
+| **Matific** | laut Anbieter am Grundschul-Lehrplan ausgerichtet; 2012 in Israel als Slate Science gegründet, Sitz laut neueren Firmenverzeichnissen Sydney ([Startup Nation Central](https://finder.startupnationcentral.org/company_page/matific), [Built In](https://builtin.com/company/matific)) | Wirksamkeitszahlen („34 % besser“) nur vom Anbieter, nicht unabhängig geprüft |
 | **Rechenwiese** | genau Luisas Lernzielkontrolle, eigene Stimme, offline, keine Werbung/Abos, Brettspiel mit Eltern | ein Kind, eine Familie; keine Profis hinter den Aufgaben → Tests sichern die Richtigkeit |
 
 [Uni Siegen: Mathe-Apps Grundschule](https://www.uni-siegen.de/fb6/didaktik/projekte/digimath4edu/material/dokumente/digimath4edu-matheappsgrundschule-08_2021.pdf) ·

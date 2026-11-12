@@ -18,18 +18,21 @@ Updates werden genauso installiert. Weil jede Version mit demselben Schlüssel
 
 ### Amazon Fire Tablet (z. B. Fire HD 10 Kids Pro)
 
-Fire-Tablets laufen mit Fire OS 7 oder 8 (Android 9 oder 11). Die App braucht mindestens Android 7, sie
-läuft also. Quer im Ständer stehen Aufgabe und Zahlentasten nebeneinander, hochkant untereinander.
+Fire-Tablets laufen mit Fire OS 7 (beruht auf Android 9) oder Fire OS 8 (Stand von Android 11), laut Amazon
+([Fire OS 7](https://developer.amazon.com/de/docs/fire-tablets/fire-os-7.html), [Fire OS 8](https://developer.amazon.com/de/docs/fire-tablets/fire-os-8.html)).
+Die App braucht mindestens Android 7, sie läuft also. Quer im Ständer stehen Aufgabe und Zahlentasten nebeneinander, hochkant untereinander.
 
-1. Im **Eltern-Profil** unter *Einstellungen → Sicherheit und Datenschutz* „Apps aus unbekannten Quellen“
-   für den Silk-Browser erlauben.
+1. Im **Eltern-Profil** die Installation für den Silk-Browser erlauben. Fire OS 8: *Einstellungen → Apps und
+   Benachrichtigungen → Spezieller App-Zugriff → Unbekannte Apps installieren → Silk* ([TechBone](https://www.techbone.de/amazon/fire-tablet/apps-unbekannter-herkunft));
+   ältere Versionen: *Einstellungen → Sicherheit und Datenschutz → Apps unbekannter Herkunft* ([PC-Welt](https://www.pcwelt.de/article/1169139/so-nutzen-sie-playstore-apps-auf-dem-fire-tablet.html)).
 2. Im Silk-Browser den Release öffnen, **Rechenwiese.apk** laden und installieren.
-3. Die App dem **Kinderprofil** zuweisen: *Einstellungen → Profile und Familienbibliothek → Kind →
-   Inhalte hinzufügen → Apps*, dort die Rechenwiese auswählen (oder über das Amazon-Eltern-Dashboard).
-4. **Wichtig:** Jedes Profil hat eigene Daten. Fortschritt und eigene Aufnahmen gehören zu dem Profil,
-   in dem sie entstehen. Summis Stimme darum **im Kinderprofil** aufnehmen (Bereich „Für Eltern“).
-5. Vorlesen: Fire-Tablets haben eine eigene Sprachausgabe. Klingt sie nicht deutsch, unter
-   *Einstellungen → Barrierefreiheit → Text-zu-Sprache* Deutsch wählen. Eigene Aufnahmen gehen immer.
+3. **Kinderprofil:** Selbst installierte Apps lassen sich dort meist **nicht** freigeben; nach Erfahrungsberichten
+   erscheinen nur Apps aus dem Amazon-Appstore ([r/kindlefire](https://r.darklab.sh/r/kindlefire/comments/1e3hisw/sideloading_apps_on_kids_kindle_fire_tablet)).
+   So war es auch auf Luisas Fire HD 10 Kids Pro. Dann die App im Eltern-Profil nutzen.
+4. **Wichtig:** Fortschritt und eigene Aufnahmen gehören zu dem Profil, in dem sie entstehen. Summis Stimme
+   darum in dem Profil aufnehmen, in dem Luisa spielt (Bereich „Für Eltern“).
+5. Vorlesen: Klingt die Computerstimme nicht deutsch, in den Einstellungen des Tablets die Sprachausgabe auf
+   Deutsch stellen. Eigene Aufnahmen funktionieren immer.
 
 ## Was die App anders macht als die Browser-Version
 
