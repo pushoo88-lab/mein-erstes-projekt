@@ -95,8 +95,9 @@ Es ist nichts vorausgewählt. Über „Ändern“ auf der Startseite lässt sich
   folgenden Tagen wieder, bis es zweimal sicher gewusst wurde.
 - **Tipp statt Lösung:** Nach dem ersten Fehler zeigt Summi einen Tipp zum Rechenweg.
   Die Tipps vermeiden Abzählen und nutzen die Kraft der Fünf, Verdoppeln und Kernaufgaben.
-- **Kein Zeitdruck:** Es wird keine Zeit gemessen. In der Ballonjagd kommen die Ballons beim
-  Nachdenken einfach langsamer wieder; Leben kosten nur falsch angetippte Ballons.
+- **Kein Zeitdruck:** Das Kind sieht keine Uhr. Die Rechenzeit wird nur still für die Einspluseins-Karte
+  gemessen; in der Prüfung läuft eine Zeit nur, wenn die Eltern sie wählen. In der Ballonjagd kommen die
+  Ballons beim Nachdenken einfach langsamer wieder; Leben kosten nur falsch angetippte Ballons.
 - **Für Eltern:** Eine eigene Seite zeigt je Thema, wie sicher das Kind ist, und gibt Tipps zum Begleiten.
   Dort lässt sich auch **Summis Stimme** einstellen: jede deutsche Stimme des Geräts anhören und auswählen,
   Tonhöhe (natürlich oder etwas fröhlicher) und Tempo (langsam oder normal), dazu eine Anleitung,
