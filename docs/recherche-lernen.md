@@ -48,6 +48,14 @@ Vorsicht bei Herstellerangaben (z. B. „34 % besser“): Die sind meist nicht u
   [Friedrich: Ablösung vom zählenden Rechnen](https://www.friedrich-verlag.de/shop/abloesung-vom-zaehlenden-rechnen-39069) ·
   [Uni Bamberg](https://www.uni-bamberg.de/fileadmin/matheinfdidaktik/Dateien/ForMaD/Bamberg_Uni_Juni_2011_Folien.pdf) ·
   [Sachsen: Förderband](https://www.inklusion.bildung.sachsen.de/Abaco20.pdf)
+- Warum früh: „Das zählende Rechnen schränkt grundlegende Einsichten in das Dezimalsystem ein und ist nachteilig für
+  ein sicheres Operieren“ ([Lehrplan Primarstufe Österreich](https://bgm.univie.ac.at/fileadmin/user_upload/p_bgm/LP_Primarstufe/LP_Primarstufe_2022-10-28.pdf)).
+  Eine feste Klassenstufe dafür nennen die gefundenen Lehrpläne nicht (NRW legt Erwartungen erst am Ende der
+  Schuleingangsphase fest, [NRW-Richtlinien](https://www.math.uni-bielefeld.de/~sieben/NRW-Richtlinien.pdf)).
+- **Kernaufgaben beim Einmaleins:** Aufgaben, die man sich leicht merkt und aus denen sich die anderen ableiten lassen,
+  z. B. 8·1, 8·2, 8·5 → 8·3 = 8·2 + 8·1 ([PIKAS Elternbrief](https://pikas.dzlm.de/pikasfiles/uploads/upload/Material/Haus_3_-_Umgang_mit_Rechenschwierigkeiten/IM/Elterninfos/1x1_richtig_ueben/elternbrief_kl3_neu.pdf),
+  [PIKAS Basisinfos](https://pikas.dzlm.de/pikasfiles/uploads/upload/Material/Haus_3_-_Umgang_mit_Rechenschwierigkeiten/UM/1x1_richtig_ueben/Basisinfos/basisinfos_1x1_ueben.pdf));
+  in Bayern werden sie in Klasse 1/2 erarbeitet und automatisiert ([ISB Bayern](https://www.isb.bayern.de/fileadmin/user_upload/Grundschule/Newsletter_2017/newsletter_2017_03_einmaleins.pdf)).
 - **Rechenwiese heute:** Zehner/Einer in Fünfergruppen, Rechentricks, Hilfe mit Zerlegung.
   **Lücke:** Die App merkt nicht, wenn ein Kind auffällig lange braucht (Hinweis auf Zählen), und es gibt keine
   geführte Übung „Erst bis zur 10, dann weiter“ mit Zehnerfeld.
