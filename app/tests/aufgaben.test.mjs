@@ -113,7 +113,11 @@ const zehner = await page.evaluate(() => {
     const t = window.__gen({ N, mal: false, adapt, grade: 2, single }, "ergaenzen", ["ergaenzen"]);
     kinds[(t.kind || "eq") + (single ? "-einzeln" : "")] = 1;
     const a = t.a, T = t.c, b = t.b;
-    if (a % 10 === 0 || T % 10 !== 0 || T - a !== b || b < 1 || b > 9 || T > Math.max(100, N)) bad.push(["zahl", N, JSON.stringify(t)]);
+    if (a % 10 === 0 || T % 10 !== 0 || T - a !== b || b < 1 || b > 9 || T > Math.max(20, Math.min(N, 100))) bad.push(["zahl", N, JSON.stringify(t)]);
+    // Tipps zeigen den Weg, aber nicht die Lösung: nur die Startzahl, ihre Zehner, ihre Einer und 10 kommen darin vor
+    const nums = (x) => (String(x || "").match(/\d[\d.]*/g) || []).map((y) => Number(y.replace(/\./g, "")));
+    const okNums = [a, Math.floor(a / 10), a % 10, 10];
+    for (const tip of [t.tip, ...(t.steps || []).map((s) => s.tip)]) if (nums(tip).some((x) => !okNums.includes(x))) bad.push(["tipp verrät", tip]);
     if (t.steps && (window.__mk.stepOptions(t, 0, [])[0] !== T || window.__mk.stepOptions(t, 1, [T])[0] !== b)) bad.push(["felder", JSON.stringify(t)]);
     if (!t.steps && (t.blank !== "b" || t.answer !== b)) bad.push(["einzeln", JSON.stringify(t)]);
     if (single && t.steps) bad.push(["single", JSON.stringify(t)]);

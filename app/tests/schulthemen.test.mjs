@@ -10,6 +10,8 @@ for (const [width, height, how] of [[360, 800, "Handy"], [1280, 800, "Tablet que
   check(/1 Arbeitsblatt/.test(await page.textContent("#focusInfo")), `${how}: Kachel zeigt das neue Arbeitsblatt („${await page.textContent("#focusInfo")}“)`);
   await page.click("#focusBtn"); await page.waitForTimeout(300);
   check(await page.isVisible("#focusView") && await page.isVisible('[data-focus="ergaenzen"]'), `${how}: Themen zur Auswahl, „Bis zum Zehner“ dabei`);
+  // Ohne Mal/Geteilt in der Einrichtung gibt es das hier auch nicht
+  check(!(await page.isVisible('[data-focus="mal"]')) && !(await page.isVisible('[data-focus="geteilt"]')), `${how}: ohne Mal in der Einrichtung keine Mal-Themen`);
   // Arbeitsblatt aus der Schule: Karte mit Bild, Tipp darauf übt genau die Aufgaben vom Blatt
   const card = await page.evaluate(() => { const c = document.querySelector("[data-blatt]"); return c && { text: c.textContent.replace(/\s+/g, " "), bild: !!c.querySelector(".blatt-bild i") }; });
   check(card && card.bild && /nächste Zehner/.test(card.text) && /18 Aufgaben/.test(card.text) && /neu/.test(card.text), `${how}: Karte „Wie heißt der nächste Zehner?“ mit Bild, 18 Aufgaben, neu`);
@@ -28,8 +30,8 @@ for (const [width, height, how] of [[360, 800, "Handy"], [1280, 800, "Tablet que
   check(await page.isVisible("#resultView"), `${how}: Arbeitsblatt-Runde bis zum Ende`);
   await page.click("#againBtn"); await page.waitForTimeout(300);
   check(await page.textContent("#where") === "Arbeitsblatt aus der Schule", `${how}: „Nochmal“ übt wieder das Blatt`);
-  await page.click("#backBtn"); await page.click("#backBtn", { timeout: 1500 }).catch(() => {}); await page.waitForTimeout(300);
-  await page.click("#focusBtn"); await page.waitForTimeout(300);
+  await page.click("#backBtn"); await page.waitForTimeout(300);
+  check(await page.isVisible("#focusView"), `${how}: Zurück aus dem Arbeitsblatt führt zu den Schulthemen`);
   check(/Bestes Ergebnis: 10 von 10/.test(await page.textContent("[data-blatt]")) && !/neu/.test(await page.textContent("[data-blatt] b")), `${how}: Karte zeigt das beste Ergebnis`);
   // Ohne Thema geht es nicht los
   await page.click("#focusGo"); await page.waitForTimeout(200);
@@ -62,7 +64,17 @@ for (const [width, height, how] of [[360, 800, "Handy"], [1280, 800, "Tablet que
   // „Nochmal spielen“ bleibt bei den Schulthemen
   await page.click("#againBtn"); await page.waitForTimeout(400);
   check((await page.textContent("#where")).includes("Schulthemen"), `${how}: „Nochmal“ übt wieder die Schulthemen`);
-  await page.click("#backBtn"); await page.click("#backBtn", { timeout: 1500 }).catch(() => {}); await page.waitForTimeout(300);
+  await page.click("#backBtn"); await page.waitForTimeout(300);
+  check(await page.isVisible("#focusView") && /gespeichert/.test(await page.textContent("#focusSay")), `${how}: Zurück zu den Schulthemen, Summi sagt, dass sie gespeichert sind`);
+  await page.click("#focusBack"); await page.waitForTimeout(300);
+  if (how === "Handy") {
+    // Memory nur mit „Bis zum Zehner“: Karten wie 63 + □ = 70, keine gewöhnlichen Plusaufgaben
+    await page.evaluate(() => { window.__s.topics = ["ergaenzen"]; window.__s.N = 100; });
+    await page.click("#memoryBtn").catch(() => {}); await page.waitForTimeout(400);
+    const pairs = await page.evaluate(() => window.__mem.pairs.map((p) => ({ label: p.label, answer: p.answer, topic: p.topic })));
+    check(pairs.length === 6 && pairs.every((p) => p.topic === "ergaenzen" && /□/.test(p.label) && p.answer >= 1 && p.answer <= 9), `${how}: Memory „Bis zum Zehner“ (${pairs.map((p) => p.label).join(" | ")})`);
+    await page.click("#memBack"); await page.waitForTimeout(300);
+  }
   // Nach dem Neustart ist die Auswahl noch da und steht auf der Kachel
   await page.reload(); await page.waitForTimeout(300); await setup(page, { range: "100", topics: ["plus"] });
   const info = await page.textContent("#focusInfo");

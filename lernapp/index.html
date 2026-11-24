@@ -1887,12 +1887,14 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // Wie heißt der nächste Zehner? Ergänze. 63 + □ = □ (wie auf dem Arbeitsblatt: erst den Zehner, dann was fehlt).
   // fix: Startzahl vom Blatt. single: nur eine Lücke (63 + □ = 70), z. B. für Ballonjagd und Memory.
   function zehnerTask(N, fix = 0, single = false) {
-    const M = Math.max(N, 20);
+    // Der Zehner darf nicht über dem Zahlenraum liegen: bei bis 46 höchstens 39 + □ = 40
+    const top = Math.max(20, Math.floor(Math.min(N, 100) / 10) * 10);
     let a = fix;
-    if (!a) do a = R(11, Math.min(M, 100) - 1); while (a % 10 === 0);
-    const T = Math.ceil(a / 10) * 10, b = T - a;
-    const tipT = `Schau auf die Zehnerstelle von ${fmt(a)}. Der nächste Zehner ist ${fmt(T)}.`;
-    const tipB = `Von ${fmt(a)} bis ${fmt(T)}: Wie viele fehlen bis zum vollen Zehner? Denk an die Zehnerfreunde: ${a % 10} und ${b} ergeben 10.`;
+    if (!a) do a = R(11, top - 1); while (a % 10 === 0);
+    const T = Math.ceil(a / 10) * 10, b = T - a, z = Math.floor(a / 10);
+    // Tipps zeigen den Weg, nicht die Lösung
+    const tipT = `Schau auf die Zehnerstelle von ${fmt(a)}: ${z} Zehner. Welcher volle Zehner kommt als Nächstes?`;
+    const tipB = `Denk an die Zehnerfreunde: Wie viele fehlen von ${a % 10} bis 10?`;
     if (single) return { ...mk(a, "+", b, T, "b"), tip: tipB };
     return { kind: "zehner", a, b, c: T, op: "+", blank: "b", answer: b, key: `Z${a}`, steps: [NUM(T, tipT), NUM(b, tipB)], tip: tipB };
   }
@@ -4781,7 +4783,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // Zahlenraum eines Levels: am Anfang ein gutes Drittel, am Ende der ganze eingetippte Zahlenraum
   function levelN(i) {
     const N = state.N, x = N * (0.35 + 0.65 * i / (LEVELS.length - 1));
-    const min = state.topics.includes("stellen") ? 20 : MIN_N;
+    const min = state.topics.some((t) => ["stellen", "geschickt", "ergaenzen"].includes(t)) ? 20 : MIN_N;
     let n = Math.round(x);
     if (N > 20) { const step = 10 ** Math.max(0, String(n).length - 2); n = Math.round(x / step) * step; }
     return Math.max(min, Math.min(N, n));
@@ -4869,9 +4871,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     return false;
   }
 
-  // Zurück aus einem Spiel: im Level zum Pfad, sonst zur Startseite
-  function leaveGame() {
+  // Zurück aus einem Spiel: im Level zum Pfad, aus Schulthemen und Arbeitsblatt zurück dorthin, sonst zur Startseite
+  function leaveGame(toFocus = false) {
     if (state.level) { state.level = null; setLevelButtons(); openPath(); }
+    else if (toFocus === true) openFocus();
     else goHome();
   }
 
@@ -5015,7 +5018,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         continue;
       }
       // Auf Karten nur "Aufgabe = ?" zeigen: Lücken werden zur normalen Aufgabe, bei Stellenwerten nur "4 Z + 7 E"
-      if (!t.kind && t.blank !== "c") {
+      // "Bis zum Zehner" bleibt eine Lücke (63 + □ = 70), sonst wäre es eine gewöhnliche Plusaufgabe
+      if (!t.kind && t.blank !== "c" && t.topic !== "ergaenzen") {
         t.blank = "c"; t.answer = t.c;
         t.topic = { "+": "plus", "−": "minus", "·": "mal", ":": "geteilt" }[t.op] || t.topic;
       }
@@ -5231,9 +5235,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // ---------- Schulthemen üben ----------
   // Eltern oder Kind wählen die Themen, die gerade in der Schule dran sind; die Auswahl bleibt gespeichert.
   const focus = Object.assign({ topics: [], N: 0 }, store.get("rw-schulthemen", {}));
-  const focusRanges = () => [...new Set([20, 100, 1000, state.N || 100])].filter((n) => n >= 20).sort((x, y) => x - y);
+  const focusRanges = () => [...new Set([20, 100, 1000, state.N || 100, focus.N || 100])].filter((n) => n >= 20).sort((x, y) => x - y);
   const focusN = () => focus.N || Math.max(20, state.N || 100);
-  const focusAll = () => topicsFor({ N: focusN(), mal: true });
+  const focusAll = () => topicsFor({ N: focusN(), mal: state.mal === true });
   function focusSummary() {
     const sel = focus.topics.filter((t) => focusAll().includes(t));
     return sel.length ? `${sel.map((t) => topicName(t, focusN()).replace(/\u00AD/g, "")).join(", ")} · bis ${rangeLabel(focusN())}` : "";
@@ -5242,7 +5246,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (!ready()) return;
     renderBlaetter();
     renderFocus();
-    $("focusSay").textContent = BLAETTER.length ? FOCUS_SAY[2] : focus.topics.length ? FOCUS_SAY[1] : FOCUS_SAY[0];
+    $("focusSay").textContent = focus.topics.length ? FOCUS_SAY[1] : BLAETTER.length ? FOCUS_SAY[2] : FOCUS_SAY[0];
     $("focusNote").textContent = "";
     show("focusView");
     autoRead($("focusSay").textContent);
@@ -5262,7 +5266,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const sel = focus.topics.filter((t) => focusAll().includes(t));
     if (!sel.length) { $("focusNote").textContent = "Tippe mindestens ein Thema an."; $("focusNote").classList.add("bad"); return; }
     state.level = null; setLevelButtons();
-    const N = focusN(), cfg = { N, mal: true, grade: state.grade || 2, adapt: true };
+    const N = focusN(), cfg = { N, mal: state.mal === true, grade: state.grade || 2, adapt: true };
     state.round = { tasks: makeRound(cfg, sel), sel, N, i: 0, input: "", tries: 0, results: [], scores: [], locked: false, streak: 0, focus: true };
     freshTask(state.round);
     state.lastMode = "focus";
@@ -5856,7 +5860,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (!$("memGrid").hidden && (mem.moves > 0 || mem.ask >= 0 || mem.solved > 0) && !reallyLeave((t) => { $("memSay").textContent = t; beeMood("memBee", "think"); })) return;
     leaveGame();
   });
-  $("memMenu").addEventListener("click", leaveGame);
+  $("memMenu").addEventListener("click", () => leaveGame());
   $("memGrid").addEventListener("click", (e) => { const b = e.target.closest("[data-card]"); if (b) flipCard(Number(b.dataset.card)); });
 
   // Vorlesen: Sprechblasen, Aufgaben und Tipps
@@ -5879,7 +5883,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (bj.running && bj.hits > 0 && !reallyLeave((t) => sayBj(t, "oops"))) return;
     stopBalloons(); leaveGame();
   });
-  $("bjMenu").addEventListener("click", leaveGame);
+  $("bjMenu").addEventListener("click", () => leaveGame());
   $("tricksBtn").addEventListener("click", () => openTricks(""));
   $("tricksBack").addEventListener("click", () => { if (tricksFrom === "startView") goHome(); else show(tricksFrom); });
   $("trickNav").addEventListener("click", (e) => {
@@ -5938,10 +5942,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (r.picks.length < 2) return renderTask();
     answer([...r.picks].sort((a, b) => a - b).join(","));
   });
-  $("menuBtn").addEventListener("click", leaveGame);
+  $("menuBtn").addEventListener("click", () => leaveGame());
   $("backBtn").addEventListener("click", () => {
     if (state.round && (state.round.results.length || state.round.exam) && !reallyLeave((t) => say(t, "oops"))) return;
-    state.round = null; resetTaskUi(); leaveGame();
+    const toFocus = !!(state.round && (state.round.focus || state.round.blatt));
+    state.round = null; resetTaskUi(); leaveGame(toFocus);
   });
   $("helpBtn").addEventListener("click", () => { if ($("help").hidden) showHelp(); else $("help").hidden = true; });
   $("nextBtn").addEventListener("click", nextTask);
