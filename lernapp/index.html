@@ -834,6 +834,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       <button class="mode" id="startBtn" type="button"><span class="tag">Üben</span><span id="iconFlower"></span><b>Blumen-Runde</b><small>10 Aufgaben, Blumen sammeln</small></button>
       <button class="mode" id="tricksBtn" type="button"><span class="tag">Lernen</span><span id="iconTricks"></span><b>Rechentricks</b><small>So geht Rechnen leichter</small></button>
       <button class="mode wide" id="factsBtn" type="button"><span class="tag">Blitzrechnen</span><span id="iconFacts"></span><b>Einspluseins-Karte</b><small id="factsInfo">Was sitzt schon? Gezielt üben</small></button>
+      <button class="mode school wide" id="focusBtn" type="button"><span class="tag">Gerade in der Schule</span><span id="iconFocus"></span><b>Schulthemen üben</b><small id="focusInfo">Themen auswählen, die gerade dran sind</small></button>
       <button class="mode school" id="schoolBtn" type="button"><span class="tag">Wie in der Schule</span><span id="iconSchool"></span><b>Übungsblatt</b><small>Wie die Lernzielkontrolle, ohne Zeit</small></button>
       <button class="mode exam-tile" id="examBtn" type="button"><span class="tag">Wie eine echte Arbeit</span><span id="iconExam"></span><b>Prüfung</b><small>Ohne Hilfe, Korrektur am Ende</small></button>
       <button class="mode album-tile wide" id="albumBtn" type="button"><span class="tag">Sammeln</span><span id="iconAlbum"></span><b>Sticker-Album</b><small id="albumInfo"></small></button>
@@ -959,6 +960,26 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         <li><b>Nicht abzählen lassen.</b> Zählendes Rechnen erschwert den Blick auf Zehner und Einer, darum sollen Kinder möglichst früh davon wegkommen: mit der Kraft der Fünf, Verdoppeln und beim Einmaleins mit Kernaufgaben wie mal 1, mal 2 und mal 5, aus denen sich die anderen Aufgaben ableiten lassen. Die Tipps in der App zeigen diese Rechenwege.</li>
         <li><b>Gemeinsam spielen.</b> Fragen Sie ab und zu: „Wie hast du das gerechnet?“ Kinder, die ihren Rechenweg selbst erklären, können ihn in Studien besser auf neue Aufgaben übertragen.</li>
       </ul>
+    </section>
+  </main>
+
+  <!-- Schulthemen üben: was gerade in der Schule dran ist -->
+  <main id="focusView" hidden style="display:grid; gap:14px;">
+    <div class="bar">
+      <button class="back" id="focusBack" type="button">← Zurück</button>
+      <span class="where">Schulthemen üben</span>
+    </div>
+    <section class="sheet hello">
+      <div class="bee" id="focusBee"></div>
+      <div class="bubble"><p id="focusSay"></p><button class="speak" type="button" data-speak-el="focusSay">Vorlesen</button></div>
+    </section>
+    <section class="sheet" style="display:grid; gap:12px;">
+      <h2 style="font-size:21px; margin:0">Was ist gerade in der Schule dran?</h2>
+      <div class="topics" id="focusTopics" role="group" aria-label="Schulthemen"></div>
+      <h2 style="font-size:19px; margin:4px 0 0">Zahlenraum</h2>
+      <div class="yesno three" id="focusRange" role="group" aria-label="Zahlenraum"></div>
+      <p class="setup-note" id="focusNote" aria-live="polite" style="margin:0"></p>
+      <button class="go" id="focusGo" type="button">Los geht's: 10 Aufgaben</button>
     </section>
   </main>
 
@@ -1309,6 +1330,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     luecke:  { name: "Lücken\u00ADaufgaben",  sym: "□" },
     geld:    { name: "Geld",            sym: "€" },
     uhr:     { name: "Uhr\u00ADzeit",     sym: "Uhr", small: true },
+    ergaenzen: { name: "Bis zum Zehner", sym: "→10", small: true },
     all:     { name: "Alles mischen",   sym: "★" },
   };
 
@@ -1324,7 +1346,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // cfg = { N: größte Zahl, mal: Mal und Geteilt schon gelernt? }
   const opsFor = (cfg) => (cfg.mal ? ["plus", "minus", "mal", "geteilt"] : ["plus", "minus"]);
   // Themen nach den Lehrplänen der Grundschule (Zahl und Operation, Muster, Größen)
-  const topicsFor = (cfg) => [...opsFor(cfg), "verdoppeln", ...(cfg.N >= 20 ? ["stellen"] : []), "nachbar", "mauer", "familie", ...(cfg.N >= 20 ? ["geschickt"] : []), "text", "luecke", "geld", "uhr"];
+  const topicsFor = (cfg) => [...opsFor(cfg), "verdoppeln", ...(cfg.N >= 20 ? ["stellen"] : []), "nachbar", "mauer", "familie", ...(cfg.N >= 20 ? ["geschickt", "ergaenzen"] : []), "text", "luecke", "geld", "uhr"];
   // Name einer Auswahl, z. B. "Plus" oder "Mix: Plus, Minus, Mal"
   const selectionName = (sel, N) => (sel.length === 1 ? topicName(sel[0], N)
     : sel.length === 2 ? sel.map((t) => topicName(t, N)).join(" + ") : "Bunt gemischt");
@@ -1843,6 +1865,19 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // Platzhalteraufgabe mit Probe: erst die Lücke, dann prüfen, ob die Rechnung stimmt
   // fix = "□ − 5 = 6" (eine Platzhalteraufgabe vom Arbeitsblatt)
+  // Wie heißt der nächste Zehner? Ergänze. 63 + □ = □ (wie auf dem Arbeitsblatt: erst den Zehner, dann was fehlt).
+  // fix: Startzahl vom Blatt. single: nur eine Lücke (63 + □ = 70), z. B. für Ballonjagd und Memory.
+  function zehnerTask(N, fix = 0, single = false) {
+    const M = Math.max(N, 20);
+    let a = fix;
+    if (!a) do a = R(11, Math.min(M, 100) - 1); while (a % 10 === 0);
+    const T = Math.ceil(a / 10) * 10, b = T - a;
+    const tipT = `Schau auf die Zehnerstelle von ${fmt(a)}. Der nächste Zehner ist ${fmt(T)}.`;
+    const tipB = `Von ${fmt(a)} bis ${fmt(T)}: Wie viele fehlen bis zum vollen Zehner? Denk an die Zehnerfreunde: ${a % 10} und ${b} ergeben 10.`;
+    if (single) return { ...mk(a, "+", b, T, "b"), tip: tipB };
+    return { kind: "zehner", a, b, c: T, op: "+", blank: "b", answer: b, key: `Z${a}`, steps: [NUM(T, tipT), NUM(b, tipB)], tip: tipB };
+  }
+
   function probeTask(N, op = pick(["plus", "minus"]), fix = "") {
     let t, blank;
     if (fix) {
@@ -1998,7 +2033,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // Zahlenraum für ein Thema: am Anfang ein Teil des eingetippten Zahlenraums, mit wachsendem Können mehr
   function adaptN(topic, N) {
     if (topic === "uhr") return N;
-    const d = skill(topic).d, min = topic === "stellen" || topic === "geschickt" ? 20 : MIN_N, x = N * (0.4 + 0.6 * d);
+    const d = skill(topic).d, min = topic === "stellen" || topic === "geschickt" || topic === "ergaenzen" ? 20 : MIN_N, x = N * (0.4 + 0.6 * d);
     let n = Math.round(x);
     if (N > 20) { const st = 10 ** Math.max(0, String(n).length - 2); n = Math.round(x / st) * st; }
     return Math.max(min, Math.min(N, n));
@@ -2186,6 +2221,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (topic === "familie") return { ...(sheet && sheet < 0.25 ? familyFullTask(N) : sheet && sheet < 0.35 ? freeRobotTask(N) : familyTask(N)), topic };
     if (topic === "geschickt") return { ...(sheet && sheet < 0.5 ? smartPickTask(N) : smartTask(N)), topic };
     if (topic === "geld") return { ...moneyTask(N), topic };
+    if (topic === "ergaenzen") return { ...zehnerTask(N, 0, !sheet || sheet >= 0.6), topic };
     if (topic === "uhr") return { ...clockTask(cfg.grade || 2), topic };
     if (topic !== "luecke") return { ...MAKERS[topic](N, cfg), topic };
     // Lückenaufgabe: eine bekannte Aufgabe nehmen und eine Zahl verstecken. Manchmal als Rechentabelle.
@@ -2332,7 +2368,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   })();
 
   // ---------- Ansichten ----------
-  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView", "pathView", "gardenView", "parentView", "recordView", "albumView", "correctionView", "boardView", "factsView"];
+  const VIEWS = ["setupView", "startView", "gameView", "resultView", "tricksView", "balloonView", "memoryView", "pathView", "gardenView", "parentView", "recordView", "albumView", "correctionView", "boardView", "factsView", "focusView"];
   function show(view) {
     if (view !== "recordView") cancelRecording();
     for (const id of VIEWS) $(id).hidden = id !== view;
@@ -3010,6 +3046,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (t.kind === "doubletab") return "Berechne das Doppelte. Oben steht die Zahl, unten das Doppelte. Fülle alle Lücken aus.";
     if (t.kind === "smart2") return `Rechne geschickt: ${fmt(t.nums[0])} ${word[t.ops[0]]} ${fmt(t.nums[1])} ${word[t.ops[1]]} ${fmt(t.nums[2])}. Tippe zuerst die beiden Zahlen an, mit denen du anfängst.`;
     if (t.kind === "sach") return `${t.text} ${t.idx.q >= 0 ? "Welche Frage passt?" : t.question} Schreibe die Rechnung und die Antwort.`;
+    if (t.kind === "zehner") return `Wie heißt der nächste Zehner nach ${fmt(t.a)}? Ergänze: ${fmt(t.a)} plus wie viel gleich dem nächsten Zehner.`;
     if (t.kind === "probe") {
       const v = (k) => (t.blank === k ? "wie viel" : fmt(t[k]));
       return `${v("a")} ${word[t.op]} ${v("b")} gleich ${fmt(t.c)}. Danach mach die Probe.`;
@@ -3233,6 +3270,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function renderHome(text) {
     $("homeSay").textContent = text;
     $("albumInfo").textContent = `${state.stickers.length} von ${STICKERS.length} Stickern`;
+    $("focusInfo").textContent = focusSummary() || "Themen auswählen, die gerade dran sind";
     const fk = [...factKeys("plus"), ...factKeys("minus")];
     $("factsInfo").textContent = Object.keys(facts).length ? `${factSummary(fk).sitzt} von ${fk.length} Aufgaben sitzen` : "Was sitzt schon? Gezielt üben";
     const d = playedToday(), k = streakDays();
@@ -3660,6 +3698,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       html = `<p class="story">${t.text}</p><div class="sach-part"><b>Frage:</b>${I.q >= 0 ? choiceAt(I.q) : `<p class="chosen">${t.question}</p>`}</div>` +
         (ss.step > I.q ? `<div class="sach-part"><b>Rechnung:</b><div class="row">${at(I.a)}${choiceAt(I.s, true)}${at(I.b)}<span class="op">=</span>${at(I.c)}</div></div>` : "") +
         (ss.step >= I.say ? `<div class="sach-part"><b>Antwort:</b><p class="sach-say">${t.say.replace("§", at(I.say))}</p></div>` : "");
+    } else if (t.kind === "zehner") {
+      html = `<p class="robo-hint">Wie heißt der nächste Zehner? Ergänze.</p><div class="row">${fmt(t.a)}<span class="op">+</span>${at(1)}<span class="op">=</span>${at(0)}</div>`;
     } else if (t.kind === "probe") {
       const part = (k) => (t.blank === k ? at(0) : fmt(t[k]));
       const pv = (k) => (t.blank === k ? (ss.vals[0] === undefined ? "□" : fmt(ss.vals[0])) : fmt(t[k]));
@@ -3846,6 +3886,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     "Merk dir die Lösung und such das passende Ergebnis.",
   ];
   // Einspluseins-Karte
+  // Schulthemen üben
+  const FOCUS_SAY = [
+    "Was macht ihr gerade in der Schule? Tippe die Themen an, dann üben wir genau die.",
+    "Deine Schulthemen sind gespeichert. Tippe auf Los, dann geht es los!",
+  ];
   const FACTS_SAY = [
     "Hier siehst du, welche Plus- und Minusaufgaben bis 20 schon sitzen.",
     "Grün heißt: sitzt. Gelb heißt: richtig, aber noch langsam. Orange heißt: noch unsicher.",
@@ -4403,6 +4448,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
         ex: ex("Auge 5, Mund 14", "14 − 5 = 9", "Probe: 9 + 5 = 14. Stimmt!") },
       { h: "Die Aufgabenfamilie", p: "Zu jedem Roboter gehören vier Aufgaben: die Tauschaufgabe und die zwei Umkehraufgaben.",
         ex: ex("16 + 4 = 20", "4 + 16 = 20", "20 − 4 = 16", "20 − 16 = 4") },
+    ] },
+    { id: "ergaenzen", title: "Bis zum Zehner", cards: [
+      { h: "Erst den Zehner finden", p: "Der nächste Zehner hat eine Zehnerziffer mehr und hinten eine 0.",
+        ex: ex("63 → 70", "28 → 30", "94 → 100") },
+      { h: "Dann die Zehnerfreunde", p: "Die Einerziffer und die Zahl, die fehlt, ergeben zusammen 10.",
+        ex: ex("63 + □ = 70", "3 + 7 = 10", "also 63 + 7 = 70") },
     ] },
     { id: "geschickt", title: "Geschickt rechnen", cards: [
       { h: "Zehnerfreunde zuerst", p: "Bei drei Zahlen suchst du zuerst zwei, die zusammen 10 ergeben. Die rechnest du zuerst.",
@@ -5117,6 +5168,51 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("memAgain").focus();
   }
 
+  // ---------- Schulthemen üben ----------
+  // Eltern oder Kind wählen die Themen, die gerade in der Schule dran sind; die Auswahl bleibt gespeichert.
+  const focus = Object.assign({ topics: [], N: 0 }, store.get("rw-schulthemen", {}));
+  const focusRanges = () => [...new Set([20, 100, 1000, state.N || 100])].filter((n) => n >= 20).sort((x, y) => x - y);
+  const focusN = () => focus.N || Math.max(20, state.N || 100);
+  const focusAll = () => topicsFor({ N: focusN(), mal: true });
+  function focusSummary() {
+    const sel = focus.topics.filter((t) => focusAll().includes(t));
+    return sel.length ? `${sel.map((t) => topicName(t, focusN()).replace(/\u00AD/g, "")).join(", ")} · bis ${rangeLabel(focusN())}` : "";
+  }
+  function openFocus() {
+    if (!ready()) return;
+    renderFocus();
+    $("focusSay").textContent = focus.topics.length ? FOCUS_SAY[1] : FOCUS_SAY[0];
+    $("focusNote").textContent = "";
+    show("focusView");
+    autoRead($("focusSay").textContent);
+  }
+  function renderFocus() {
+    const N = focusN(), all = focusAll();
+    focus.topics = focus.topics.filter((t) => all.includes(t));
+    $("focusTopics").innerHTML = all.map((t) => `<button class="topic" type="button" data-focus="${t}" aria-pressed="${focus.topics.includes(t)}">
+      <span class="sym${TOPICS[t].small ? " small" : ""}">${topicSym(t, N)}</span><span><span class="name">${topicName(t, N)}</span></span></button>`).join("");
+    $("focusRange").innerHTML = focusRanges().map((n) => `<button class="choice" type="button" data-focus-n="${n}" aria-pressed="${n === N}">bis ${rangeLabel(n)}</button>`).join("");
+  }
+  function saveFocus() {
+    store.set("rw-schulthemen", { topics: focus.topics, N: focus.N });
+    renderHeader();
+  }
+  function startFocus() {
+    const sel = focus.topics.filter((t) => focusAll().includes(t));
+    if (!sel.length) { $("focusNote").textContent = "Tippe mindestens ein Thema an."; $("focusNote").classList.add("bad"); return; }
+    state.level = null; setLevelButtons();
+    const N = focusN(), cfg = { N, mal: true, grade: state.grade || 2, adapt: true };
+    state.round = { tasks: makeRound(cfg, sel), sel, N, i: 0, input: "", tries: 0, results: [], scores: [], locked: false, streak: 0, focus: true };
+    freshTask(state.round);
+    state.lastMode = "focus";
+    $("where").textContent = `Schulthemen · bis ${rangeLabel(N)}`;
+    renderStreak();
+    resetTaskUi();
+    show("gameView");
+    renderTask();
+    announceTask();
+  }
+
   // ---------- Wiesen-Rallye: Brettspiel ----------
   // 21 Felder (Start bis Bienenstock) als Schlangenweg. Würfeln, die Aufgabe lösen, dann ziehen.
   // Gegen Summi: Summi rechnet laut und verrechnet sich manchmal. Das Kind prüft, ob es stimmt.
@@ -5554,6 +5650,21 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("factsBtn").addEventListener("click", openFacts);
   $("parentFactsOpen").addEventListener("click", openFacts);
   $("factsBack").addEventListener("click", () => goHome());
+  $("focusBtn").addEventListener("click", openFocus);
+  $("focusBack").addEventListener("click", () => goHome());
+  $("focusGo").addEventListener("click", startFocus);
+  $("focusTopics").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-focus]"); if (!b) return;
+    const t = b.dataset.focus;
+    focus.topics = focus.topics.includes(t) ? focus.topics.filter((x) => x !== t) : [...focus.topics, t];
+    $("focusNote").textContent = ""; $("focusNote").classList.remove("bad");
+    saveFocus(); renderFocus();
+  });
+  $("focusRange").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-focus-n]"); if (!b) return;
+    focus.N = Number(b.dataset.focusN);
+    saveFocus(); renderFocus();
+  });
   $("factsTrain").addEventListener("click", startBlitz);
   $("factsTabs").addEventListener("click", (e) => { const b = e.target.closest("[data-facts]"); if (b) { factsTab = b.dataset.facts; factsPick = ""; renderFacts(); } });
   $("factsGrid").addEventListener("click", (e) => { const b = e.target.closest("[data-fact]"); if (b) pickFact(b.dataset.fact); });
@@ -5718,7 +5829,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderSetup();
   });
   $("startBtn").addEventListener("click", () => { state.level = null; setLevelButtons(); startRound(); });
-  $("againBtn").addEventListener("click", () => (state.lastMode === "school" ? startSchool() : state.lastMode === "exam" ? openExamDialog() : state.lastMode === "blitz" ? startBlitz() : startRound()));
+  $("againBtn").addEventListener("click", () => (state.lastMode === "school" ? startSchool() : state.lastMode === "exam" ? openExamDialog() : state.lastMode === "blitz" ? startBlitz() : state.lastMode === "focus" ? startFocus() : startRound()));
   $("examBtn").addEventListener("click", openExamDialog);
   $("examTime").addEventListener("click", (e) => { const b = e.target.closest("[data-min]"); if (b) startExam(Number(b.dataset.min)); });
   $("examCancel").addEventListener("click", () => { $("examDialog").hidden = true; });
@@ -5801,12 +5912,15 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 
   // Alle Bienen neu zeichnen, z. B. wenn Summi etwas Neues anzieht
   function paintBees() {
-    for (const id of ["setupBee", "homeBee", "gameBee", "memBee", "pathBee", "gardenBee", "albumBee", "boardBee", "factsBee"]) $(id).innerHTML = beeSVG();
+    for (const id of ["setupBee", "homeBee", "gameBee", "memBee", "pathBee", "gardenBee", "albumBee", "boardBee", "factsBee", "focusBee"]) $(id).innerHTML = beeSVG();
   }
   paintBees();
   $("iconPath").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 54C24 54 14 36 32 34S44 16 54 14" stroke="var(--sun)" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="2 8"/><circle cx="10" cy="54" r="6" fill="var(--grass)"/><circle cx="32" cy="34" r="6" fill="var(--grass)"/><path d="M54 6V30" stroke="var(--bee-ink)" stroke-width="3"/><path d="M54 6L68 11L54 16Z" fill="var(--red)" transform="translate(-4 0)"/></svg>';
   $("iconGarden").innerHTML = decoSVG("pilz");
   $("iconBalloon").innerHTML = balloonSVG("var(--petal-1)");
+  $("iconFocus").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="10" y="8" width="44" height="50" rx="5" fill="var(--paper)" stroke="var(--ink)" stroke-width="2.5"/>' +
+    '<path d="M18 22h28M18 32h28M18 42h18" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/><path d="M20 30l6 6 12-14" stroke="var(--grass)" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<circle cx="50" cy="12" r="8" fill="var(--sun)"/></svg>';
   $("iconFacts").innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true">' + [0, 1, 2].map((r) => [0, 1, 2].map((c) =>
     `<rect x="${6 + c * 18}" y="${6 + r * 18}" width="15" height="15" rx="3" fill="${["var(--grass)", "var(--grass)", "var(--sun)", "var(--grass)", "var(--oops)", "var(--grass)", "var(--sun)", "var(--grass)", "var(--grass)"][r * 3 + c]}"/>`).join("")).join("") +
     '<path d="M40 30l-8 14h7l-4 14 12-18h-7l5-10z" fill="var(--sun)" stroke="var(--sun-ink)" stroke-width="1.5" stroke-linejoin="round"/></svg>';
@@ -5827,7 +5941,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   if (isApp && cap.addListener) {
     try {
       const BACK = { setupView: "setupBack", gameView: "backBtn", resultView: "menuBtn", tricksView: "tricksBack",
-        balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack", recordView: "recordBack", albumView: "albumBack", correctionView: "correctionBack", boardView: "boardBack", factsView: "factsBack" };
+        balloonView: "bjBack", memoryView: "memBack", pathView: "pathBack", gardenView: "gardenBack", parentView: "parentBack", recordView: "recordBack", albumView: "albumBack", correctionView: "correctionBack", boardView: "boardBack", factsView: "factsBack", focusView: "focusBack" };
       cap.addListener("App", "backButton", () => {
         if (!$("stickerToast").hidden) return $("toastOk").click();
         if (!$("examDialog").hidden) { $("examDialog").hidden = true; return; }

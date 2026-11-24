@@ -32,7 +32,11 @@ Vorhandene Bausteine. Der letzte Parameter legt die genauen Zahlen vom Blatt fes
 | sach | `sachTask(N, ops, fix)` | Sachaufgabe: Frage wählen, Rechnung, Antwort |
 
 Einfache Arten mit nur einem Feld für die Blumen-Runden: `family` (`familyTask`), `table` (`tableTask`),
-`wall` (`wallTask`), `parts`, `text` und reine Rechnungen ohne `kind`.
+`wall` (`wallTask`), `parts`, `text` und reine Rechnungen ohne `kind`. „Bis zum nächsten Zehner“ (63 + □ = 70)
+baut `zehnerTask(N, fix, single)`: mit zwei Feldern (`zehner`) oder mit einer Lücke.
+
+Kommt nur ein einzelnes Thema aus der Schule (kein ganzes Blatt), reicht oft ein neues Thema in `TOPICS` und
+`generate`: Es erscheint dann automatisch auch unter „Schulthemen üben“.
 
 Mehrteilige Aufgaben haben `t.steps` (Typen `num`, `choice`, `pick2`). Welche Antworten an einer Stelle
 gelten, entscheidet `stepOptions(t, k, vals)` – jede Lösung, die die Lehrerin gelten lassen würde, muss

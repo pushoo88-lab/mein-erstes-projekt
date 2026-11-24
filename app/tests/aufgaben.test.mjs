@@ -106,5 +106,29 @@ const neu = await page.evaluate(() => {
   });
 check(neu.nbad === 0, `Rechenroboter, Geschickt rechnen, Lücken richtig (${Object.values(neu.seen).reduce((a, b) => a + b, 0)} Aufgaben)${neu.nbad ? ": " + JSON.stringify(neu.bad.slice(0, 3)) : ""}`);
 
+// Bis zum nächsten Zehner (wie auf Luisas Arbeitsblatt): 63 + 7 = 70
+const zehner = await page.evaluate(() => {
+  const bad = [], kinds = {};
+  for (const N of [10, 20, 30, 50, 100, 1000, 1000000]) for (const adapt of [false, true]) for (const single of [false, true]) for (let i = 0; i < 1500; i++) {
+    const t = window.__gen({ N, mal: false, adapt, grade: 2, single }, "ergaenzen", ["ergaenzen"]);
+    kinds[(t.kind || "eq") + (single ? "-einzeln" : "")] = 1;
+    const a = t.a, T = t.c, b = t.b;
+    if (a % 10 === 0 || T % 10 !== 0 || T - a !== b || b < 1 || b > 9 || T > Math.max(100, N)) bad.push(["zahl", N, JSON.stringify(t)]);
+    if (t.steps && (window.__mk.stepOptions(t, 0, [])[0] !== T || window.__mk.stepOptions(t, 1, [T])[0] !== b)) bad.push(["felder", JSON.stringify(t)]);
+    if (!t.steps && (t.blank !== "b" || t.answer !== b)) bad.push(["einzeln", JSON.stringify(t)]);
+    if (single && t.steps) bad.push(["single", JSON.stringify(t)]);
+    const el = document.createElement("div");
+    window.__draw(el, t, '<span class="slot">?</span>', { step: 0, vals: [], picks: [] });
+    if (/undefined|NaN/.test(el.innerHTML) || !window.__spokenTask(t)) bad.push(["bild", JSON.stringify(t)]);
+  }
+  // Genau die Aufgaben vom Blatt (63 + 7 = 70, 94 + 6 = 100 …)
+  for (const [a, b, T] of [[55, 5, 60], [85, 5, 90], [43, 7, 50], [28, 2, 30], [94, 6, 100], [63, 7, 70], [21, 9, 30], [74, 6, 80], [37, 3, 40], [95, 5, 100]]) {
+    const t = window.__mk.zehnerTask(100, a);
+    if (t.c !== T || t.b !== b) bad.push(["blatt", a, t.b, t.c]);
+  }
+  return { nbad: bad.length, bad: bad.slice(0, 4), kinds: Object.keys(kinds) };
+});
+check(zehner.nbad === 0 && zehner.kinds.includes("zehner") && zehner.kinds.includes("eq-einzeln"), `Bis zum nächsten Zehner: rechnerisch richtig, auch die Aufgaben vom Blatt (${zehner.kinds.join(", ")})${zehner.nbad ? ": " + JSON.stringify(zehner.bad) : ""}`);
+
 await browser.close();
 done("Aufgaben", errors);

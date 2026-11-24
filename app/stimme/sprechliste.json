@@ -1564,6 +1564,20 @@
    "block": 26,
    "gruppe": "Neue Aufgaben und Übungsblatt",
    "text": "Ein paar Felder hat Summi für dich ausgefüllt. Schau sie dir genau an. Diesmal bleibst du stehen."
+  },
+  {
+   "id": 224,
+   "teil": 2,
+   "block": 26,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Was macht ihr gerade in der Schule? Tippe die Themen an, dann üben wir genau die."
+  },
+  {
+   "id": 225,
+   "teil": 2,
+   "block": 26,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Deine Schulthemen sind gespeichert. Tippe auf Los, dann geht es los!"
   }
  ]
 }

@@ -35,6 +35,7 @@ Die Android-App wird daraus mit Capacitor gebaut (`app/`). Die Tests liegen in `
    | memory | Zahlen-Memory: erst rechnen, dann Gegenstück suchen; Fehler, Lösung, Ende, Handy und Tablet |
    | brettspiel | Wiesen-Rallye gegen Summi und mit Mama: ganze Partien, Sonderfelder, Summis Rechnung prüfen, Zurück |
    | einspluseins | Einspluseins-Karte: Farben, Blitzrechnen übt Unsicheres zuerst, „sitzt“ erst nach 2× schnell, Eltern-Hinweis zählendes Rechnen |
+   | schulthemen | „Schulthemen üben“: Auswahl, Runde nur mit diesen Themen, „Bis zum Zehner“, Auswahl bleibt gespeichert |
    | skills | die beiden Skills passen zum Code: genannte Bausteine, Befehle, Dateien und Tests gibt es wirklich |
    | tablet | Fire HD 10 quer und hochkant: Zahlentasten bei jeder Aufgabenart ohne Scrollen sichtbar |
 
