@@ -389,6 +389,21 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height
 .card.asking .front { border-color: var(--sun); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sun) 45%, transparent); }
 .card.solved .front { border-color: var(--blue); }
 .card .front small { display: block; color: var(--blue); }
+/* Arbeitsblätter aus der Schule */
+.blaetter { display: grid; gap: 12px; }
+@media (min-width: 520px) { .blaetter { grid-template-columns: 1fr 1fr; } }
+.blatt { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left;
+  border: 3px solid var(--line); border-radius: 18px; background: var(--paper); padding: 10px; box-shadow: 0 4px 0 var(--line); font: inherit; color: var(--ink); }
+.blatt:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--line); }
+.blatt-bild { width: 96px; aspect-ratio: 3 / 4; border-radius: 8px; border: 2px solid var(--line); background: #fff; color: #1d3a3c;
+  padding: 6px 5px; font-size: 8.5px; line-height: 1.35; overflow: hidden; font-family: var(--body); }
+.blatt-bild b { display: block; font-size: 8px; margin-bottom: 4px; }
+.blatt-bild i { font-style: normal; display: block; white-space: nowrap; }
+.blatt-bild i span { display: inline-block; width: 1.6em; border-bottom: 1px solid #1d3a3c; margin: 0 1px; }
+.blatt-text b { display: block; font-family: var(--display); font-size: 18px; line-height: 1.2; }
+.blatt-text small { display: block; color: var(--ink-soft); font-size: 14px; margin-top: 4px; }
+.blatt-text .neu { display: inline-block; background: var(--sun); color: var(--sun-ink); border-radius: 8px; padding: 0 6px; font-size: 12px; font-weight: 800; margin-left: 4px; }
+
 /* Einspluseins-Karte */
 .facts { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 3px; }
 .facts .h { display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 14px; color: var(--ink-soft); aspect-ratio: 1; }
@@ -972,6 +987,10 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     <section class="sheet hello">
       <div class="bee" id="focusBee"></div>
       <div class="bubble"><p id="focusSay"></p><button class="speak" type="button" data-speak-el="focusSay">Vorlesen</button></div>
+    </section>
+    <section class="sheet" style="display:grid; gap:12px;" id="blattBox">
+      <h2 style="font-size:21px; margin:0">Arbeitsblätter aus der Schule</h2>
+      <div class="blaetter" id="blaetter"></div>
     </section>
     <section class="sheet" style="display:grid; gap:12px;">
       <h2 style="font-size:21px; margin:0">Was ist gerade in der Schule dran?</h2>
@@ -3270,7 +3289,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function renderHome(text) {
     $("homeSay").textContent = text;
     $("albumInfo").textContent = `${state.stickers.length} von ${STICKERS.length} Stickern`;
-    $("focusInfo").textContent = focusSummary() || "Themen auswählen, die gerade dran sind";
+    $("focusInfo").textContent = [BLAETTER.length ? `${BLAETTER.length} ${BLAETTER.length === 1 ? "Arbeitsblatt" : "Arbeitsblätter"}` : "", focusSummary()].filter(Boolean).join(" · ") || "Themen auswählen, die gerade dran sind";
     const fk = [...factKeys("plus"), ...factKeys("minus")];
     $("factsInfo").textContent = Object.keys(facts).length ? `${factSummary(fk).sitzt} von ${fk.length} Aufgaben sitzen` : "Was sitzt schon? Gezielt üben";
     const d = playedToday(), k = streakDays();
@@ -3890,6 +3909,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   const FOCUS_SAY = [
     "Was macht ihr gerade in der Schule? Tippe die Themen an, dann üben wir genau die.",
     "Deine Schulthemen sind gespeichert. Tippe auf Los, dann geht es los!",
+    "Tippe auf ein Arbeitsblatt aus der Schule oder wähle die Themen, die gerade dran sind.",
   ];
   const FACTS_SAY = [
     "Hier siehst du, welche Plus- und Minusaufgaben bis 20 schon sitzen.",
@@ -5168,6 +5188,46 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     $("memAgain").focus();
   }
 
+  // ---------- Arbeitsblätter aus der Schule ----------
+  // Fotos schicken die Eltern im Chat; daraus entstehen hier genau die Aufgaben vom Blatt (neueste zuerst).
+  // Die Karte zeigt ein gezeichnetes Bild des Blatts (kein Foto: das Projekt ist öffentlich).
+  // Jedes Blatt: id, datum, titel (wörtlich vom Blatt), thema (für Lernstand und Tipps), bild (Zeilen fürs
+  // Kartenbild, "_" = Lücke) und make() mit allen Aufgaben vom Blatt.
+  const BLAETTER = [
+    { id: "2026-11-zehner", datum: "24.11.2026", titel: "Wie heißt der nächste Zehner? Ergänze.", thema: "ergaenzen", N: 100,
+      bild: ["55 + _ = _", "85 + _ = _", "43 + _ = _", "28 + _ = _", "94 + _ = _", "71 + _ = _"],
+      make: () => [55, 85, 43, 28, 94, 71, 37, 52, 64, 63, 21, 74, 83, 34, 47, 95, 81, 73].map((a) => zehnerTask(100, a)) },
+  ];
+  const blattBest = store.get("rw-blaetter", {});
+  function renderBlaetter() {
+    $("blattBox").hidden = !BLAETTER.length;
+    $("blaetter").innerHTML = BLAETTER.map((b, k) => {
+      const best = blattBest[b.id];
+      const lines = b.bild.map((l) => `<i>${l.split("_").join("<span></span>")}</i>`).join("");
+      return `<button class="blatt" type="button" data-blatt="${b.id}" aria-label="Arbeitsblatt ${b.titel}">
+        <span class="blatt-bild" aria-hidden="true"><b>${b.titel}</b>${lines}</span>
+        <span class="blatt-text"><b>${b.titel}${k === 0 && best === undefined ? '<span class="neu">neu</span>' : ""}</b>
+        <small>Vom ${b.datum} · ${b.make().length} Aufgaben</small>
+        <small>${best === undefined ? "Noch nicht geübt" : `Bestes Ergebnis: ${best.ok} von ${best.n} richtig`}</small></span></button>`;
+    }).join("");
+  }
+  // 10 Aufgaben vom Blatt (bei kürzeren Blättern alle), in zufälliger Reihenfolge
+  function startBlatt(id) {
+    const b = BLAETTER.find((x) => x.id === id);
+    if (!b || !ready()) return;
+    state.level = null; setLevelButtons();
+    const tasks = shuffle(b.make().map((t) => ({ ...t, topic: b.thema }))).slice(0, 10);
+    state.round = { tasks, sel: [b.thema], N: b.N, i: 0, input: "", tries: 0, results: [], scores: [], locked: false, streak: 0, blatt: b.id };
+    freshTask(state.round);
+    state.lastMode = "blatt:" + b.id;
+    $("where").textContent = "Arbeitsblatt aus der Schule";
+    renderStreak();
+    resetTaskUi();
+    show("gameView");
+    renderTask();
+    announceTask();
+  }
+
   // ---------- Schulthemen üben ----------
   // Eltern oder Kind wählen die Themen, die gerade in der Schule dran sind; die Auswahl bleibt gespeichert.
   const focus = Object.assign({ topics: [], N: 0 }, store.get("rw-schulthemen", {}));
@@ -5180,8 +5240,9 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   }
   function openFocus() {
     if (!ready()) return;
+    renderBlaetter();
     renderFocus();
-    $("focusSay").textContent = focus.topics.length ? FOCUS_SAY[1] : FOCUS_SAY[0];
+    $("focusSay").textContent = BLAETTER.length ? FOCUS_SAY[2] : focus.topics.length ? FOCUS_SAY[1] : FOCUS_SAY[0];
     $("focusNote").textContent = "";
     show("focusView");
     autoRead($("focusSay").textContent);
@@ -5583,7 +5644,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const perfect = first === n;
     bumpStats({ rounds: 1, three: stars === 3 ? 1 : 0, perfect: perfect ? 1 : 0 });
 
-    const selKey = r.blitz ? "blitz" : selectionKey(r.sel);   // Blitzrechnen hat eigene Rekorde
+    const selKey = r.blitz ? "blitz" : r.blatt ? "blatt-" + r.blatt : selectionKey(r.sel);   // eigene Rekorde
+    if (r.blatt) {
+      const ok = r.results.filter((x) => x === "first" || x === "second").length, old = blattBest[r.blatt];
+      if (!old || ok / r.tasks.length > old.ok / old.n) blattBest[r.blatt] = { ok, n: r.tasks.length };
+      store.set("rw-blaetter", blattBest);
+    }
     const key = `${state.grade}-${r.N}-${selKey}`;
     state.best[key] = Math.max(state.best[key] || 0, stars);
     r.results.forEach((x, i) => {
@@ -5653,6 +5719,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   $("focusBtn").addEventListener("click", openFocus);
   $("focusBack").addEventListener("click", () => goHome());
   $("focusGo").addEventListener("click", startFocus);
+  $("blaetter").addEventListener("click", (e) => { const b = e.target.closest("[data-blatt]"); if (b) startBlatt(b.dataset.blatt); });
   $("focusTopics").addEventListener("click", (e) => {
     const b = e.target.closest("[data-focus]"); if (!b) return;
     const t = b.dataset.focus;
@@ -5829,7 +5896,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     renderSetup();
   });
   $("startBtn").addEventListener("click", () => { state.level = null; setLevelButtons(); startRound(); });
-  $("againBtn").addEventListener("click", () => (state.lastMode === "school" ? startSchool() : state.lastMode === "exam" ? openExamDialog() : state.lastMode === "blitz" ? startBlitz() : state.lastMode === "focus" ? startFocus() : startRound()));
+  $("againBtn").addEventListener("click", () => (state.lastMode === "school" ? startSchool() : state.lastMode === "exam" ? openExamDialog() : state.lastMode === "blitz" ? startBlitz() : state.lastMode === "focus" ? startFocus() : String(state.lastMode || "").indexOf("blatt:") === 0 ? startBlatt(state.lastMode.slice(6)) : startRound()));
   $("examBtn").addEventListener("click", openExamDialog);
   $("examTime").addEventListener("click", (e) => { const b = e.target.closest("[data-min]"); if (b) startExam(Number(b.dataset.min)); });
   $("examCancel").addEventListener("click", () => { $("examDialog").hidden = true; });

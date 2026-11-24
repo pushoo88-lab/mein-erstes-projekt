@@ -1578,6 +1578,13 @@
    "block": 26,
    "gruppe": "Neue Aufgaben und Übungsblatt",
    "text": "Deine Schulthemen sind gespeichert. Tippe auf Los, dann geht es los!"
+  },
+  {
+   "id": 226,
+   "teil": 2,
+   "block": 26,
+   "gruppe": "Neue Aufgaben und Übungsblatt",
+   "text": "Tippe auf ein Arbeitsblatt aus der Schule oder wähle die Themen, die gerade dran sind."
   }
  ]
 }

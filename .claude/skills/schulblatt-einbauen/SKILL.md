@@ -8,6 +8,21 @@ description: Baut ein neues Arbeitsblatt oder eine Lernzielkontrolle aus der Sch
 Ziel: Luisa übt in der App genau das, was in der Schule drankommt – gleiche Aufgabenart, gleiche Darstellung,
 gleiche Wörter, gleiche Punkte. Alles steht in `lernapp/index.html`.
 
+## 0. Einzelnes Arbeitsblatt (Foto im Chat) → Karte unter „Schulthemen üben“
+
+Der übliche Weg: Die Eltern schicken ein Foto eines Arbeitsblatts. Dann **keine** Änderung an `SCHOOL`
+(das ist die Lernzielkontrolle mit Punkten), sondern einen Eintrag **ganz oben** in `BLAETTER` in
+`lernapp/index.html` anlegen (neueste zuerst):
+
+- `id` (Datum + Stichwort), `datum`, `titel` wörtlich vom Blatt, `thema` (Schlüssel aus `TOPICS`), `N`
+- `bild`: die ersten Zeilen des Blatts für das gezeichnete Kartenbild, `_` steht für eine Lücke.
+  **Kein Foto** einbauen: Das Projekt ist öffentlich, auf Fotos sind Kind, Handschrift oder Namen zu sehen.
+- `make()`: **alle** Aufgaben vom Blatt mit genau diesen Zahlen (Erzeuger mit `fix`-Parameter, siehe 2.).
+  Fehlt die Aufgabenart, wie bei 2. beschrieben eine neue bauen und als Thema in `TOPICS`/`generate` aufnehmen.
+
+Dem Nutzer melden, was Luisa schon ausgefüllt hat und ob dabei Fehler sind (nur was auf dem Foto sicher lesbar ist).
+Test: in `app/tests/schulthemen.test.mjs` die Karte des neuen Blatts prüfen (Titel, Anzahl, Aufgaben aus dem Blatt).
+
 ## 1. Blatt verstehen
 
 Jede Aufgabe auf dem Foto aufschreiben: Überschrift wörtlich, Punkte, Zahlenraum, alle Zahlen,

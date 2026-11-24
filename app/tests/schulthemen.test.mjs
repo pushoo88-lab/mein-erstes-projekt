@@ -7,9 +7,30 @@ for (const [width, height, how] of [[360, 800, "Handy"], [1280, 800, "Tablet que
   const { browser, page, errors, url } = await start({ dir, width, height });
   await page.goto(url); await page.waitForTimeout(300);
   await setup(page, { name: "Luisa", range: "100", topics: ["plus"] });
-  check(/auswählen/.test(await page.textContent("#focusInfo")), `${how}: Kachel lädt zum Auswählen ein`);
+  check(/1 Arbeitsblatt/.test(await page.textContent("#focusInfo")), `${how}: Kachel zeigt das neue Arbeitsblatt („${await page.textContent("#focusInfo")}“)`);
   await page.click("#focusBtn"); await page.waitForTimeout(300);
   check(await page.isVisible("#focusView") && await page.isVisible('[data-focus="ergaenzen"]'), `${how}: Themen zur Auswahl, „Bis zum Zehner“ dabei`);
+  // Arbeitsblatt aus der Schule: Karte mit Bild, Tipp darauf übt genau die Aufgaben vom Blatt
+  const card = await page.evaluate(() => { const c = document.querySelector("[data-blatt]"); return c && { text: c.textContent.replace(/\s+/g, " "), bild: !!c.querySelector(".blatt-bild i") }; });
+  check(card && card.bild && /nächste Zehner/.test(card.text) && /18 Aufgaben/.test(card.text) && /neu/.test(card.text), `${how}: Karte „Wie heißt der nächste Zehner?“ mit Bild, 18 Aufgaben, neu`);
+  await page.click("[data-blatt]"); await page.waitForTimeout(400);
+  const fromSheet = [55, 85, 43, 28, 94, 71, 37, 52, 64, 63, 21, 74, 83, 34, 47, 95, 81, 73];
+  const bt = await page.evaluate(() => window.__s.round.tasks.map((t) => t.a));
+  check(bt.length === 10 && bt.every((a) => fromSheet.includes(a)) && new Set(bt).size === 10, `${how}: Runde mit 10 verschiedenen Aufgaben vom Blatt (${bt.join(", ")})`);
+  for (let guard = 0; guard < 80 && !(await page.isVisible("#resultView")); guard++) {
+    const s = await page.evaluate(() => { const q = window.__s.round; return q && { i: q.i, t: q.tasks[q.i], step: q.step, vals: q.vals, locked: q.locked }; });
+    if (!s || s.locked) { await page.waitForTimeout(250); continue; }
+    const opts = await page.evaluate(([t, k, v]) => window.__mk.stepOptions(t, k, v), [s.t, s.step, s.vals]);
+    await answer(page, s.t.steps[s.step], opts[0]);
+    if (s.step === s.t.steps.length - 1) await page.waitForFunction((i) => !window.__s.round || window.__s.round.i !== i, s.i, { timeout: 15000 });
+  }
+  await page.waitForTimeout(600);
+  check(await page.isVisible("#resultView"), `${how}: Arbeitsblatt-Runde bis zum Ende`);
+  await page.click("#againBtn"); await page.waitForTimeout(300);
+  check(await page.textContent("#where") === "Arbeitsblatt aus der Schule", `${how}: „Nochmal“ übt wieder das Blatt`);
+  await page.click("#backBtn"); await page.click("#backBtn", { timeout: 1500 }).catch(() => {}); await page.waitForTimeout(300);
+  await page.click("#focusBtn"); await page.waitForTimeout(300);
+  check(/Bestes Ergebnis: 10 von 10/.test(await page.textContent("[data-blatt]")) && !/neu/.test(await page.textContent("[data-blatt] b")), `${how}: Karte zeigt das beste Ergebnis`);
   // Ohne Thema geht es nicht los
   await page.click("#focusGo"); await page.waitForTimeout(200);
   check(await page.isVisible("#focusView") && /mindestens ein Thema/.test(await page.textContent("#focusNote")), `${how}: ohne Thema kommt ein Hinweis`);
