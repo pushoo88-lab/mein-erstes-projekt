@@ -1,0 +1,13 @@
+{
+  "appId": "de.rechenwiese.app",
+  "appName": "Rechenwiese",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#e6f2f6"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "native"
+    }
+  }
+}

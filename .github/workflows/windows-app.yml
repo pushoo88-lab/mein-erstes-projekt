@@ -1,0 +1,124 @@
+name: Windows-Programm bauen
+
+# Baut bei jeder Änderung an der Rechenwiese ein Windows-Installationsprogramm (Rechenwiese-Setup.exe).
+on:
+  push:
+    paths:
+      - 'lernapp/**'
+      - 'windows/**'
+      - 'app/scripts/build-web.mjs'
+      - 'app/fonts/**'
+      - 'app/assets/icon-only.png'
+      - '.github/workflows/windows-app.yml'
+  workflow_dispatch:
+  # Wird auch nach dem Bearbeiten von Summis Stimme aufgerufen (stimme.yml)
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Branch, der gebaut wird'
+        type: string
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-${{ inputs.ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  exe:
+    name: Rechenwiese für Windows
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: windows
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'   # kein Code-Signatur-Zertifikat
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: windows/package-lock.json
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Programm-Symbol
+        run: mkdir -p build && cp ../app/assets/icon-only.png build/icon.png
+
+      # Wie bei Android: Minuten seit Anfang 2026, wird mit jedem Bau größer
+      - name: Versionsnummer setzen
+        run: |
+          CODE=$(( ($(date +%s) - 1767225600) / 60 ))
+          echo "VERSION=1.0.$CODE" >> "$GITHUB_ENV"
+          npm version "1.0.$CODE" --no-git-tag-version
+
+      # Startet das Programm unsichtbar und prüft, dass die App lädt. Sonst gibt es kein Setup.
+      - name: Selbsttest
+        run: npm run selbsttest
+
+      - name: Installationsprogramm bauen
+        run: npm run dist
+
+      # Nur zum Nachsehen bei GitHub; ein Netzfehler hier soll den Bau nicht rot machen
+      - uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: Rechenwiese-Windows
+          path: windows/dist/Rechenwiese-Setup.exe
+
+      - name: Als Download bereitstellen
+        id: release
+        continue-on-error: true
+        if: ${{ contains(fromJSON('["ccr-daadfa50-cgyznk", "master"]'), inputs.ref || github.ref_name) }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rechenwiese-windows
+          name: Rechenwiese für Windows
+          make_latest: false
+          files: windows/dist/Rechenwiese-Setup.exe
+          body: |
+            Die neueste Rechenwiese als Windows-Programm (Version ${{ env.VERSION }}).
+
+            So installierst du sie:
+            1. Unten bei „Assets“ auf **Rechenwiese-Setup.exe** klicken und speichern.
+            2. Die Datei öffnen.
+            3. Windows warnt eventuell („Der Computer wurde durch Windows geschützt“), weil das Programm
+               nicht von einer bekannten Firma signiert ist: auf **Weitere Informationen** → **Trotzdem ausführen**.
+            4. Installieren. Danach steht die Rechenwiese im Startmenü und auf dem Desktop.
+
+            Updates werden genauso installiert. Fortschritt und eigene Aufnahmen bleiben erhalten.
+            Vom Tablet übertragen: dort unter „Für Eltern“ eine Sicherung machen und sie am PC wiederherstellen.
+
+      # GitHub antwortet manchmal mit "Server Error": nach einer Pause nochmal
+      - name: Warten vor zweitem Versuch
+        if: ${{ steps.release.outcome == 'failure' }}
+        run: sleep 30
+
+      - name: Als Download bereitstellen (zweiter Versuch)
+        if: ${{ steps.release.outcome == 'failure' && contains(fromJSON('["ccr-daadfa50-cgyznk", "master"]'), inputs.ref || github.ref_name) }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rechenwiese-windows
+          name: Rechenwiese für Windows
+          make_latest: false
+          files: windows/dist/Rechenwiese-Setup.exe
+          body: |
+            Die neueste Rechenwiese als Windows-Programm (Version ${{ env.VERSION }}).
+
+            So installierst du sie:
+            1. Unten bei „Assets“ auf **Rechenwiese-Setup.exe** klicken und speichern.
+            2. Die Datei öffnen.
+            3. Windows warnt eventuell („Der Computer wurde durch Windows geschützt“), weil das Programm
+               nicht von einer bekannten Firma signiert ist: auf **Weitere Informationen** → **Trotzdem ausführen**.
+            4. Installieren. Danach steht die Rechenwiese im Startmenü und auf dem Desktop.
+
+            Updates werden genauso installiert. Fortschritt und eigene Aufnahmen bleiben erhalten.
+            Vom Tablet übertragen: dort unter „Für Eltern“ eine Sicherung machen und sie am PC wiederherstellen.
