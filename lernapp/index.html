@@ -616,6 +616,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
 .task .rows { display: grid; gap: 8px; justify-items: center; }
 .task .row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .25em; }
 .task .row.probe { font-size: .85em; }
+.task .row.reihe { font-size: .8em; gap: .15em; }
 .task .pick { font: inherit; color: var(--ink); background: var(--paper); border: 3px solid var(--line); border-radius: 999px; min-width: 1.9em; padding: 0 .3em; cursor: pointer; }
 .task .pick.picked, .task .circled { border: 3px solid var(--red); border-radius: 999px; padding: 0 .3em; background: color-mix(in srgb, var(--red) 10%, var(--paper)); }
 .task .choices { display: grid; gap: 8px; width: 100%; }
@@ -1899,6 +1900,52 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     return { kind: "zehner", a, b, c: T, op: "+", blank: "b", answer: b, key: `Z${a}`, steps: [NUM(T, tipT), NUM(b, tipB)], tip: tipB };
   }
 
+  // ---------- Aufgaben vom Blatt „Zahlen bis 100“: Felder in Zeilen ----------
+  // kind "zeile": zeilen = Liste von Zeilen; eine Zelle ist eine Zahl/ein Zeichen, { s: k } ein Zahlenfeld, { w: k } ein Auswahlfeld.
+  // zahlen: alle Zahlen der Aufgabe (damit eine Wiederholung nur in einem passenden Zahlenraum kommt); tip: Hilfe für die ganze Aufgabe
+  const zeile = (teil, topic, hint, zeilen, steps, say, key, tip = steps[0].tip) => ({ kind: "zeile", teil, topic, hint, zeilen, steps, say, key, tip,
+    answer: steps[steps.length - 1].answer, zahlen: [...zeilen.flat(), ...steps.filter((st) => st.type === "num").map((st) => st.answer)].filter((x) => typeof x === "number") });
+  // Zwei Zahlen vergleichen: 85 ○ 58 (drei Paare aus einer Zahlenwolke)
+  function vergleichTask(pairs) {
+    const sign = (x, y) => (x < y ? 0 : x === y ? 1 : 2);
+    const tip = "Vergleiche zuerst die Zehner. Sind sie gleich, vergleiche die Einer.";
+    return zeile("vergleich", "stellen", "Vergleiche: kleiner, gleich oder größer?", pairs.map(([x, y], k) => [x, { w: k }, y]),
+      pairs.map(([x, y]) => ({ type: "choice", options: ["<", "=", ">"], say: ["kleiner als", "gleich", "größer als"], answer: sign(x, y), tip })),
+      `Vergleiche die Zahlen: ${pairs.map(([x, y]) => `${fmt(x)} und ${fmt(y)}`).join(", ")}. Tippe auf kleiner, gleich oder größer.`,
+      "V" + pairs.flat().join(","));
+  }
+  // Nachbarzahlen (Vorgänger und Nachfolger) oder Nachbarzehner: _ 53 _
+  function nachbarnTask(n, zehner = false) {
+    // Bei einem vollen Zehner (40) sind die Nachbarzehner 30 und 50
+    const lo = zehner ? Math.ceil(n / 10) * 10 - 10 : n - 1, hi = zehner ? Math.floor(n / 10) * 10 + 10 : n + 1;
+    const tips = zehner ? ["Der Zehner davor ist der nächstkleinere volle Zehner.", "Der Zehner danach ist der nächstgrößere volle Zehner."]
+      : ["Der Vorgänger ist genau 1 weniger.", "Der Nachfolger ist genau 1 mehr."];
+    return zeile(zehner ? "nachbarzehner" : "nachbarzahl", "nachbar", zehner ? "Wie heißen die Nachbarzehner?" : "Bestimme die Nachbarzahlen: Vorgänger und Nachfolger.",
+      [[{ s: 0 }, n, { s: 1 }]], [NUM(lo, tips[0]), NUM(hi, tips[1])],
+      zehner ? `Wie heißen die Nachbarzehner von ${fmt(n)}?` : `Bestimme die Nachbarzahlen von ${fmt(n)}: Vorgänger und Nachfolger.`, (zehner ? "NZ" : "NN") + n, tips.join(" "));
+  }
+  // Vor und zurück zum Zehner: 51 + □ = □ und 51 − □ = □ (gegeben: Zehner schon vorgedruckt wie bei a)
+  function vorZurueckTask(a, gegeben = false) {
+    const hi = Math.ceil(a / 10) * 10, lo = Math.floor(a / 10) * 10;
+    const tips = [`Wie viele fehlen bis zum nächsten vollen Zehner? Denk an die Zehnerfreunde von ${a % 10}.`, "Welcher volle Zehner ist das?",
+      "Wie viele musst du wegnehmen, damit keine Einer mehr übrig sind?", "Welcher volle Zehner bleibt übrig?"];
+    const steps = gegeben ? [NUM(hi - a, tips[0]), NUM(a - lo, tips[2])] : [NUM(hi - a, tips[0]), NUM(hi, tips[1]), NUM(a - lo, tips[2]), NUM(lo, tips[3])];
+    const zeilen = gegeben ? [[a, "+", { s: 0 }, "=", hi], [a, "−", { s: 1 }, "=", lo]] : [[a, "+", { s: 0 }, "=", { s: 1 }], [a, "−", { s: 2 }, "=", { s: 3 }]];
+    return zeile("vorzurueck", "ergaenzen", "Vor und zurück zum Zehner. Schreibe immer zwei Aufgaben.", zeilen, steps,
+      `Vor und zurück zum Zehner: ${fmt(a)} plus wie viel gleich dem nächsten Zehner, und ${fmt(a)} minus wie viel gleich dem Zehner davor.`, "VZ" + a,
+      `Vor: Wie viele fehlen von ${fmt(a)} bis zum nächsten vollen Zehner? Zurück: Nimm alle Einer weg, dann bleibt der Zehner davor.`);
+  }
+  // Reihe fortsetzen: null = Lücke, z. B. [53, 56, 59, null, null, 68]
+  function reiheTask(reihe) {
+    const d = reihe[1] - reihe[0];
+    const full = reihe.map((_, i) => reihe[0] + i * d);
+    let k = 0;
+    const cells = reihe.map((x) => (x === null ? { s: k++ } : x));
+    const tip = "Wie viel kommt von Zahl zu Zahl dazu oder weg? Schau auf die ersten beiden Zahlen.";
+    return zeile("reihe", "nachbar", "Setze die Reihe fort.", [cells], full.filter((_, i) => reihe[i] === null).map((v) => NUM(v, tip)),
+      `Setze die Reihe fort: ${reihe.slice(0, reihe.indexOf(null)).map(fmt).join(", ")} und so weiter.`, "R" + reihe.join(","));
+  }
+
   function probeTask(N, op = pick(["plus", "minus"]), fix = "") {
     let t, blank;
     if (fix) {
@@ -2217,7 +2264,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   function dueReviews(sel, cfg, max = 2) {
     const N = cfg.N, len = Math.max(String(N).length, 2);
     // Rechenzahlen der Aufgabe: Wurde inzwischen ein kleinerer Zahlenraum oder "noch kein Mal" gewählt, passt sie nicht mehr
-    const nums = (t) => [t.a, t.b, t.c, ...(t.nums || []), ...(t.cols || []).map((x) => 2 * x), ...(t.rows || []).flat()].filter((x) => typeof x === "number");
+    const nums = (t) => [t.a, t.b, t.c, ...(t.nums || []), ...(t.cols || []).map((x) => 2 * x), ...(t.rows || []).flat(), ...(t.zahlen || [])].filter((x) => typeof x === "number");
     const fits = (t) => (cfg.mal || !/[·:]/.test(String(t.op || "") + (t.ops || []).join(""))) && nums(t).every((x) => x <= Math.max(N, 20));
     return shuffle(review.filter((x) => x.due <= Date.now() && sel.includes(x.t.topic) && String(x.t.answer).length <= len && fits(x.t)))
       .slice(0, max).map((x) => ({ ...x.t, review: true }));
@@ -3067,6 +3114,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     if (t.kind === "doubletab") return "Berechne das Doppelte. Oben steht die Zahl, unten das Doppelte. Fülle alle Lücken aus.";
     if (t.kind === "smart2") return `Rechne geschickt: ${fmt(t.nums[0])} ${word[t.ops[0]]} ${fmt(t.nums[1])} ${word[t.ops[1]]} ${fmt(t.nums[2])}. Tippe zuerst die beiden Zahlen an, mit denen du anfängst.`;
     if (t.kind === "sach") return `${t.text} ${t.idx.q >= 0 ? "Welche Frage passt?" : t.question} Schreibe die Rechnung und die Antwort.`;
+    if (t.kind === "zeile") return t.say;
     if (t.kind === "zehner") return `Wie heißt der nächste Zehner nach ${fmt(t.a)}? Ergänze: ${fmt(t.a)} plus wie viel gleich dem nächsten Zehner.`;
     if (t.kind === "probe") {
       const v = (k) => (t.blank === k ? "wie viel" : fmt(t[k]));
@@ -3719,6 +3767,11 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
       html = `<p class="story">${t.text}</p><div class="sach-part"><b>Frage:</b>${I.q >= 0 ? choiceAt(I.q) : `<p class="chosen">${t.question}</p>`}</div>` +
         (ss.step > I.q ? `<div class="sach-part"><b>Rechnung:</b><div class="row">${at(I.a)}${choiceAt(I.s, true)}${at(I.b)}<span class="op">=</span>${at(I.c)}</div></div>` : "") +
         (ss.step >= I.say ? `<div class="sach-part"><b>Antwort:</b><p class="sach-say">${t.say.replace("§", at(I.say))}</p></div>` : "");
+    } else if (t.kind === "zeile") {
+      const cell = (c) => (typeof c === "number" ? `<span>${fmt(c)}</span>` : c && c.s !== undefined ? at(c.s) : c && c.w !== undefined ? choiceAt(c.w, true)
+        : /^[+=−<>]$/.test(c) ? `<span class="op">${c}</span>` : `<span>${c}</span>`);
+      const comma = t.teil === "reihe";
+      html = `<p class="robo-hint">${t.hint}</p><div class="rows">${t.zeilen.map((z) => `<div class="row${comma ? " reihe" : ""}">${z.map(cell).join(comma ? '<span class="op">,</span>' : "")}</div>`).join("")}</div>`;
     } else if (t.kind === "zehner") {
       html = `<p class="robo-hint">Wie heißt der nächste Zehner? Ergänze.</p><div class="row">${fmt(t.a)}<span class="op">+</span>${at(1)}<span class="op">=</span>${at(0)}</div>`;
     } else if (t.kind === "probe") {
@@ -3956,6 +4009,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   const withName = (text) => (state.name && Math.random() < 0.25 ? `${text.replace(/[!.]$/, "")}, ${state.name}!` : text);
 
   function contextPraise(t) {
+    if (t.kind === "zeile") return t.topic === "nachbar" && t.teil !== "reihe" ? "nachbar" : null;
     if (CONTEXT_PRAISE[t.topic] && !["text", "luecke", "stellen"].includes(t.topic)) return t.topic;
     if (t.kind === "text") return "text";
     if (t.topic === "stellen") return "stellen";
@@ -4120,7 +4174,7 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   const MULTI_MISSED = ["Nicht schlimm! Schau dir die Lösung genau an, dann klappt es beim nächsten Mal.",
     "Geschafft! Ein paar Felder hat Summi für dich ausgefüllt. So lernst du dazu."];
   // Wie ein Feldwert vorgelesen/angezeigt wird: Zahl, gewählte Antwort oder zwei angetippte Zahlen
-  const fieldText = (t, st, v) => (st.type === "choice" ? `„${st.options[v]}“` : st.type === "pick2" ? String(v).split(",").map((i) => fmt(t.nums[i])).join(" und ") : fmt(v));
+  const fieldText = (t, st, v) => (st.type === "choice" ? (st.say ? st.say[v] : `„${st.options[v]}“`) : st.type === "pick2" ? String(v).split(",").map((i) => fmt(t.nums[i])).join(" und ") : fmt(v));
   function checkStep(v) {
     const r = state.round;
     if (!r || r.locked) return;
@@ -4198,8 +4252,8 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     rememberMistake(t);
     recordFact(t, false);
     // Dieselbe Aufgabe kommt 3 Aufgaben später nochmal: so übt das Gedächtnis (nicht auf dem Übungsblatt)
-    // Beim Blitzrechnen zusätzlich einfügen: sonst fiele eine andere Aufgabe weg, die gerade geübt werden soll
-    if (r.blitz && !t.again) r.tasks.splice(Math.min(r.i + 3, r.tasks.length), 0, { ...t, again: true });
+    // Beim Blitzrechnen und Arbeitsblatt zusätzlich einfügen: sonst fiele eine andere Aufgabe weg, die gerade geübt werden soll
+    if ((r.blitz || r.blatt) && !t.again) r.tasks.splice(Math.min(r.i + 3, r.tasks.length), 0, { ...t, again: true });
     else if (!r.school && !t.again && r.i + 3 < r.tasks.length) r.tasks[r.i + 3] = { ...t, again: true };
     showHelp(true);
     setPadEnabled(false);
@@ -5198,6 +5252,29 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
   // Jedes Blatt: id, datum, titel (wörtlich vom Blatt), thema (für Lernstand und Tipps), bild (Zeilen fürs
   // Kartenbild, "_" = Lücke) und make() mit allen Aufgaben vom Blatt.
   const BLAETTER = [
+    { id: "2026-11-zahlen100", datum: "25.11.2026", titel: "Zahlen bis 100", thema: "nachbar", N: 100,
+      bild: ["85 > _", "_ 53 _", "_ 35 _", "33 + _ = 40", "53, 56, 59, _"],
+      make: () => [
+        // 1 Wähle zwei Zahlen aus und vergleiche (je Wolke drei Paare)
+        vergleichTask([[85, 58], [32, 23], [17, 71]]), vergleichTask([[17, 18], [82, 73], [21, 34]]), vergleichTask([[15, 51], [42, 24], [31, 91]]),
+        // 2 Nachbarzahlen: Vorgänger und Nachfolger
+        ...[53, 36, 45, 54, 61, 84, 90, 22].map((n) => nachbarnTask(n)),
+        // 3 Nachbarzehner
+        ...[35, 63, 76, 47, 74, 89, 58, 91, 19, 65, 44, 98].map((n) => nachbarnTask(n, true)),
+        // 4 Vor und zurück zum Zehner (bei a sind die Zehner vorgegeben)
+        vorZurueckTask(33, true), ...[51, 87, 62, 94, 26].map((a) => vorZurueckTask(a)),
+        // 5 Reihen fortsetzen (die grauen Kontrollzahlen vom Blatt stehen schon da)
+        reiheTask([53, 56, 59, null, null, 68]), reiheTask([22, 25, null, null, null, 37]), reiheTask([18, 22, null, null, null, 38]),
+        reiheTask([77, 74, 71, null, null, null, null, null, 53]), reiheTask([100, 97, null, null, null, null, null, 79]),
+        reiheTask([92, 87, null, null, 72, null, null, null]),
+        // 6 Welche Zahl ist es?
+        { kind: "text", teil: "raetsel", topic: "text", zahlen: [40, 37], key: "WZa", text: "Die Zahl ist um 3 kleiner als 40. Welche Zahl ist es?", answer: 37, tip: "Geh von 40 drei Schritte zurück." },
+        { kind: "text", teil: "raetsel", topic: "text", zahlen: [42, 48], key: "WZb", text: "Die Zahl ist um 6 größer als 42. Welche Zahl ist es?", answer: 48, tip: "Geh von 42 sechs Schritte weiter." },
+        { kind: "text", teil: "raetsel", topic: "text", zahlen: [20, 11], key: "WZc", text: "Die Zahl hat zwei gleiche Ziffern. Sie ist kleiner als 20. Welche Zahl ist es?", answer: 11,
+          tip: "Welche Zahlen unter 20 haben zwei Ziffern? Bei welcher sind beide Ziffern gleich?" },
+        { kind: "text", teil: "raetsel", topic: "text", zahlen: [80, 89], key: "WZd", text: "Die Zahl ist größer als 80. Die Einerstelle ist um 1 größer als die Zehnerstelle. Welche Zahl ist es?", answer: 89,
+          tip: "Die Zehnerstelle ist 8 oder 9. Probiere aus: Welche Einerstelle ist dann um 1 größer?" },
+      ] },
     { id: "2026-11-zehner", datum: "24.11.2026", titel: "Wie heißt der nächste Zehner? Ergänze.", thema: "ergaenzen", N: 100,
       bild: ["55 + _ = _", "85 + _ = _", "43 + _ = _", "28 + _ = _", "94 + _ = _", "71 + _ = _"],
       make: () => [55, 85, 43, 28, 94, 71, 37, 52, 64, 63, 21, 74, 83, 34, 47, 95, 81, 73].map((a) => zehnerTask(100, a)) },
@@ -5220,7 +5297,12 @@ main > *, .task-card, .help, .task .pic { min-width: 0; max-width: 100%; }
     const b = BLAETTER.find((x) => x.id === id);
     if (!b || !ready()) return;
     state.level = null; setLevelButtons();
-    const tasks = shuffle(b.make().map((t) => ({ ...t, topic: b.thema }))).slice(0, 10);
+    // Hat das Blatt mehrere Teile, kommt aus jedem Teil etwas dran
+    const groups = {};
+    for (const t of shuffle(b.make())) (groups[t.teil || ""] = groups[t.teil || ""] || []).push({ topic: b.thema, ...t });
+    const lists = shuffle(Object.values(groups)), picked = [];
+    for (let k = 0; picked.length < 10 && lists.some((l) => l.length); k++) { const l = lists[k % lists.length]; if (l.length) picked.push(l.shift()); }
+    const tasks = shuffle(picked);
     state.round = { tasks, sel: [b.thema], N: b.N, i: 0, input: "", tries: 0, results: [], scores: [], locked: false, streak: 0, blatt: b.id };
     freshTask(state.round);
     state.lastMode = "blatt:" + b.id;
